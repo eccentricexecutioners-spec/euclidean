@@ -16,6 +16,7 @@ enum Act {
     /// Not built yet: says so in the status line.
     Soon,
     Params,
+    Construction,
 }
 
 /// A button or a dropdown row.
@@ -30,7 +31,7 @@ const fn e(icon: &'static str, label: &'static str, key: &'static str, act: Act)
     Entry { icon, label, key, act }
 }
 
-fn create() -> [Entry; 6] {
+fn create() -> [Entry; 7] {
     [
         e("sketch-line", tl!("Line"), "L", Act::Tool(SketchTool::Line)),
         e("sketch-rect", tl!("2-Point Rectangle"), "R", Act::Tool(SketchTool::Rect2)),
@@ -38,6 +39,7 @@ fn create() -> [Entry; 6] {
         e("sketch-circle", tl!("Center Diameter Circle"), "C", Act::Tool(SketchTool::Circle)),
         e("sketch-arc", tl!("3-Point Arc"), "", Act::Tool(SketchTool::Arc3)),
         e("sketch-fillet", tl!("Fillet"), "", Act::Tool(SketchTool::Fillet)),
+        e("sketch-line", tl!("Construction"), "X", Act::Construction),
     ]
 }
 
@@ -69,6 +71,7 @@ fn run(app: &mut VectorcraftApp, act: Act) {
         Act::Tool(tool) => super::set_tool(app, tool),
         Act::Constrain(kind) => super::constrain(app, kind),
         Act::Soon => app.status(tl!("Coming next")),
+        Act::Construction => super::toggle_construction(app),
         Act::Params => {
             app.ui.change_parameters = true;
         }
@@ -147,9 +150,23 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
                 ui.separator();
                 let d = [e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension))];
                 group(app, ui, &t, tl!("SKETCH DIMENSION"), &d[..], &[]);
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| finish_button(app, ui));
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    finish_button(app, ui);
+                    dof_label(app, ui, &t);
+                });
             });
         });
+}
+
+/// `Fully constrained`, or how many degrees of freedom are left.
+fn dof_label(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
+    let Some(dof) = super::snapshot(app).and_then(|c| c.dof) else { return };
+    let text = match dof {
+        0 => tl!("Fully constrained").to_string(),
+        1 => tl!("1 degree of freedom").to_string(),
+        n => format!("{n} {}", tl!("degrees of freedom")),
+    };
+    ui.label(egui::RichText::new(text).font(theme::semibold(11.5)).color(if dof == 0 { t.text_strong } else { t.text_dim }));
 }
 
 /// The green FINISH SKETCH button.

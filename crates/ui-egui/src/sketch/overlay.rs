@@ -15,7 +15,6 @@ use crate::theme::Tokens;
 /// Geometry that is not fully constrained.
 const BLUE: Color32 = Color32::from_rgb(0x1f, 0x6f, 0xeb);
 const BLACK: Color32 = Color32::from_rgb(0x1a, 0x1a, 0x1a);
-const LIGHT: Color32 = Color32::from_rgb(0xe6, 0xe6, 0xe6);
 /// Dimension lines, arrowheads and extension lines: they are drawn on the white artboard, so they
 /// are dark whatever the theme.
 const DIM_INK: Color32 = Color32::from_rgb(0x4a, 0x4a, 0x4a);
@@ -164,6 +163,131 @@ fn linear(g: &mut DimGeom, p: Pos2, q: Pos2) {
     g.label = p2 + (q2 - p2) * 0.5;
 }
 
+/// What a constraint glyph draws.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Sym {
+    Horizontal,
+    Vertical,
+    Perpendicular,
+    Parallel,
+    Equal,
+    Tangent,
+    Fix,
+    Midpoint,
+    Concentric,
+    Dot,
+}
+
+/// One constraint's glyph, laid out in screen space.
+#[derive(Clone, Debug)]
+pub struct Glyph {
+    /// The constraint's index in the recipe.
+    pub index: usize,
+    pub rect: Rect,
+    pub sym: Sym,
+    pub name: &'static str,
+}
+
+pub const GLYPH: f32 = 14.0;
+
+/// The glyph of every non-dimension constraint: beside its first entity (a line's middle, offset
+/// 12 px; a circle's centre) or, with no entity, its first point; several on one thing sit side
+/// by side.
+pub fn glyph_geoms(cache: &Cache, xf: &Xf) -> Vec<Glyph> {
+    let sk = &cache.sketch;
+    let pt = |id: u32| sk.point(id).map(|p| to_screen(xf, sk, [p.x, p.y]));
+    let mut stacked: std::collections::BTreeMap<(bool, u32), usize> = Default::default();
+    let mut out = vec![];
+    for (index, c) in sk.constraints.iter().enumerate() {
+        // The origin's own pin is the sketch's, not the user's.
+        if c.is_dimension() || matches!(c, Constraint::Fix { p: 0, .. }) {
+            continue;
+        }
+        let refs = c.refs();
+        let (key, base, along) = if let Some(e) = refs.entities.first() {
+            let laid = match sk.entity(*e) {
+                Some(Entity::Line { a, b, .. }) => pt(*a).zip(pt(*b)).map(|(p, q)| {
+                    let d = q - p;
+                    let u = if d.length() > 1e-3 { d.normalized() } else { vec2(1.0, 0.0) };
+                    (p + d * 0.5 + vec2(u.y, -u.x) * 12.0, u)
+                }),
+                Some(Entity::Circle { c, .. } | Entity::Arc { c, .. }) => pt(*c).map(|c| (c + vec2(12.0, -12.0), vec2(1.0, 0.0))),
+                None => None,
+            };
+            let Some((base, along)) = laid else { continue };
+            ((true, *e), base, along)
+        } else if let Some(p) = refs.points.first() {
+            let Some(at) = pt(*p) else { continue };
+            ((false, *p), at + vec2(12.0, -12.0), vec2(1.0, 0.0))
+        } else {
+            continue;
+        };
+        let k = stacked.entry(key).or_insert(0);
+        let centre = base + along * (*k as f32 * (GLYPH + 2.0));
+        *k += 1;
+        let (sym, name) = match c {
+            Constraint::Horizontal { .. } => (Sym::Horizontal, tl!("Horizontal")),
+            Constraint::Vertical { .. } => (Sym::Vertical, tl!("Vertical")),
+            Constraint::Perpendicular { .. } => (Sym::Perpendicular, tl!("Perpendicular")),
+            Constraint::Parallel { .. } => (Sym::Parallel, tl!("Parallel")),
+            Constraint::Equal { .. } => (Sym::Equal, tl!("Equal")),
+            Constraint::Tangent { .. } => (Sym::Tangent, tl!("Tangent")),
+            Constraint::Fix { .. } => (Sym::Fix, tl!("Fixed")),
+            Constraint::Midpoint { .. } => (Sym::Midpoint, tl!("Midpoint")),
+            Constraint::Concentric { .. } => (Sym::Concentric, tl!("Concentric")),
+            Constraint::PointOnLine { .. } => (Sym::Dot, tl!("Point on line")),
+            Constraint::PointOnCircle { .. } => (Sym::Dot, tl!("Point on circle")),
+            _ => (Sym::Dot, tl!("Coincident")),
+        };
+        out.push(Glyph { index, rect: Rect::from_center_size(centre, Vec2::splat(GLYPH)), sym, name });
+    }
+    out
+}
+
+/// The symbol of a glyph, drawn with strokes (no font has all of them).
+fn paint_sym(painter: &Painter, rect: Rect, sym: Sym, color: Color32) {
+    let c = rect.center();
+    let s = Stroke::new(1.3, color);
+    let h = 4.0;
+    match sym {
+        Sym::Horizontal => {
+            painter.line_segment([c - vec2(h, 0.0), c + vec2(h, 0.0)], s);
+        }
+        Sym::Vertical => {
+            painter.line_segment([c - vec2(0.0, h), c + vec2(0.0, h)], s);
+        }
+        Sym::Perpendicular => {
+            painter.line_segment([c + vec2(-h, h), c + vec2(h, h)], s);
+            painter.line_segment([c + vec2(0.0, h), c + vec2(0.0, -h)], s);
+        }
+        Sym::Parallel => {
+            painter.line_segment([c + vec2(-1.8, h), c + vec2(-1.8, -h)], s);
+            painter.line_segment([c + vec2(1.8, h), c + vec2(1.8, -h)], s);
+        }
+        Sym::Equal => {
+            painter.line_segment([c + vec2(-h, -1.8), c + vec2(h, -1.8)], s);
+            painter.line_segment([c + vec2(-h, 1.8), c + vec2(h, 1.8)], s);
+        }
+        Sym::Tangent => {
+            painter.circle_stroke(c, h, s);
+        }
+        Sym::Concentric => {
+            painter.circle_stroke(c, h, s);
+            painter.circle_filled(c, 1.5, color);
+        }
+        Sym::Midpoint => {
+            painter.add(PathShape::closed_line(vec![c + vec2(0.0, -h), c + vec2(h, h * 0.8), c + vec2(-h, h * 0.8)], s));
+        }
+        Sym::Fix => {
+            painter.rect_filled(Rect::from_center_size(c + vec2(0.0, 2.0), vec2(7.0, 5.0)), 1.0, color);
+            painter.add(PathShape::line(vec![c + vec2(-2.0, 0.0), c + vec2(-2.0, -2.5), c + vec2(2.0, -2.5), c + vec2(2.0, 0.0)], s));
+        }
+        Sym::Dot => {
+            painter.circle_filled(c, 2.2, color);
+        }
+    }
+}
+
 /// Where the infinite lines `p1 q1` and `p2 q2` cross.
 fn intersection(p1: Pos2, q1: Pos2, p2: Pos2, q2: Pos2) -> Option<Pos2> {
     let (d1, d2) = (q1 - p1, q2 - p2);
@@ -175,14 +299,10 @@ fn intersection(p1: Pos2, q1: Pos2, p2: Pos2, q2: Pos2) -> Option<Pos2> {
     Some(p1 + d1 * t)
 }
 
-fn ink(t: &Tokens, constrained: bool) -> Color32 {
-    if !constrained {
-        BLUE
-    } else if t.dark {
-        LIGHT
-    } else {
-        BLACK
-    }
+/// The geometry's ink: near-black when fully constrained, blue until then. The geometry sits on
+/// the white artboard, so this does not follow the theme.
+pub fn ink(constrained: bool) -> Color32 {
+    if constrained { BLACK } else { BLUE }
 }
 
 fn dashed(painter: &Painter, pts: &[Pos2], stroke: Stroke) {
@@ -204,7 +324,7 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         } else if m.hover == Some(pick) {
             (t.accent, 2.5)
         } else {
-            (ink(t, cache.constrained.contains(&e.id())), 1.5)
+            (ink(cache.constrained.contains(&e.id())), 1.5)
         };
         let stroke = Stroke::new(width, color);
         let pts: Vec<Pos2> = match e {
@@ -254,7 +374,7 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         } else if m.hover == Some(pick) {
             t.accent
         } else {
-            ink(t, cache.point_constrained.contains(&p.id))
+            ink(cache.point_constrained.contains(&p.id))
         };
         let half = if selected(pick) || m.hover == Some(pick) { 3.5 } else { 2.0 };
         painter.rect_filled(Rect::from_center_size(at, Vec2::splat(half * 2.0)), 0.0, color);
@@ -296,6 +416,38 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         painter.text(g.label, Align2::CENTER_CENTER, &g.text, FontId::proportional(12.0), if g.error.is_some() { t.error } else { CHIP_TEXT });
     }
 
+    // Constraint glyphs.
+    let mut tip = None;
+    for g in glyph_geoms(cache, xf) {
+        let pick = Pick::Glyph(g.index);
+        let color = if selected(pick) {
+            t.accent_strong
+        } else if m.hover == Some(pick) {
+            t.accent
+        } else {
+            DIM_INK
+        };
+        painter.rect_filled(g.rect, 3.0, CHIP);
+        painter.rect_stroke(g.rect, 3.0, Stroke::new(if selected(pick) { 2.0 } else { 1.0 }, color), egui::StrokeKind::Inside);
+        paint_sym(painter, g.rect, g.sym, color);
+        if m.hover == Some(pick) {
+            tip = Some((g.rect, g.name));
+        }
+    }
+    if let Some((rect, name)) = tip {
+        let w = painter.layout_no_wrap(name.to_string(), FontId::proportional(11.0), CHIP_TEXT).size().x + 12.0;
+        let r = Rect::from_min_size(rect.left_bottom() + vec2(0.0, 4.0), vec2(w, 18.0));
+        painter.rect_filled(r, 4.0, CHIP);
+        painter.rect_stroke(r, 4.0, Stroke::new(1.0, DIM_INK), egui::StrokeKind::Inside);
+        painter.text(r.center(), Align2::CENTER_CENTER, name, FontId::proportional(11.0), CHIP_TEXT);
+    }
+
+    // A new dimension's box.
+    if let Some((c, hud)) = &m.new_dim {
+        let at = refs_centre(cache, xf, c) + vec2(0.0, -34.0);
+        paint_hud(painter, t, hud, &[at], cache);
+    }
+
     // The shape being drawn.
     if m.tool != SketchTool::None {
         if let Some(Pick::Point(p)) = m.hover
@@ -312,6 +464,22 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
     {
         paint_hud(painter, t, hud, &[g.label], cache);
     }
+}
+
+/// The middle of the things `c` refers to, on screen.
+fn refs_centre(cache: &Cache, xf: &Xf, c: &Constraint) -> Pos2 {
+    let sk = &cache.sketch;
+    let refs = c.refs();
+    let mut ids = refs.points.clone();
+    for e in &refs.entities {
+        match sk.entity(*e) {
+            Some(Entity::Line { a, b, .. }) => ids.extend([*a, *b]),
+            Some(Entity::Circle { c, .. } | Entity::Arc { c, .. }) => ids.push(*c),
+            None => {}
+        }
+    }
+    let pts: Vec<Pos2> = ids.iter().filter_map(|i| sk.point(*i)).map(|p| to_screen(xf, sk, [p.x, p.y])).collect();
+    if pts.is_empty() { Pos2::ZERO } else { Rect::from_points(&pts).center() }
 }
 
 fn line_rubber(painter: &Painter, xf: &Xf, cache: &Cache, t: &Tokens, m: &SketchMode, start: [f64; 2], end: [f64; 2]) {

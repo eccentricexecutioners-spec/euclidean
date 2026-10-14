@@ -11,11 +11,16 @@ pub const POINT_SNAP: f32 = 8.0;
 /// How near the pointer must be to a line, circle or arc to pick it.
 pub const ENTITY_PICK: f32 = 6.0;
 
-/// What is under `pos`: a dimension label first (it is drawn on top), then a point, then an
-/// entity.
+/// What is under `pos`: a constraint glyph or a dimension label first (they are drawn on top;
+/// `with_dims`), then a point, then an entity.
 pub fn pick(cache: &Cache, xf: &Xf, pos: Pos2, with_dims: bool) -> Option<Pick> {
-    if with_dims && let Some(i) = dim_at(cache, xf, pos) {
-        return Some(Pick::Dim(i));
+    if with_dims {
+        if let Some(g) = super::overlay::glyph_geoms(cache, xf).into_iter().find(|g| g.rect.contains(pos)) {
+            return Some(Pick::Glyph(g.index));
+        }
+        if let Some(i) = dim_at(cache, xf, pos) {
+            return Some(Pick::Dim(i));
+        }
     }
     if let Some(p) = nearest_point(cache, xf, pos, POINT_SNAP, None) {
         return Some(Pick::Point(p));

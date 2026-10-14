@@ -508,3 +508,142 @@ fn double_click_edit_works_through_the_control_channel() {
     let r = rig.inspect(id);
     assert!(dims(&r).iter().any(|(n, v)| n == "d1" && near(*v, 70.0)), "{r}");
 }
+
+// ---- Phase 6: constraints, the dimension tool, glyphs, colours ----
+
+impl Rig {
+    fn line(&mut self, id: NodeId, from: Mm, to: Mm) -> (u32, u32, u32) {
+        let r = self.app.run("sketch.addLine", json!({"id": id.0, "from": from, "to": to})).unwrap();
+        self.frame(vec![]);
+        let n = |k: &str| r[k].as_u64().unwrap() as u32;
+        (n("line"), n("a"), n("b"))
+    }
+
+    fn click_px(&mut self, p: Pos2) {
+        self.frame(vec![Event::PointerMoved(p)]);
+        let e = self.button(p, true);
+        self.frame(vec![e]);
+        let e = self.button(p, false);
+        self.frame(vec![e]);
+    }
+
+    fn select(&mut self, picks: Vec<Pick>) {
+        self.app.sketch.as_mut().unwrap().selected = picks;
+    }
+
+    fn cache(&mut self) -> Arc<Cache> {
+        snapshot(&mut self.app).unwrap()
+    }
+
+    fn xf(&self) -> Xf {
+        Xf::new(self.app.canvas_rect.unwrap(), self.app.view().unwrap())
+    }
+
+    fn constraint_types(&mut self, id: NodeId) -> Vec<String> {
+        self.inspect(id)["constraints"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|c| !(c["type"] == "fix" && c["p"] == 0))
+            .map(|c| c["type"].as_str().unwrap().to_string())
+            .collect()
+    }
+}
+
+#[test]
+fn constraint_buttons_apply_to_a_valid_selection_and_refuse_an_invalid_one() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (l1, a1, _) = rig.line(id, [20.0, 20.0], [80.0, 30.0]);
+    let (l2, ..) = rig.line(id, [20.0, 60.0], [30.0, 100.0]);
+    rig.select(vec![Pick::Point(a1)]);
+    constrain(&mut rig.app, "parallel");
+    assert!(rig.app.ui.status.contains("Select"), "{}", rig.app.ui.status);
+    assert!(rig.constraint_types(id).is_empty(), "{}", rig.inspect(id));
+    rig.select(vec![Pick::Entity(l1), Pick::Entity(l2)]);
+    constrain(&mut rig.app, "perpendicular");
+    assert_eq!(rig.constraint_types(id), ["perpendicular"]);
+    // Fix pins a line's ends, and a second press lets them go.
+    rig.select(vec![Pick::Entity(l1)]);
+    constrain(&mut rig.app, "fix");
+    assert_eq!(rig.constraint_types(id).iter().filter(|t| *t == "fix").count(), 2);
+    constrain(&mut rig.app, "fix");
+    assert_eq!(rig.constraint_types(id), ["perpendicular"]);
+}
+
+#[test]
+fn the_d_tool_on_a_line_adds_a_length_dimension() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    rig.type_text("d");
+    assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::Dimension);
+    rig.click([50.0, 20.0]);
+    let (_, hud) = rig.app.sketch.as_ref().unwrap().new_dim.clone().expect("the box is up");
+    assert_eq!(hud.boxes[0].text, "60");
+    rig.type_text("45");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert!(dims(&r).iter().any(|(_, v)| near(*v, 45.0)), "{r}");
+    assert!(rig.app.sketch.as_ref().unwrap().new_dim.is_none());
+}
+
+#[test]
+fn colours_follow_the_fully_constrained_flag() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (fixed, a, _) = rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    let (free, ..) = rig.line(id, [20.0, 60.0], [80.0, 90.0]);
+    for c in [json!({"type": "fix", "p": a}), json!({"type": "horizontal", "line": fixed})] {
+        rig.app.run("sketch.addConstraint", json!({"id": id.0, "constraint": c})).unwrap();
+    }
+    rig.app.run("sketch.addDimension", json!({"id": id.0, "constraint": {"type": "length", "line": fixed}})).unwrap();
+    let cache = rig.cache();
+    assert_eq!(overlay::ink(cache.constrained.contains(&fixed)), egui::Color32::from_rgb(0x1a, 0x1a, 0x1a));
+    assert_eq!(overlay::ink(cache.constrained.contains(&free)), egui::Color32::from_rgb(0x1f, 0x6f, 0xeb));
+    assert!(cache.dof.is_some_and(|d| d > 0), "the free line leaves freedom");
+}
+
+#[test]
+fn deleting_a_glyph_removes_its_constraint_in_one_undo_step() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (l, ..) = rig.line(id, [20.0, 20.0], [80.0, 30.0]);
+    rig.app.run("sketch.addConstraint", json!({"id": id.0, "constraint": {"type": "horizontal", "line": l}})).unwrap();
+    rig.frame(vec![]);
+    let cache = rig.cache();
+    let glyphs = overlay::glyph_geoms(&cache, &rig.xf());
+    assert_eq!(glyphs.len(), 1, "{}", rig.inspect(id));
+    rig.mv([0.0, 0.0]);
+    rig.click_px(glyphs[0].rect.center());
+    assert_eq!(rig.app.sketch.as_ref().unwrap().selected, [Pick::Glyph(glyphs[0].index)]);
+    rig.key(Key::Delete);
+    assert!(rig.constraint_types(id).is_empty());
+    rig.app.session.execute("edit.undo", &json!({})).unwrap();
+    assert_eq!(rig.constraint_types(id), ["horizontal"], "one undo brings it back");
+}
+
+#[test]
+fn an_over_constraining_dimension_is_refused_with_a_status_message() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addLine", json!({"id": id.0, "from": [20.0, 20.0], "to": [60.0, 20.0], "length": 40})).unwrap();
+    rig.frame(vec![]);
+    rig.type_text("d");
+    rig.click([40.0, 20.0]);
+    rig.key(Key::Enter);
+    assert_eq!(rig.app.ui.status, "This would over-constrain the sketch");
+    assert_eq!(dims(&rig.inspect(id)).len(), 1, "nothing changed");
+}
+
+#[test]
+fn x_toggles_construction_on_the_selected_entities() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (l, ..) = rig.line(id, [20.0, 20.0], [80.0, 30.0]);
+    rig.select(vec![Pick::Entity(l)]);
+    rig.type_text("x");
+    assert_eq!(rig.inspect(id)["entities"][0]["construction"], true);
+    rig.type_text("x");
+    assert_eq!(rig.inspect(id)["entities"][0]["construction"], false);
+}

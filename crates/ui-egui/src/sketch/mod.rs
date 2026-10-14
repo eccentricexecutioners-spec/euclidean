@@ -59,6 +59,8 @@ pub enum Pick {
     Entity(u32),
     /// The value label of the dimension constraint with this index.
     Dim(usize),
+    /// The glyph of the (non-dimension) constraint with this index.
+    Glyph(usize),
 }
 
 /// What the pointer snapped to while drawing.
@@ -107,6 +109,9 @@ pub struct SketchMode {
     pub selected: Vec<Pick>,
     /// A dimension being edited in place: its constraint index and the box.
     pub edit_dim: Option<(usize, Hud)>,
+    /// A dimension being placed by the Sketch Dimension tool: what it measures (its parameter
+    /// name is empty until the engine makes it) and the box, prefilled with the measured value.
+    pub new_dim: Option<(Constraint, Hud)>,
     pub snap: Snap,
     /// The press that began this gesture came with a start already set (a release commits).
     pub armed: bool,
@@ -128,6 +133,7 @@ impl SketchMode {
             hover: None,
             selected: vec![],
             edit_dim: None,
+            new_dim: None,
             snap: Snap::None,
             armed: false,
             cache: None,
@@ -147,15 +153,17 @@ pub struct Cache {
     pub point_constrained: BTreeSet<u32>,
     /// Constraint index to its dimension's error.
     pub errors: BTreeMap<usize, String>,
+    /// Degrees of freedom left; `None` when the sketch does not solve.
+    pub dof: Option<usize>,
 }
 
 fn build_cache(sketch: Sketch, rows: Vec<ParamRow>) -> Cache {
     let params = params::solve(&rows);
-    let (constrained, point_constrained, errors) = match solve::solve(&sketch, &params) {
-        Ok(s) => (s.constrained, s.point_constrained, s.errors),
+    let (constrained, point_constrained, errors, dof) = match solve::solve(&sketch, &params) {
+        Ok(s) => (s.constrained, s.point_constrained, s.errors, Some(s.dof)),
         Err(_) => Default::default(),
     };
-    Cache { sketch, rows, params, constrained, point_constrained, errors }
+    Cache { sketch, rows, params, constrained, point_constrained, errors, dof }
 }
 
 /// Pixels per millimetre at this view.
@@ -269,11 +277,13 @@ pub fn after_dispatch(app: &mut VectorcraftApp, ev: &vectorcraft_tools::PointerE
 /// Select tool `tool` (ending what the old one was drawing).
 pub fn set_tool(app: &mut VectorcraftApp, tool: SketchTool) {
     let Some(m) = app.sketch.as_mut() else { return };
+    let was = m.tool;
     m.tool = tool;
     tools::end_chain(m);
     m.edit_dim = None;
-    if tool == SketchTool::Dimension {
-        app.status(tl!("Coming next"));
+    m.new_dim = None;
+    if tool == SketchTool::Dimension || was == SketchTool::Dimension {
+        m.selected.clear();
     }
     if tool == SketchTool::Fillet {
         tools::fillet_from_selection(app);
@@ -296,7 +306,11 @@ pub fn hint(app: &VectorcraftApp) -> Option<&'static str> {
         (SketchTool::Arc3, true, true) => tl!("Click to set the bulge, or type a radius, Enter · Esc cancels"),
         (SketchTool::Fillet, false, _) => tl!("Click a corner where two lines meet · Esc cancels"),
         (SketchTool::Fillet, true, _) => tl!("Type a radius, Enter · Esc cancels"),
-        (SketchTool::Dimension, ..) => tl!("Sketch Dimension is coming next · Esc leaves the tool"),
+        (SketchTool::Dimension, ..) if m.new_dim.is_some() => {
+            tl!("Type a value, Enter places the dimension · click another line for the angle · Esc cancels")
+        }
+        (SketchTool::Dimension, ..) if m.selected.is_empty() => tl!("Click a line, circle or arc, or a point · Esc leaves the tool"),
+        (SketchTool::Dimension, ..) => tl!("Click a second point for the distance · Esc leaves the tool"),
     })
 }
 
@@ -354,7 +368,7 @@ fn select_all(app: &mut VectorcraftApp) {
 }
 
 fn hud_up(app: &VectorcraftApp) -> bool {
-    app.sketch.as_ref().is_some_and(|m| m.hud.is_some() || m.edit_dim.is_some())
+    app.sketch.as_ref().is_some_and(|m| m.hud.is_some() || m.edit_dim.is_some() || m.new_dim.is_some())
 }
 
 /// A typed character: into the focused box while one is up, else a tool letter.
@@ -398,7 +412,11 @@ fn key_press(app: &mut VectorcraftApp, key: Key, repeat: bool) {
 /// the tool, the sketch.
 fn escape(app: &mut VectorcraftApp) {
     let Some(m) = app.sketch.as_mut() else { return };
-    if m.edit_dim.take().is_some() {
+    if m.edit_dim.take().is_some() || m.new_dim.take().is_some() {
+        return;
+    }
+    if m.tool == SketchTool::Dimension && !m.selected.is_empty() {
+        m.selected.clear();
         return;
     }
     if m.hud.as_ref().is_some_and(Hud::any_typed) {
@@ -420,6 +438,7 @@ fn escape(app: &mut VectorcraftApp) {
 pub(super) fn feed(app: &mut VectorcraftApp, ev: HudEvent) -> bool {
     enum Fed {
         Edit(usize, HudOutcome),
+        New(HudOutcome),
         Line(HudOutcome),
         No,
     }
@@ -428,6 +447,8 @@ pub(super) fn feed(app: &mut VectorcraftApp, ev: HudEvent) -> bool {
         let Some(m) = app.sketch.as_mut() else { return false };
         if let Some((index, hud)) = m.edit_dim.as_mut() {
             Fed::Edit(*index, hud.handle(ev, &cache.params))
+        } else if let Some((_, hud)) = m.new_dim.as_mut() {
+            Fed::New(hud.handle(ev, &cache.params))
         } else if let Some(hud) = m.hud.as_mut() {
             Fed::Line(hud.handle(ev, &cache.params))
         } else {
@@ -440,6 +461,16 @@ pub(super) fn feed(app: &mut VectorcraftApp, ev: HudEvent) -> bool {
             HudOutcome::Cancel => {
                 if let Some(m) = app.sketch.as_mut() {
                     m.edit_dim = None;
+                }
+            }
+            HudOutcome::Blocked(e) => app.status(e),
+            HudOutcome::None => {}
+        },
+        Fed::New(out) => match out {
+            HudOutcome::Commit(_) => commit_new_dim(app),
+            HudOutcome::Cancel => {
+                if let Some(m) = app.sketch.as_mut() {
+                    m.new_dim = None;
                 }
             }
             HudOutcome::Blocked(e) => app.status(e),
@@ -506,7 +537,7 @@ fn selected_ids(m: &SketchMode) -> (Vec<u32>, Vec<u32>, Vec<usize>) {
         match p {
             Pick::Point(i) => points.push(*i),
             Pick::Entity(i) => entities.push(*i),
-            Pick::Dim(i) => dims.push(*i),
+            Pick::Dim(i) | Pick::Glyph(i) => dims.push(*i),
         }
     }
     (points, entities, dims)
@@ -526,6 +557,7 @@ fn delete_selection(app: &mut VectorcraftApp) {
     }
     // Highest first: removing one renumbers those after it.
     dims.sort_unstable_by(|a, b| b.cmp(a));
+    dims.dedup();
     for d in dims {
         if let Err(e) = app.run("sketch.removeConstraint", json!({"id": id, "index": d})) {
             app.status(e);
@@ -538,7 +570,7 @@ fn delete_selection(app: &mut VectorcraftApp) {
 }
 
 /// X: toggle construction on the selected entities.
-fn toggle_construction(app: &mut VectorcraftApp) {
+pub fn toggle_construction(app: &mut VectorcraftApp) {
     let Some(m) = app.sketch.as_ref() else { return };
     let (_, entities, _) = selected_ids(m);
     if entities.is_empty() {
@@ -559,6 +591,10 @@ pub fn constrain(app: &mut VectorcraftApp, kind: &str) {
     let Some(m) = app.sketch.as_ref() else { return };
     let (points, entities, _) = selected_ids(m);
     let id = m.id.0;
+    if kind == "fix" {
+        fix_toggle(app, &cache, &points, &entities);
+        return;
+    }
     let entity = |i: u32| cache.sketch.entity(i);
     let is_line = |i: u32| matches!(entity(i), Some(Entity::Line { .. }));
     let is_round = |i: u32| matches!(entity(i), Some(Entity::Circle { .. } | Entity::Arc { .. }));
@@ -577,7 +613,6 @@ pub fn constrain(app: &mut VectorcraftApp, kind: &str) {
         ("coincident", [p], [e]) if is_line(*e) => Ok(json!({"type": "pointOnLine", "p": p, "line": e})),
         ("coincident", [p], [e]) if is_round(*e) => Ok(json!({"type": "pointOnCircle", "p": p, "e": e})),
         ("midpoint", [p], [l]) if is_line(*l) => Ok(json!({"type": kind, "p": p, "line": l})),
-        ("fix", [p], []) => Ok(json!({"type": kind, "p": p})),
         _ => Err(match kind {
             "horizontal" => tl!("Select a line"),
             "perpendicular" | "parallel" => tl!("Select two lines"),
@@ -585,18 +620,176 @@ pub fn constrain(app: &mut VectorcraftApp, kind: &str) {
             "tangent" => tl!("Select a line and a circle or arc, or two circles or arcs"),
             "concentric" => tl!("Select two circles or arcs"),
             "coincident" => tl!("Select two points, or a point and a line, circle or arc"),
-            "midpoint" => tl!("Select a point and a line"),
-            _ => tl!("Select a point"),
+            _ => tl!("Select a point and a line"),
         }
         .to_string()),
     };
     match built {
         Ok(constraint) => {
             if let Err(e) = app.run("sketch.addConstraint", json!({"id": id, "constraint": constraint})) {
-                app.status(e);
+                app.status(refusal(e));
             }
         }
         Err(e) => app.status(e),
+    }
+}
+
+/// An engine refusal as the status line shows it: the over-constraint message stands alone.
+fn refusal(e: String) -> String {
+    const OVER: &str = "This would over-constrain the sketch";
+    if e.contains(OVER) { tl!("This would over-constrain the sketch").to_string() } else { e }
+}
+
+/// Fix/Unfix: the selected points and the end points of the selected lines. Pins those that are
+/// loose; when every one is already pinned, takes the pins away.
+fn fix_toggle(app: &mut VectorcraftApp, cache: &Cache, points: &[u32], entities: &[u32]) {
+    let mut targets: Vec<u32> = points.to_vec();
+    for e in entities {
+        if let Some(Entity::Line { a, b, .. }) = cache.sketch.entity(*e) {
+            targets.extend([*a, *b]);
+        }
+    }
+    targets.sort_unstable();
+    targets.dedup();
+    let Some(id) = app.sketch.as_ref().map(|m| m.id.0) else { return };
+    if targets.is_empty() {
+        app.status(tl!("Select a point or a line"));
+        return;
+    }
+    let fixed_at = |p: u32| cache.sketch.constraints.iter().position(|c| matches!(c, Constraint::Fix { p: q, .. } if *q == p));
+    let loose: Vec<u32> = targets.iter().copied().filter(|p| fixed_at(*p).is_none()).collect();
+    if loose.is_empty() {
+        let mut at: Vec<usize> = targets.iter().filter_map(|p| fixed_at(*p)).collect();
+        at.sort_unstable_by(|a, b| b.cmp(a));
+        for i in at {
+            if let Err(e) = app.run("sketch.removeConstraint", json!({"id": id, "index": i})) {
+                app.status(e);
+                return;
+            }
+        }
+        return;
+    }
+    for p in loose {
+        if let Err(e) = app.run("sketch.addConstraint", json!({"id": id, "constraint": {"type": "fix", "p": p}})) {
+            app.status(refusal(e));
+            return;
+        }
+    }
+}
+
+// ---- the Sketch Dimension tool ----
+
+/// The dimension `c` as `sketch.addDimension` takes it (the engine names the parameter).
+fn dim_json(c: &Constraint) -> Value {
+    match c {
+        Constraint::Length { line, .. } => json!({"type": "length", "line": line}),
+        Constraint::Distance { a, b, .. } => json!({"type": "distance", "a": a, "b": b}),
+        Constraint::AngleBetween { a, b, .. } => json!({"type": "angleBetween", "a": a, "b": b}),
+        Constraint::Radius { e, .. } => json!({"type": "radius", "e": e}),
+        Constraint::Diameter { e, .. } => json!({"type": "diameter", "e": e}),
+        _ => json!({}),
+    }
+}
+
+/// Open the box for the new dimension `c`, prefilled with what it measures and selected.
+fn open_dim(app: &mut VectorcraftApp, cache: &Cache, c: Constraint) {
+    let (label, unit) = match &c {
+        Constraint::AngleBetween { .. } => ("angle", hud::BoxUnit::Deg),
+        Constraint::Radius { .. } => ("radius", hud::BoxUnit::Mm),
+        Constraint::Diameter { .. } => ("diameter", hud::BoxUnit::Mm),
+        _ => ("length", hud::BoxUnit::Mm),
+    };
+    let mut hud = Hud::new(&[(label, unit)]);
+    hud.boxes[0].text = overlay::trim2(cache.sketch.measure(&c).unwrap_or(0.0));
+    if let Some(m) = app.sketch.as_mut() {
+        m.new_dim = Some((c, hud));
+    }
+}
+
+/// Enter in a new dimension's box: `sketch.addDimension` with the box's text.
+fn commit_new_dim(app: &mut VectorcraftApp) {
+    let Some(m) = app.sketch.as_ref() else { return };
+    let Some((c, hud)) = m.new_dim.as_ref() else { return };
+    let (constraint, text, id) = (dim_json(c), hud.boxes[0].text.clone(), m.id.0);
+    match app.run("sketch.addDimension", json!({"id": id, "constraint": constraint, "expression": text})) {
+        Ok(_) => {
+            if let Some(m) = app.sketch.as_mut() {
+                m.new_dim = None;
+                m.selected.clear();
+            }
+        }
+        Err(e) => {
+            let e = refusal(e);
+            // A refused sketch changes nothing: the box goes, a bad number stays to be fixed.
+            if e == tl!("This would over-constrain the sketch")
+                && let Some(m) = app.sketch.as_mut()
+            {
+                m.new_dim = None;
+                m.selected.clear();
+            }
+            app.status(e);
+        }
+    }
+}
+
+/// The Sketch Dimension tool: a line gives its length (a click on a second line turns that into
+/// the angle between them), a circle its diameter, an arc its radius, two points their distance.
+fn dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
+    let pick = hit::pick(cache, xf, pos, false);
+    let Some(m) = app.sketch.as_mut() else { return };
+    m.hover = pick;
+    if !input.clicked {
+        return;
+    }
+    let sk = &cache.sketch;
+    let kind = |pick: Pick| match pick {
+        Pick::Entity(e) => sk.entity(e),
+        _ => None,
+    };
+    let none = String::new;
+    if let Some((Constraint::Length { line, .. }, _)) = &m.new_dim {
+        if let Some(Pick::Entity(b)) = pick
+            && b != *line
+            && matches!(kind(Pick::Entity(b)), Some(Entity::Line { .. }))
+        {
+            let c = Constraint::AngleBetween { a: *line, b, param: none() };
+            m.selected = vec![Pick::Entity(*line), Pick::Entity(b)];
+            open_dim(app, cache, c);
+            return;
+        }
+        m.new_dim = None;
+        m.selected.clear();
+        return;
+    }
+    if m.new_dim.is_some() {
+        m.new_dim = None;
+        m.selected.clear();
+        return;
+    }
+    let first = match m.selected.as_slice() {
+        [Pick::Point(a)] => Some(*a),
+        _ => None,
+    };
+    let made = match (first, pick) {
+        (Some(a), Some(Pick::Point(b))) if a != b => Some(Constraint::Distance { a, b, param: none() }),
+        (_, Some(Pick::Entity(e))) => match kind(Pick::Entity(e)) {
+            Some(Entity::Line { .. }) => Some(Constraint::Length { line: e, param: none() }),
+            Some(Entity::Circle { .. }) => Some(Constraint::Diameter { e, param: none() }),
+            Some(Entity::Arc { .. }) => Some(Constraint::Radius { e, param: none() }),
+            None => None,
+        },
+        _ => None,
+    };
+    match (made, pick) {
+        (Some(c), Some(p)) => {
+            m.selected = match (&c, first) {
+                (Constraint::Distance { .. }, Some(a)) => vec![Pick::Point(a), p],
+                _ => vec![p],
+            };
+            open_dim(app, cache, c);
+        }
+        (None, Some(p @ Pick::Point(_))) => m.selected = vec![p],
+        _ => m.selected.clear(),
     }
 }
 
@@ -668,9 +861,7 @@ pub fn handle_pointer(app: &mut VectorcraftApp, xf: &Xf, input: PointerInput) {
         SketchTool::None => select_pointer(app, &cache, xf, pos, input),
         SketchTool::Rect2 | SketchTool::RectCenter | SketchTool::Circle | SketchTool::Arc3 => tools::shape_pointer(app, &cache, xf, pos, input),
         SketchTool::Fillet => tools::fillet_pointer(app, &cache, xf, pos, input),
-        SketchTool::Dimension => {
-            m.hover = hit::pick(&cache, xf, pos, false);
-        }
+        SketchTool::Dimension => dim_pointer(app, &cache, xf, pos, input),
     }
 }
 
