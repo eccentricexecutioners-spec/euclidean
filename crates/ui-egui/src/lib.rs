@@ -49,6 +49,7 @@ pub mod render_worker;
 mod scrub;
 pub mod shortcut_editor;
 pub mod shortcuts;
+pub mod sketch;
 pub mod sketch_strip;
 pub mod state;
 pub mod sysclip;
@@ -350,6 +351,8 @@ pub struct VectorcraftApp {
     pub services: Services,
     pub canvas: CanvasCache,
     pub perf: Perf,
+    /// Sketch mode (Euclidean): the drawn sketch being edited, if any.
+    pub sketch: Option<sketch::SketchMode>,
     /// macOS: the room the app bar keeps at its left for the window buttons over it, in points
     /// (0 where the OS draws no buttons over the app bar).
     pub titlebar_inset: f32,
@@ -486,6 +489,7 @@ impl VectorcraftApp {
                 cursors: Default::default(),
             },
             perf: Perf::default(),
+            sketch: None,
             titlebar_inset: 0.0,
             last_effect: None,
             run_count: 0,
@@ -1298,7 +1302,10 @@ impl VectorcraftApp {
         let t = theme::Tokens::get(&ctx);
         if self.ui.screen_mode < 2 {
             chrome::app_bar(self, ui);
-            if self.ui.control_bar {
+            if sketch::active(self) {
+                // Sketch mode: the sketch toolbar replaces the Control bar, in every workspace.
+                sketch::toolbar::show(self, ui);
+            } else if self.ui.control_bar {
                 chrome::control_bar(self, ui);
             }
         }

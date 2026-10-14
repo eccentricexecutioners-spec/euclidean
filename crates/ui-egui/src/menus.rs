@@ -377,6 +377,8 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
         "{} opens the Save PDF dialog; with params = document.exportPdf options written to path (asked when missing; viewAfterSaving opens the file) → {path, bytes, warnings}",
     ),
     ("help.about", "About Euclidean", "", "{}"),
+    ("sketch.edit.new", "New Sketch", "", "{} make a new drawn sketch (sketch.new) and enter sketch mode on it → {id}"),
+    ("sketch.edit.finish", "Finish Sketch", "", "{} leave sketch mode: the sketch is selected again"),
     ("help.commandPalette", "Search Commands…", "Cmd+Shift+/", "{}"),
     ("app.quit", "Quit Euclidean", "Cmd+Q", "{}"),
     (
@@ -1298,6 +1300,11 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
         "file.export.pdf" => io::export_pdf(app, p.clone()),
         "help.about" => {
             app.ui.about = true;
+            Ok(Value::Null)
+        }
+        "sketch.edit.new" => crate::sketch::new_sketch(app),
+        "sketch.edit.finish" => {
+            crate::sketch::finish(app);
             Ok(Value::Null)
         }
         "help.commandPalette" => {
@@ -2339,6 +2346,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 sub(
                     "Parametric Sketch",
                     vec![
+                        c("New Sketch", "sketch.edit.new"),
                         cp("New Rectangle", "sketch.create", json!({"shapes": [{"kind": "rect"}]})),
                         cp("New Circle", "sketch.create", json!({"shapes": [{"kind": "circle"}]})),
                         cp("New Line", "sketch.create", json!({"shapes": [{"kind": "line"}]})),

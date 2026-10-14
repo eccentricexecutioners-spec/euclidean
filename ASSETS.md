@@ -289,6 +289,27 @@ Generated-in-code art is original and has no file to list. This covers the defau
 | `assets/icons/settings.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/shapes.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/share-2.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
+| `assets/icons/sketch-arc.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-circle.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-coincident.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-concentric.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-dimension.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-equal.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-fillet.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-finish.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-fix.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-horizontal.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-line.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-midpoint.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-new.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-offset.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-parallel.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-params.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-perpendicular.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-rect-center.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-rect.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-tangent.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
+| `assets/icons/sketch-trim.svg` | Euclidean (drawn for B3) | Original work, drawn for Euclidean | MIT OR Apache-2.0 |  |
 | `assets/icons/slice.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/sparkles.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/spline-pointer.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |

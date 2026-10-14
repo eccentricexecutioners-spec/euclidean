@@ -442,6 +442,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         }
     }
     draw_overlays(&painter, &xf, &overlays, &t, HandleLook::of(&app.session.prefs));
+    crate::sketch::overlay(app, &painter, &xf, ui);
     ime_output(app, ui.ctx(), &xf);
     crate::place::paint_drop_highlight(app, ui.ctx(), &painter, rect);
 
@@ -453,7 +454,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         }
         rulers(ui, full, &xf, app.hover_doc, app.session.general_unit(), origin_preview.unwrap_or_else(|| app.ruler_origin()), &t);
     }
-    if app.ui.task_bar && !revolve_edit && !app.session.tool_busy() && app.ui.screen_mode < 3 {
+    if app.ui.task_bar && !revolve_edit && !app.session.tool_busy() && app.ui.screen_mode < 3 && !crate::sketch::active(app) {
         task_bar(app, ui, &xf);
     }
     if app.ui.screen_mode < 3 {
@@ -595,6 +596,11 @@ fn handle_input(app: &mut VectorcraftApp, ui: &Ui, resp: &egui::Response, rect: 
     let zoom_mode = if space { m.command } else { tool == "zoom" };
     let pan_mode = if space { !m.command } else { tool == "hand" };
     let middle_pan = matches!(drag, Some(Drag::Pan { middle: true, .. }));
+    // Sketch mode (Euclidean) owns the pointer; Space-drag and middle-button panning stay the canvas's.
+    if crate::sketch::active(app) && !space && drag.is_none() && !middle_pan && !pointer.button_pressed(egui::PointerButton::Middle) {
+        crate::sketch::pointer(app, ui, resp, rect, &xf);
+        return;
+    }
     // egui counts a press a few pixels outside the canvas as on it (its interaction radius): only a
     // press on the canvas itself reaches the tools, else it would land at the canvas's centre.
     if pointer.primary_pressed()
@@ -945,6 +951,7 @@ pub fn dispatch(app: &mut VectorcraftApp, ev: &PointerEvent, view: vectorcraft_e
         v.artboard = i;
     }
     apply_requests(app, r);
+    crate::sketch::after_dispatch(app, ev);
 }
 
 /// Act on what a tool event asked the UI for (dialogs, tool switches), or show its error.

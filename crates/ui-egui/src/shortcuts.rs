@@ -226,6 +226,15 @@ pub fn handle(app: &mut VectorcraftApp, ctx: &egui::Context) {
         }
         return;
     }
+    // Sketch mode (Euclidean) takes the keyboard: tool letters, the heads-up boxes, Tab, Enter,
+    // Escape, Delete. Command chords stay with the normal path below.
+    if crate::sketch::active(app) {
+        // Tab moves egui's focus on to a toolbar button: that is not typing.
+        crate::sketch::release_button_focus(ctx);
+        if !ctx.egui_wants_keyboard_input() {
+            crate::sketch::keys(app, ctx);
+        }
+    }
     let typing = ctx.egui_wants_keyboard_input();
     // Escape closes Edit Toolbar's drawer first (egui drops a drag from it on Escape already).
     if app.ui.tools_drawer && !typing && ctx.input_mut(|i| i.consume_key(Modifiers::NONE, Key::Escape)) {
