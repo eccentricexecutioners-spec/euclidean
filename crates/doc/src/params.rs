@@ -12,8 +12,8 @@ use crate::expr::{self, Solved};
 
 /// Key of the parameter rows in `Document::unknown`.
 pub const DOC_KEY: &str = "euclidean.params";
-/// The units a row may have: millimetres, inches, or none (a count or a ratio).
-pub const UNITS: [&str; 3] = ["mm", "in", ""];
+/// The units a row may have: millimetres, inches, degrees, or none (a count or a ratio).
+pub const UNITS: [&str; 4] = ["mm", "in", "deg", ""];
 /// The longest parameter name, in characters.
 pub const MAX_NAME: usize = 64;
 /// At most this many rows are kept (a file with more is cut here, not refused).
@@ -40,12 +40,21 @@ pub struct ParamRow {
     pub max: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub step: Option<f64>,
+    /// The `NodeId` (`.0`) of the sketch that owns this model parameter (a dimension, `d1`, `d2`…);
+    /// `None` for a user parameter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sketch: Option<u64>,
 }
 
 impl ParamRow {
     /// A row named `name` holding the plain number `value` (in `unit`).
     pub fn plain(name: &str, unit: &str, value: f64) -> Self {
         ParamRow { name: name.into(), unit: unit.into(), expression: plain_expression(value, unit), ..Default::default() }
+    }
+
+    /// Is this a model parameter, owned by a sketch's dimension?
+    pub fn is_model(&self) -> bool {
+        self.sketch.is_some()
     }
 
     /// Is the expression one number (what a slider can drive)?
@@ -80,6 +89,7 @@ pub fn valid_name(name: &str) -> bool {
         && expr::unit_mm(name).is_none()
 }
 
+/// Is `unit` one a row may have?
 pub fn valid_unit(unit: &str) -> bool {
     UNITS.contains(&unit)
 }
@@ -117,6 +127,19 @@ pub fn changed(before: &Document, after: &Document) -> bool {
     !crate::Shared::ptr_eq(&before.unknown, &after.unknown) && before.unknown.get(DOC_KEY) != after.unknown.get(DOC_KEY)
 }
 
+/// The name for the next model parameter: `d{n}`, `n` being one more than the largest `d<digits>`
+/// among all rows, so names count up across the document in creation order.
+pub fn next_model_name(rows: &[ParamRow]) -> String {
+    let max = rows
+        .iter()
+        .filter_map(|r| r.name.strip_prefix('d'))
+        .filter(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
+        .filter_map(|n| n.parse::<u64>().ok())
+        .max()
+        .unwrap_or(0);
+    format!("d{}", max.saturating_add(1))
+}
+
 /// Solve every row.
 pub fn solve(rows: &[ParamRow]) -> Solved {
     let pairs: Vec<(String, String)> = rows.iter().map(|r| (r.name.clone(), r.expression.clone())).collect();
@@ -139,10 +162,11 @@ pub fn from_unit(v: f64, unit: &str) -> f64 {
     }
 }
 
-/// `value` (in `unit`) written as a plain expression: `120 mm`, `0.5 in`, `4`.
+/// `value` (in `unit`) written as a plain expression: `120 mm`, `0.5 in`, `4` (also for degrees).
 pub fn plain_expression(value: f64, unit: &str) -> String {
     let n = trim_number(value, 6);
-    if unit.is_empty() { n } else { format!("{n} {unit}") }
+    // Degrees are a plain number to the expression language.
+    if unit.is_empty() || unit == "deg" { n } else { format!("{n} {unit}") }
 }
 
 fn trim_number(v: f64, decimals: usize) -> String {
@@ -160,6 +184,7 @@ pub fn format_value(mm: Option<f64>, unit: &str) -> String {
     match unit {
         "in" => format!("{} in", trim_number(mm / 25.4, 3)),
         "" => trim_number(mm, 3),
+        "deg" => format!("{} deg", trim_number(mm, 3)),
         _ => format!("{} mm", trim_number(mm, 2)),
     }
 }
@@ -174,7 +199,7 @@ pub fn default_range(value: f64, unit: &str) -> (f64, f64, f64) {
         _ => min + 10.0,
     };
     let step = match unit {
-        "" => 1.0,
+        "" | "deg" => 1.0,
         "in" => 0.125,
         _ => 0.5,
     };
@@ -209,6 +234,7 @@ mod tests {
                 min: Some(60.0),
                 max: Some(300.0),
                 step: Some(1.0),
+                sketch: None,
             },
             ParamRow {
                 name: "holes".into(),
@@ -300,6 +326,34 @@ mod tests {
     fn csv_is_name_unit_expression_comment() {
         let csv = csv(&sample());
         assert_eq!(csv, "name,unit,expression,comment\nwidth,mm,120 mm,plate width\nholes,,4,\nslot_w,mm,width / 2,\"follows, \"\"quoted\"\"\"\n");
+    }
+
+    #[test]
+    fn model_rows_load_and_b2_rows_have_no_sketch() {
+        let v = serde_json::json!([
+            {"name": "width", "unit": "mm", "expression": "120 mm"},
+            {"name": "d1", "unit": "deg", "expression": "30", "sketch": 7},
+        ]);
+        let rows = parse_rows(&v);
+        assert_eq!(rows.len(), 2);
+        assert_eq!((rows[0].sketch, rows[0].is_model()), (None, false));
+        assert_eq!((rows[1].sketch, rows[1].is_model(), rows[1].unit.as_str()), (Some(7), true, "deg"));
+        let out = serde_json::to_value(&rows).unwrap();
+        assert!(out[0].get("sketch").is_none() && out[1]["sketch"] == 7, "{out}");
+        assert_eq!(format_value(Some(30.0), "deg"), "30 deg");
+        assert_eq!((to_unit(30.0, "deg"), from_unit(30.0, "deg")), (30.0, 30.0));
+        assert_eq!(default_range(30.0, "deg"), (15.0, 60.0, 1.0));
+        assert!(valid_unit("deg"));
+    }
+
+    #[test]
+    fn model_names_count_up() {
+        assert_eq!(next_model_name(&[]), "d1");
+        let mut rows = vec![ParamRow::plain("width", "mm", 1.0), ParamRow::plain("d", "mm", 1.0), ParamRow::plain("dx2", "mm", 1.0)];
+        assert_eq!(next_model_name(&rows), "d1");
+        rows.push(ParamRow::plain("d1", "mm", 5.0));
+        rows.push(ParamRow::plain("d4", "deg", 5.0));
+        assert_eq!(next_model_name(&rows), "d5");
     }
 
     #[test]

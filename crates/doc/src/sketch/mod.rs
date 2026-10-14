@@ -8,6 +8,10 @@
 //! downwards from the artboard's top-left corner. A line's angle is counter-clockwise on the
 //! page, as the Measure tool reads it.
 
+pub mod model;
+pub mod output;
+pub mod solve;
+
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
@@ -91,6 +95,15 @@ pub struct Sketch {
     pub origin: [f64; 2],
     #[serde(default)]
     pub shapes: Vec<SketchShape>,
+    /// v2: the points (current solved position, millimetres); point 0 is the origin.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub points: Vec<model::SPoint>,
+    /// v2: lines, circles and arcs over the points.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub entities: Vec<model::Entity>,
+    /// v2: geometric constraints and dimensions.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub constraints: Vec<model::Constraint>,
 }
 
 fn is_zero(o: &[f64; 2]) -> bool {
@@ -115,6 +128,9 @@ impl Sketch {
                 *v = crate::expr::rename_references(v, from, to);
             }
         }
+        for c in &mut self.constraints {
+            c.rename_param(from, to);
+        }
     }
 
     /// Keep the recipe within its caps (a file may hold anything).
@@ -123,6 +139,7 @@ impl Sketch {
         if !self.origin.iter().all(|v| v.is_finite()) {
             self.origin = [0.0, 0.0];
         }
+        self.sanitize_model();
     }
 
     /// The sample sketch (Object › Parametric Sketch › Sample: Mounting plate): a rounded plate
@@ -149,6 +166,7 @@ impl Sketch {
                 ),
                 shape("R2", "rect", &[("x", "(width - slot_w) / 2"), ("y", "height/2 - 5 mm"), ("w", "slot_w"), ("h", "10 mm"), ("r", "5 mm")]),
             ],
+            ..Default::default()
         }
     }
 
@@ -163,6 +181,7 @@ impl Sketch {
             min: range.map(|r| r.0),
             max: range.map(|r| r.1),
             step: range.map(|r| r.2),
+            sketch: None,
         };
         vec![
             row("width", "mm", "120 mm", "plate width", true, Some((60.0, 300.0, 1.0))),
