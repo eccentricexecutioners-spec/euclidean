@@ -3817,3 +3817,65 @@ axis	Both	Ambos
 	pitch	passo
 	length	comprimento
 	angle	ângulo
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 grau de liberdade
+	2-Point Rectangle	Retângulo por 2 pontos
+	3-Point Arc	Arco por 3 pontos
+	Angle between lines	Ângulo entre linhas
+	Angle of line	Ângulo da linha
+	CONSTRAINTS	RESTRIÇÕES
+	CREATE	CRIAR
+	Center Diameter Circle	Círculo por centro e diâmetro
+	Center Rectangle	Retângulo pelo centro
+	Change Parameters	Alterar parâmetros
+	Coincident	Coincidente
+	Concentric	Concêntrica
+	Construction	Construção
+	Diameter of	Diâmetro de
+	Distance between points	Distância entre pontos
+	Drives	Controla
+	Equal	Igual
+	FINISH SKETCH	CONCLUIR ESBOÇO
+	Fillet	Arredondamento
+	Finish Sketch	Concluir esboço
+	Fix/Unfix	Fixar/Liberar
+	Fully constrained	Totalmente restrito
+	Horizontal/Vertical	Horizontal/Vertical
+	Length of line	Comprimento da linha
+	MODIFY	MODIFICAR
+	Midpoint	Ponto médio
+	Model Parameters	Parâmetros do modelo
+	Move the mouse off the line or type a distance	Afaste o mouse da linha ou digite uma distância
+	Offset from line	Deslocamento da linha
+	Parallel	Paralela
+	Parameter	Parâmetro
+	Perpendicular	Perpendicular
+	Point on circle	Ponto no círculo
+	Point on line	Ponto na linha
+	Radius of	Raio de
+	SKETCH DIMENSION	COTA DO ESBOÇO
+	Select the shapes to mirror first	Selecione primeiro as formas a espelhar
+	Sketch	Esboço
+	Sketch Dimension	Cota do esboço
+	Symmetric	Simétrica
+	Tangent	Tangente
+	Type a radius first	Digite primeiro um raio
+	User Parameters	Parâmetros do usuário
+	and	e
+	arc	arco
+	degrees of freedom	graus de liberdade
+	Add Sketch Constraint	Adicionar restrição do esboço
+	Add Sketch Dimension	Adicionar cota do esboço
+	Delete Sketch Geometry	Excluir geometria do esboço
+	New Sketch	Novo esboço
+	Remove Sketch Constraint	Remover restrição do esboço
+	Set Sketch Dimension	Definir cota do esboço
+	Sketch Arc	Arco do esboço
+	Sketch Circle	Círculo do esboço
+	Sketch Fillet	Arredondamento do esboço
+	Sketch Line	Linha do esboço
+	Sketch Mirror	Espelho do esboço
+	Sketch Offset	Deslocamento do esboço
+	Sketch Rectangle	Retângulo do esboço
+	Sketch Trim	Aparar esboço
+	Toggle Construction	Alternar construção

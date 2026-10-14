@@ -4816,3 +4816,83 @@ imageTrace	Outline	Körvonal
 @msg	{name}: empty	{name}: üres
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	hibás szám: "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 szabadságfok
+	2-Point Rectangle	Téglalap 2 pontból
+	3-Point Arc	Ív 3 pontból
+	Angle between lines	Vonalak közötti szög
+	Angle of line	Vonal szöge
+	CONSTRAINTS	KÖTÉSEK
+	CREATE	LÉTREHOZÁS
+	Center Diameter Circle	Kör középpont és átmérő alapján
+	Center Rectangle	Téglalap középpontból
+	Change Parameters	Paraméterek módosítása
+	Coincident	Egybeeső
+	Concentric	Koncentrikus
+	Construction	Segédvonal
+	Diameter of	Átmérője:
+	Distance between points	Pontok közötti távolság
+	Drives	Vezérli
+	Equal	Egyenlő
+	FINISH SKETCH	VÁZLAT BEFEJEZÉSE
+	Fillet	Lekerekítés
+	Finish Sketch	Vázlat befejezése
+	Fix/Unfix	Rögzítés/Feloldás
+	Fully constrained	Teljesen kötött
+	Horizontal/Vertical	Vízszintes/Függőleges
+	Length of line	Vonal hossza
+	MODIFY	MÓDOSÍTÁS
+	Midpoint	Felezőpont
+	Model Parameters	Modellparaméterek
+	Move the mouse off the line or type a distance	Vigye az egeret a vonalról le, vagy adjon meg távolságot
+	Offset from line	Eltolás vonaltól
+	Parallel	Párhuzamos
+	Parameter	Paraméter
+	Perpendicular	Merőleges
+	Point on circle	Pont a körön
+	Point on line	Pont a vonalon
+	Radius of	Sugara:
+	SKETCH DIMENSION	VÁZLATMÉRET
+	Select the shapes to mirror first	Először jelölje ki a tükrözendő alakzatokat
+	Sketch	Vázlat
+	Sketch Dimension	Vázlatméret
+	Symmetric	Szimmetrikus
+	Tangent	Érintő
+	Type a radius first	Először adjon meg egy sugarat
+	User Parameters	Felhasználói paraméterek
+	and	és
+	arc	ív
+	degrees of freedom	szabadságfok
+	Add Sketch Constraint	Vázlatkötés hozzáadása
+	Add Sketch Dimension	Vázlatméret hozzáadása
+	Delete Sketch Geometry	Vázlatgeometria törlése
+	New Sketch	Új vázlat
+	Remove Sketch Constraint	Vázlatkötés eltávolítása
+	Set Sketch Dimension	Vázlatméret beállítása
+	Sketch Arc	Vázlatív
+	Sketch Circle	Vázlatkör
+	Sketch Fillet	Vázlat-lekerekítés
+	Sketch Line	Vázlatvonal
+	Sketch Mirror	Vázlat tükrözése
+	Sketch Offset	Vázlat eltolása
+	Sketch Rectangle	Vázlat-téglalap
+	Sketch Trim	Vázlat vágása
+	Toggle Construction	Segédvonal be/ki
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	a lekerekítéshez olyan sarok kell, ahol pontosan két vonal találkozik ({_1} található)
+@msg	a line has no end point	a vonalnak nincs végpontja
+@msg	a line has no end points	a vonalnak nincsenek végpontjai
+@msg	a line has no length	a vonalnak nincs hossza
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	a(z) {name} kötéshez létező, megfelelő típusú pontok vagy alakzatok kellenek (a pontoknak és az alakzatoknak külön azonosítójuk van)
+@msg	must not be negative	nem lehet negatív
+@msg	no lines to offset	nincs eltolandó vonal
+@msg	no such corner	nincs ilyen sarok
+@msg	no such line	nincs ilyen vonal
+@msg	not a dimension	nem méret
+@msg	only lines can be offset for now	egyelőre csak vonalak tolhatók el
+@msg	sketch.new returned no id	a sketch.new nem adott vissza azonosítót
+@msg	the line has no end points	a vonalnak nincsenek végpontjai
+@msg	the line has no length	a vonalnak nincs hossza
+@msg	the lines are parallel	a vonalak párhuzamosak
+@msg	the radius is too large for these lines	a sugár túl nagy ezekhez a vonalakhoz
+@msg	the radius must be a positive number	a sugárnak pozitív számnak kell lennie

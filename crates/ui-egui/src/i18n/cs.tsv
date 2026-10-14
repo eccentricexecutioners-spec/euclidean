@@ -4849,3 +4849,83 @@ mark-style	Japanese	Japonské
 @msg	{name}: empty	{name}: prázdné
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	chybné číslo "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 stupeň volnosti
+	2-Point Rectangle	Obdélník ze 2 bodů
+	3-Point Arc	Oblouk ze 3 bodů
+	Angle between lines	Úhel mezi úsečkami
+	Angle of line	Úhel úsečky
+	CONSTRAINTS	VAZBY
+	CREATE	VYTVOŘIT
+	Center Diameter Circle	Kružnice se středem a průměrem
+	Center Rectangle	Obdélník od středu
+	Change Parameters	Změnit parametry
+	Coincident	Totožnost
+	Concentric	Soustřednost
+	Construction	Konstrukční
+	Diameter of	Průměr
+	Distance between points	Vzdálenost mezi body
+	Drives	Řídí
+	Equal	Rovnost
+	FINISH SKETCH	DOKONČIT NÁČRT
+	Fillet	Zaoblení
+	Finish Sketch	Dokončit náčrt
+	Fix/Unfix	Zafixovat/Uvolnit
+	Fully constrained	Plně vázaný
+	Horizontal/Vertical	Vodorovně/Svisle
+	Length of line	Délka úsečky
+	MODIFY	UPRAVIT
+	Midpoint	Střed
+	Model Parameters	Parametry modelu
+	Move the mouse off the line or type a distance	Odsuňte myš od úsečky nebo zadejte vzdálenost
+	Offset from line	Odsazení od úsečky
+	Parallel	Rovnoběžnost
+	Parameter	Parametr
+	Perpendicular	Kolmost
+	Point on circle	Bod na kružnici
+	Point on line	Bod na úsečce
+	Radius of	Poloměr
+	SKETCH DIMENSION	KÓTA NÁČRTU
+	Select the shapes to mirror first	Nejprve vyberte tvary k zrcadlení
+	Sketch	Náčrt
+	Sketch Dimension	Kóta náčrtu
+	Symmetric	Souměrnost
+	Tangent	Tečnost
+	Type a radius first	Nejprve zadejte poloměr
+	User Parameters	Uživatelské parametry
+	and	a
+	arc	oblouk
+	degrees of freedom	stupňů volnosti
+	Add Sketch Constraint	Přidat vazbu náčrtu
+	Add Sketch Dimension	Přidat kótu náčrtu
+	Delete Sketch Geometry	Smazat geometrii náčrtu
+	New Sketch	Nový náčrt
+	Remove Sketch Constraint	Odebrat vazbu náčrtu
+	Set Sketch Dimension	Nastavit kótu náčrtu
+	Sketch Arc	Oblouk náčrtu
+	Sketch Circle	Kružnice náčrtu
+	Sketch Fillet	Zaoblení náčrtu
+	Sketch Line	Úsečka náčrtu
+	Sketch Mirror	Zrcadlení náčrtu
+	Sketch Offset	Odsazení náčrtu
+	Sketch Rectangle	Obdélník náčrtu
+	Sketch Trim	Oříznutí náčrtu
+	Toggle Construction	Přepnout konstrukční
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	zaoblení potřebuje roh, kde se setkávají přesně dvě úsečky (nalezeno {_1})
+@msg	a line has no end point	úsečka nemá koncový bod
+@msg	a line has no end points	úsečka nemá koncové body
+@msg	a line has no length	úsečka nemá délku
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	vazba {name} potřebuje existující body nebo tvary správného druhu (body a tvary mají oddělená ID)
+@msg	must not be negative	nesmí být záporné
+@msg	no lines to offset	žádné úsečky k odsazení
+@msg	no such corner	takový roh neexistuje
+@msg	no such line	taková úsečka neexistuje
+@msg	not a dimension	není kóta
+@msg	only lines can be offset for now	zatím lze odsazovat pouze úsečky
+@msg	sketch.new returned no id	sketch.new nevrátil žádné ID
+@msg	the line has no end points	úsečka nemá koncové body
+@msg	the line has no length	úsečka nemá délku
+@msg	the lines are parallel	úsečky jsou rovnoběžné
+@msg	the radius is too large for these lines	poloměr je pro tyto úsečky příliš velký
+@msg	the radius must be a positive number	poloměr musí být kladné číslo

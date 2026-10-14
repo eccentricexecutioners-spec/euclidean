@@ -4415,3 +4415,83 @@ lighting	Light	Свет
 @msg	{name}: empty	{name}: пусто
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	неверное число "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 степень свободы
+	2-Point Rectangle	Прямоугольник по 2 точкам
+	3-Point Arc	Дуга по 3 точкам
+	Angle between lines	Угол между линиями
+	Angle of line	Угол линии
+	CONSTRAINTS	ОГРАНИЧЕНИЯ
+	CREATE	СОЗДАНИЕ
+	Center Diameter Circle	Окружность по центру и диаметру
+	Center Rectangle	Прямоугольник от центра
+	Change Parameters	Изменить параметры
+	Coincident	Совпадение
+	Concentric	Концентричность
+	Construction	Вспомогательная
+	Diameter of	Диаметр
+	Distance between points	Расстояние между точками
+	Drives	Управляет
+	Equal	Равенство
+	FINISH SKETCH	ЗАВЕРШИТЬ ЭСКИЗ
+	Fillet	Скругление
+	Finish Sketch	Завершить эскиз
+	Fix/Unfix	Зафиксировать/Освободить
+	Fully constrained	Полностью определён
+	Horizontal/Vertical	Горизонталь/Вертикаль
+	Length of line	Длина линии
+	MODIFY	ИЗМЕНЕНИЕ
+	Midpoint	Середина
+	Model Parameters	Параметры модели
+	Move the mouse off the line or type a distance	Уберите мышь с линии или введите расстояние
+	Offset from line	Смещение от линии
+	Parallel	Параллельность
+	Parameter	Параметр
+	Perpendicular	Перпендикулярность
+	Point on circle	Точка на окружности
+	Point on line	Точка на линии
+	Radius of	Радиус
+	SKETCH DIMENSION	РАЗМЕР ЭСКИЗА
+	Select the shapes to mirror first	Сначала выберите фигуры для зеркального отражения
+	Sketch	Эскиз
+	Sketch Dimension	Размер эскиза
+	Symmetric	Симметрия
+	Tangent	Касание
+	Type a radius first	Сначала введите радиус
+	User Parameters	Параметры пользователя
+	and	и
+	arc	дуга
+	degrees of freedom	степеней свободы
+	Add Sketch Constraint	Добавить ограничение эскиза
+	Add Sketch Dimension	Добавить размер эскиза
+	Delete Sketch Geometry	Удалить геометрию эскиза
+	New Sketch	Новый эскиз
+	Remove Sketch Constraint	Удалить ограничение эскиза
+	Set Sketch Dimension	Задать размер эскиза
+	Sketch Arc	Дуга эскиза
+	Sketch Circle	Окружность эскиза
+	Sketch Fillet	Скругление эскиза
+	Sketch Line	Линия эскиза
+	Sketch Mirror	Зеркало эскиза
+	Sketch Offset	Смещение эскиза
+	Sketch Rectangle	Прямоугольник эскиза
+	Sketch Trim	Обрезка эскиза
+	Toggle Construction	Переключить вспомогательную
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	для скругления нужен угол, в котором сходятся ровно две линии (найдено: {_1})
+@msg	a line has no end point	у линии нет конечной точки
+@msg	a line has no end points	у линии нет конечных точек
+@msg	a line has no length	у линии нет длины
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	для ограничения {name} нужны существующие точки или фигуры подходящего вида (у точек и фигур разные идентификаторы)
+@msg	must not be negative	не должно быть отрицательным
+@msg	no lines to offset	нет линий для смещения
+@msg	no such corner	такого угла нет
+@msg	no such line	такой линии нет
+@msg	not a dimension	не является размером
+@msg	only lines can be offset for now	пока можно смещать только линии
+@msg	sketch.new returned no id	sketch.new не вернул идентификатор
+@msg	the line has no end points	у линии нет конечных точек
+@msg	the line has no length	у линии нет длины
+@msg	the lines are parallel	линии параллельны
+@msg	the radius is too large for these lines	радиус слишком велик для этих линий
+@msg	the radius must be a positive number	радиус должен быть положительным числом

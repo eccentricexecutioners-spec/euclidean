@@ -3757,3 +3757,65 @@ lighting	Light	光源
 	pitch	間距
 	length	長度
 	angle	角度
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 個自由度
+	2-Point Rectangle	兩點矩形
+	3-Point Arc	三點圓弧
+	Angle between lines	直線間的角度
+	Angle of line	直線的角度
+	CONSTRAINTS	約束
+	CREATE	建立
+	Center Diameter Circle	圓心直徑圓
+	Center Rectangle	中心矩形
+	Change Parameters	變更參數
+	Coincident	重合
+	Concentric	同心
+	Construction	構造線
+	Diameter of	直徑
+	Distance between points	點之間的距離
+	Drives	驅動
+	Equal	相等
+	FINISH SKETCH	完成草圖
+	Fillet	圓角
+	Finish Sketch	完成草圖
+	Fix/Unfix	固定/取消固定
+	Fully constrained	完全約束
+	Horizontal/Vertical	水平/垂直
+	Length of line	直線的長度
+	MODIFY	修改
+	Midpoint	中點
+	Model Parameters	模型參數
+	Move the mouse off the line or type a distance	將滑鼠移離直線，或輸入距離
+	Offset from line	與直線的偏移
+	Parallel	平行
+	Parameter	參數
+	Perpendicular	垂直
+	Point on circle	圓上的點
+	Point on line	直線上的點
+	Radius of	半徑
+	SKETCH DIMENSION	草圖尺寸
+	Select the shapes to mirror first	請先選取要鏡射的圖形
+	Sketch	草圖
+	Sketch Dimension	草圖尺寸
+	Symmetric	對稱
+	Tangent	相切
+	Type a radius first	請先輸入半徑
+	User Parameters	使用者參數
+	and	和
+	arc	圓弧
+	degrees of freedom	個自由度
+	Add Sketch Constraint	新增草圖約束
+	Add Sketch Dimension	新增草圖尺寸
+	Delete Sketch Geometry	刪除草圖幾何
+	New Sketch	新增草圖
+	Remove Sketch Constraint	移除草圖約束
+	Set Sketch Dimension	設定草圖尺寸
+	Sketch Arc	草圖圓弧
+	Sketch Circle	草圖圓
+	Sketch Fillet	草圖圓角
+	Sketch Line	草圖直線
+	Sketch Mirror	草圖鏡射
+	Sketch Offset	草圖偏移
+	Sketch Rectangle	草圖矩形
+	Sketch Trim	草圖修剪
+	Toggle Construction	切換構造線

@@ -4419,3 +4419,83 @@ lighting	Light	Luce
 @msg	{name}: empty	{name}: vuoto
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	numero non valido "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 grado di libertà
+	2-Point Rectangle	Rettangolo a 2 punti
+	3-Point Arc	Arco a 3 punti
+	Angle between lines	Angolo tra linee
+	Angle of line	Angolo della linea
+	CONSTRAINTS	VINCOLI
+	CREATE	CREA
+	Center Diameter Circle	Cerchio centro e diametro
+	Center Rectangle	Rettangolo dal centro
+	Change Parameters	Modifica parametri
+	Coincident	Coincidente
+	Concentric	Concentrico
+	Construction	Costruzione
+	Diameter of	Diametro di
+	Distance between points	Distanza tra punti
+	Drives	Controlla
+	Equal	Uguale
+	FINISH SKETCH	TERMINA SCHIZZO
+	Fillet	Raccordo
+	Finish Sketch	Termina schizzo
+	Fix/Unfix	Blocca/Sblocca
+	Fully constrained	Completamente vincolato
+	Horizontal/Vertical	Orizzontale/Verticale
+	Length of line	Lunghezza della linea
+	MODIFY	MODIFICA
+	Midpoint	Punto medio
+	Model Parameters	Parametri del modello
+	Move the mouse off the line or type a distance	Allontana il mouse dalla linea o digita una distanza
+	Offset from line	Offset dalla linea
+	Parallel	Parallelo
+	Parameter	Parametro
+	Perpendicular	Perpendicolare
+	Point on circle	Punto sul cerchio
+	Point on line	Punto sulla linea
+	Radius of	Raggio di
+	SKETCH DIMENSION	QUOTA DELLO SCHIZZO
+	Select the shapes to mirror first	Seleziona prima le forme da specchiare
+	Sketch	Schizzo
+	Sketch Dimension	Quota dello schizzo
+	Symmetric	Simmetrico
+	Tangent	Tangente
+	Type a radius first	Digita prima un raggio
+	User Parameters	Parametri utente
+	and	e
+	arc	arco
+	degrees of freedom	gradi di libertà
+	Add Sketch Constraint	Aggiungi vincolo dello schizzo
+	Add Sketch Dimension	Aggiungi quota dello schizzo
+	Delete Sketch Geometry	Elimina geometria dello schizzo
+	New Sketch	Nuovo schizzo
+	Remove Sketch Constraint	Rimuovi vincolo dello schizzo
+	Set Sketch Dimension	Imposta quota dello schizzo
+	Sketch Arc	Arco dello schizzo
+	Sketch Circle	Cerchio dello schizzo
+	Sketch Fillet	Raccordo dello schizzo
+	Sketch Line	Linea dello schizzo
+	Sketch Mirror	Specchio dello schizzo
+	Sketch Offset	Offset dello schizzo
+	Sketch Rectangle	Rettangolo dello schizzo
+	Sketch Trim	Taglia schizzo
+	Toggle Construction	Attiva/disattiva costruzione
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	un raccordo richiede un angolo in cui si incontrano esattamente due linee (trovate: {_1})
+@msg	a line has no end point	una linea non ha un punto finale
+@msg	a line has no end points	una linea non ha punti finali
+@msg	a line has no length	una linea non ha lunghezza
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	un vincolo {name} richiede punti o forme esistenti del tipo giusto (punti e forme hanno id separati)
+@msg	must not be negative	non deve essere negativo
+@msg	no lines to offset	nessuna linea da offsettare
+@msg	no such corner	nessun angolo di questo tipo
+@msg	no such line	nessuna linea di questo tipo
+@msg	not a dimension	non è una quota
+@msg	only lines can be offset for now	per ora si possono applicare offset solo alle linee
+@msg	sketch.new returned no id	sketch.new non ha restituito alcun id
+@msg	the line has no end points	la linea non ha punti finali
+@msg	the line has no length	la linea non ha lunghezza
+@msg	the lines are parallel	le linee sono parallele
+@msg	the radius is too large for these lines	il raggio è troppo grande per queste linee
+@msg	the radius must be a positive number	il raggio deve essere un numero positivo

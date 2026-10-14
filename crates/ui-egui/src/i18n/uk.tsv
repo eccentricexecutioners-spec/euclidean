@@ -4399,3 +4399,83 @@ lighting	Light	Світло
 @msg	{name}: empty	{name}: порожньо
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	неправильне число "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 ступінь свободи
+	2-Point Rectangle	Прямокутник за 2 точками
+	3-Point Arc	Дуга за 3 точками
+	Angle between lines	Кут між лініями
+	Angle of line	Кут лінії
+	CONSTRAINTS	ОБМЕЖЕННЯ
+	CREATE	СТВОРЕННЯ
+	Center Diameter Circle	Коло за центром і діаметром
+	Center Rectangle	Прямокутник від центру
+	Change Parameters	Змінити параметри
+	Coincident	Збіг
+	Concentric	Концентричність
+	Construction	Допоміжна
+	Diameter of	Діаметр
+	Distance between points	Відстань між точками
+	Drives	Керує
+	Equal	Рівність
+	FINISH SKETCH	ЗАВЕРШИТИ ЕСКІЗ
+	Fillet	Заокруглення
+	Finish Sketch	Завершити ескіз
+	Fix/Unfix	Зафіксувати/Звільнити
+	Fully constrained	Повністю визначений
+	Horizontal/Vertical	Горизонталь/Вертикаль
+	Length of line	Довжина лінії
+	MODIFY	ЗМІНЕННЯ
+	Midpoint	Середина
+	Model Parameters	Параметри моделі
+	Move the mouse off the line or type a distance	Відведіть мишу від лінії або введіть відстань
+	Offset from line	Зсув від лінії
+	Parallel	Паралельність
+	Parameter	Параметр
+	Perpendicular	Перпендикулярність
+	Point on circle	Точка на колі
+	Point on line	Точка на лінії
+	Radius of	Радіус
+	SKETCH DIMENSION	РОЗМІР ЕСКІЗА
+	Select the shapes to mirror first	Спочатку виберіть фігури для дзеркального відображення
+	Sketch	Ескіз
+	Sketch Dimension	Розмір ескіза
+	Symmetric	Симетрія
+	Tangent	Дотик
+	Type a radius first	Спочатку введіть радіус
+	User Parameters	Параметри користувача
+	and	і
+	arc	дуга
+	degrees of freedom	ступенів свободи
+	Add Sketch Constraint	Додати обмеження ескіза
+	Add Sketch Dimension	Додати розмір ескіза
+	Delete Sketch Geometry	Видалити геометрію ескіза
+	New Sketch	Новий ескіз
+	Remove Sketch Constraint	Вилучити обмеження ескіза
+	Set Sketch Dimension	Задати розмір ескіза
+	Sketch Arc	Дуга ескіза
+	Sketch Circle	Коло ескіза
+	Sketch Fillet	Заокруглення ескіза
+	Sketch Line	Лінія ескіза
+	Sketch Mirror	Дзеркало ескіза
+	Sketch Offset	Зсув ескіза
+	Sketch Rectangle	Прямокутник ескіза
+	Sketch Trim	Обрізання ескіза
+	Toggle Construction	Перемкнути допоміжну
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	для заокруглення потрібен кут, у якому сходяться рівно дві лінії (знайдено: {_1})
+@msg	a line has no end point	у лінії немає кінцевої точки
+@msg	a line has no end points	у лінії немає кінцевих точок
+@msg	a line has no length	у лінії немає довжини
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	для обмеження {name} потрібні наявні точки або фігури відповідного виду (точки та фігури мають різні ідентифікатори)
+@msg	must not be negative	не може бути від'ємним
+@msg	no lines to offset	немає ліній для зсуву
+@msg	no such corner	такого кута немає
+@msg	no such line	такої лінії немає
+@msg	not a dimension	не є розміром
+@msg	only lines can be offset for now	поки що можна зсувати лише лінії
+@msg	sketch.new returned no id	sketch.new не повернув ідентифікатор
+@msg	the line has no end points	у лінії немає кінцевих точок
+@msg	the line has no length	у лінії немає довжини
+@msg	the lines are parallel	лінії паралельні
+@msg	the radius is too large for these lines	радіус завеликий для цих ліній
+@msg	the radius must be a positive number	радіус має бути додатним числом

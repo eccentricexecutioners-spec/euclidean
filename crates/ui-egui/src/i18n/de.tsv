@@ -4374,3 +4374,83 @@ theme	Appearance	Erscheinungsbild
 @msg	{name}: empty	{name}: leer
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	ungültige Zahl "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 Freiheitsgrad
+	2-Point Rectangle	2-Punkt-Rechteck
+	3-Point Arc	3-Punkt-Bogen
+	Angle between lines	Winkel zwischen Linien
+	Angle of line	Winkel der Linie
+	CONSTRAINTS	ABHÄNGIGKEITEN
+	CREATE	ERSTELLEN
+	Center Diameter Circle	Kreis mit Mittelpunkt und Durchmesser
+	Center Rectangle	Rechteck von der Mitte
+	Change Parameters	Parameter ändern
+	Coincident	Deckungsgleich
+	Concentric	Konzentrisch
+	Construction	Konstruktion
+	Diameter of	Durchmesser von
+	Distance between points	Abstand zwischen Punkten
+	Drives	Steuert
+	Equal	Gleich
+	FINISH SKETCH	SKIZZE BEENDEN
+	Fillet	Verrundung
+	Finish Sketch	Skizze beenden
+	Fix/Unfix	Fixieren/Lösen
+	Fully constrained	Vollständig bestimmt
+	Horizontal/Vertical	Horizontal/Vertikal
+	Length of line	Länge von Linie
+	MODIFY	ÄNDERN
+	Midpoint	Mittelpunkt
+	Model Parameters	Modellparameter
+	Move the mouse off the line or type a distance	Maus von der Linie wegbewegen oder einen Abstand eingeben
+	Offset from line	Versatz von Linie
+	Parallel	Parallel
+	Parameter	Parameter
+	Perpendicular	Senkrecht
+	Point on circle	Punkt auf Kreis
+	Point on line	Punkt auf Linie
+	Radius of	Radius von
+	SKETCH DIMENSION	SKIZZENBEMASSUNG
+	Select the shapes to mirror first	Wählen Sie zuerst die zu spiegelnden Formen aus
+	Sketch	Skizze
+	Sketch Dimension	Skizzenbemaßung
+	Symmetric	Symmetrisch
+	Tangent	Tangential
+	Type a radius first	Geben Sie zuerst einen Radius ein
+	User Parameters	Benutzerparameter
+	and	und
+	arc	Bogen
+	degrees of freedom	Freiheitsgrade
+	Add Sketch Constraint	Skizzenabhängigkeit hinzufügen
+	Add Sketch Dimension	Skizzenbemaßung hinzufügen
+	Delete Sketch Geometry	Skizzengeometrie löschen
+	New Sketch	Neue Skizze
+	Remove Sketch Constraint	Skizzenabhängigkeit entfernen
+	Set Sketch Dimension	Skizzenbemaßung festlegen
+	Sketch Arc	Skizzenbogen
+	Sketch Circle	Skizzenkreis
+	Sketch Fillet	Skizzenverrundung
+	Sketch Line	Skizzenlinie
+	Sketch Mirror	Skizze spiegeln
+	Sketch Offset	Skizzenversatz
+	Sketch Rectangle	Skizzenrechteck
+	Sketch Trim	Skizze trimmen
+	Toggle Construction	Konstruktion umschalten
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	eine Verrundung braucht eine Ecke, an der genau zwei Linien zusammentreffen (gefunden: {_1})
+@msg	a line has no end point	eine Linie hat keinen Endpunkt
+@msg	a line has no end points	eine Linie hat keine Endpunkte
+@msg	a line has no length	eine Linie hat keine Länge
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	eine {name}-Abhängigkeit braucht vorhandene Punkte oder Formen der richtigen Art (Punkte und Formen haben getrennte IDs)
+@msg	must not be negative	darf nicht negativ sein
+@msg	no lines to offset	keine Linien zum Versetzen
+@msg	no such corner	keine solche Ecke
+@msg	no such line	keine solche Linie
+@msg	not a dimension	keine Bemaßung
+@msg	only lines can be offset for now	vorerst können nur Linien versetzt werden
+@msg	sketch.new returned no id	sketch.new hat keine ID zurückgegeben
+@msg	the line has no end points	die Linie hat keine Endpunkte
+@msg	the line has no length	die Linie hat keine Länge
+@msg	the lines are parallel	die Linien sind parallel
+@msg	the radius is too large for these lines	der Radius ist für diese Linien zu groß
+@msg	the radius must be a positive number	der Radius muss eine positive Zahl sein

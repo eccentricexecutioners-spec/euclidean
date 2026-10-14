@@ -4383,3 +4383,83 @@ lighting	Light	광원
 @msg	{name}: empty	{name}: 비어 있습니다
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	잘못된 숫자 "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	자유도 1
+	2-Point Rectangle	2점 직사각형
+	3-Point Arc	3점 호
+	Angle between lines	선 사이의 각도
+	Angle of line	선의 각도
+	CONSTRAINTS	구속 조건
+	CREATE	만들기
+	Center Diameter Circle	중심 지름 원
+	Center Rectangle	중심 직사각형
+	Change Parameters	매개변수 변경
+	Coincident	일치
+	Concentric	동심
+	Construction	구성선
+	Diameter of	지름:
+	Distance between points	점 사이의 거리
+	Drives	구동 대상
+	Equal	동일
+	FINISH SKETCH	스케치 마침
+	Fillet	필렛
+	Finish Sketch	스케치 마침
+	Fix/Unfix	고정/고정 해제
+	Fully constrained	완전 구속
+	Horizontal/Vertical	수평/수직
+	Length of line	선의 길이
+	MODIFY	수정
+	Midpoint	중간점
+	Model Parameters	모델 매개변수
+	Move the mouse off the line or type a distance	마우스를 선에서 떼거나 거리를 입력하세요
+	Offset from line	선에서의 간격 띄우기
+	Parallel	평행
+	Parameter	매개변수
+	Perpendicular	직각
+	Point on circle	원 위의 점
+	Point on line	선 위의 점
+	Radius of	반지름:
+	SKETCH DIMENSION	스케치 치수
+	Select the shapes to mirror first	먼저 대칭할 도형을 선택하세요
+	Sketch	스케치
+	Sketch Dimension	스케치 치수
+	Symmetric	대칭
+	Tangent	접선
+	Type a radius first	먼저 반지름을 입력하세요
+	User Parameters	사용자 매개변수
+	and	및
+	arc	호
+	degrees of freedom	자유도
+	Add Sketch Constraint	스케치 구속 조건 추가
+	Add Sketch Dimension	스케치 치수 추가
+	Delete Sketch Geometry	스케치 형상 삭제
+	New Sketch	새 스케치
+	Remove Sketch Constraint	스케치 구속 조건 제거
+	Set Sketch Dimension	스케치 치수 설정
+	Sketch Arc	스케치 호
+	Sketch Circle	스케치 원
+	Sketch Fillet	스케치 필렛
+	Sketch Line	스케치 선
+	Sketch Mirror	스케치 대칭
+	Sketch Offset	스케치 간격 띄우기
+	Sketch Rectangle	스케치 직사각형
+	Sketch Trim	스케치 자르기
+	Toggle Construction	구성선 전환
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	필렛에는 정확히 두 선이 만나는 모서리가 필요합니다({_1}개 발견됨)
+@msg	a line has no end point	선에 끝점이 없습니다
+@msg	a line has no end points	선에 끝점이 없습니다
+@msg	a line has no length	선의 길이가 없습니다
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	{name} 구속 조건에는 올바른 종류의 기존 점 또는 도형이 필요합니다(점과 도형은 ID가 별도입니다)
+@msg	must not be negative	음수일 수 없습니다
+@msg	no lines to offset	간격을 띄울 선이 없습니다
+@msg	no such corner	해당 모서리가 없습니다
+@msg	no such line	해당 선이 없습니다
+@msg	not a dimension	치수가 아닙니다
+@msg	only lines can be offset for now	현재는 선만 간격을 띄울 수 있습니다
+@msg	sketch.new returned no id	sketch.new가 ID를 반환하지 않았습니다
+@msg	the line has no end points	해당 선에 끝점이 없습니다
+@msg	the line has no length	해당 선의 길이가 없습니다
+@msg	the lines are parallel	선이 평행합니다
+@msg	the radius is too large for these lines	이 선들에 비해 반지름이 너무 큽니다
+@msg	the radius must be a positive number	반지름은 양수여야 합니다

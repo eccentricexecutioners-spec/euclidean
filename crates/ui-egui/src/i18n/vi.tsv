@@ -4401,3 +4401,83 @@ theme	Appearance	Giao diện
 @msg	{name}: empty	{name}: trống
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	số không hợp lệ "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 bậc tự do
+	2-Point Rectangle	Hình chữ nhật 2 điểm
+	3-Point Arc	Cung 3 điểm
+	Angle between lines	Góc giữa các đường
+	Angle of line	Góc của đường
+	CONSTRAINTS	RÀNG BUỘC
+	CREATE	TẠO
+	Center Diameter Circle	Hình tròn tâm và đường kính
+	Center Rectangle	Hình chữ nhật từ tâm
+	Change Parameters	Thay đổi tham số
+	Coincident	Trùng nhau
+	Concentric	Đồng tâm
+	Construction	Đường dựng hình
+	Diameter of	Đường kính của
+	Distance between points	Khoảng cách giữa các điểm
+	Drives	Điều khiển
+	Equal	Bằng nhau
+	FINISH SKETCH	KẾT THÚC PHÁC THẢO
+	Fillet	Bo tròn
+	Finish Sketch	Kết thúc phác thảo
+	Fix/Unfix	Cố định/Bỏ cố định
+	Fully constrained	Ràng buộc hoàn toàn
+	Horizontal/Vertical	Ngang/Dọc
+	Length of line	Chiều dài của đường
+	MODIFY	CHỈNH SỬA
+	Midpoint	Trung điểm
+	Model Parameters	Tham số mô hình
+	Move the mouse off the line or type a distance	Di chuột ra khỏi đường hoặc nhập khoảng cách
+	Offset from line	Độ lệch từ đường
+	Parallel	Song song
+	Parameter	Tham số
+	Perpendicular	Vuông góc
+	Point on circle	Điểm trên đường tròn
+	Point on line	Điểm trên đường
+	Radius of	Bán kính của
+	SKETCH DIMENSION	KÍCH THƯỚC PHÁC THẢO
+	Select the shapes to mirror first	Hãy chọn các hình cần đối xứng trước
+	Sketch	Phác thảo
+	Sketch Dimension	Kích thước phác thảo
+	Symmetric	Đối xứng
+	Tangent	Tiếp tuyến
+	Type a radius first	Hãy nhập bán kính trước
+	User Parameters	Tham số người dùng
+	and	và
+	arc	cung
+	degrees of freedom	bậc tự do
+	Add Sketch Constraint	Thêm ràng buộc phác thảo
+	Add Sketch Dimension	Thêm kích thước phác thảo
+	Delete Sketch Geometry	Xóa hình học phác thảo
+	New Sketch	Phác thảo mới
+	Remove Sketch Constraint	Gỡ ràng buộc phác thảo
+	Set Sketch Dimension	Đặt kích thước phác thảo
+	Sketch Arc	Cung phác thảo
+	Sketch Circle	Hình tròn phác thảo
+	Sketch Fillet	Bo tròn phác thảo
+	Sketch Line	Đường phác thảo
+	Sketch Mirror	Đối xứng phác thảo
+	Sketch Offset	Độ lệch phác thảo
+	Sketch Rectangle	Hình chữ nhật phác thảo
+	Sketch Trim	Cắt phác thảo
+	Toggle Construction	Bật/tắt đường dựng hình
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	bo tròn cần một góc nơi đúng hai đường gặp nhau (tìm thấy {_1})
+@msg	a line has no end point	đường không có điểm cuối
+@msg	a line has no end points	đường không có điểm cuối
+@msg	a line has no length	đường không có chiều dài
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	ràng buộc {name} cần các điểm hoặc hình có sẵn thuộc đúng loại (điểm và hình có id riêng)
+@msg	must not be negative	không được âm
+@msg	no lines to offset	không có đường nào để tạo độ lệch
+@msg	no such corner	không có góc như vậy
+@msg	no such line	không có đường như vậy
+@msg	not a dimension	không phải là kích thước
+@msg	only lines can be offset for now	hiện chỉ có thể tạo độ lệch cho đường
+@msg	sketch.new returned no id	sketch.new không trả về id
+@msg	the line has no end points	đường không có điểm cuối
+@msg	the line has no length	đường không có chiều dài
+@msg	the lines are parallel	các đường song song
+@msg	the radius is too large for these lines	bán kính quá lớn so với các đường này
+@msg	the radius must be a positive number	bán kính phải là số dương

@@ -4692,3 +4692,83 @@ mark-style	Japanese	Japońskie
 @msg	{name}: empty	{name}: puste
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	błędna liczba "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 stopień swobody
+	2-Point Rectangle	Prostokąt z 2 punktów
+	3-Point Arc	Łuk z 3 punktów
+	Angle between lines	Kąt między liniami
+	Angle of line	Kąt linii
+	CONSTRAINTS	WIĘZY
+	CREATE	UTWÓRZ
+	Center Diameter Circle	Okrąg ze środkiem i średnicą
+	Center Rectangle	Prostokąt od środka
+	Change Parameters	Zmień parametry
+	Coincident	Zbieżność
+	Concentric	Współśrodkowość
+	Construction	Pomocnicza
+	Diameter of	Średnica
+	Distance between points	Odległość między punktami
+	Drives	Steruje
+	Equal	Równość
+	FINISH SKETCH	ZAKOŃCZ SZKIC
+	Fillet	Zaokrąglenie
+	Finish Sketch	Zakończ szkic
+	Fix/Unfix	Zablokuj/Odblokuj
+	Fully constrained	W pełni związany
+	Horizontal/Vertical	Poziomo/Pionowo
+	Length of line	Długość linii
+	MODIFY	MODYFIKUJ
+	Midpoint	Punkt środkowy
+	Model Parameters	Parametry modelu
+	Move the mouse off the line or type a distance	Odsuń mysz od linii lub wpisz odległość
+	Offset from line	Odsunięcie od linii
+	Parallel	Równoległość
+	Parameter	Parametr
+	Perpendicular	Prostopadłość
+	Point on circle	Punkt na okręgu
+	Point on line	Punkt na linii
+	Radius of	Promień
+	SKETCH DIMENSION	WYMIAR SZKICU
+	Select the shapes to mirror first	Najpierw zaznacz kształty do odbicia
+	Sketch	Szkic
+	Sketch Dimension	Wymiar szkicu
+	Symmetric	Symetria
+	Tangent	Styczność
+	Type a radius first	Najpierw wpisz promień
+	User Parameters	Parametry użytkownika
+	and	i
+	arc	łuk
+	degrees of freedom	stopni swobody
+	Add Sketch Constraint	Dodaj więz szkicu
+	Add Sketch Dimension	Dodaj wymiar szkicu
+	Delete Sketch Geometry	Usuń geometrię szkicu
+	New Sketch	Nowy szkic
+	Remove Sketch Constraint	Usuń więz szkicu
+	Set Sketch Dimension	Ustaw wymiar szkicu
+	Sketch Arc	Łuk szkicu
+	Sketch Circle	Okrąg szkicu
+	Sketch Fillet	Zaokrąglenie szkicu
+	Sketch Line	Linia szkicu
+	Sketch Mirror	Odbicie szkicu
+	Sketch Offset	Odsunięcie szkicu
+	Sketch Rectangle	Prostokąt szkicu
+	Sketch Trim	Przytnij szkic
+	Toggle Construction	Przełącz pomocniczą
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	zaokrąglenie wymaga narożnika, w którym spotykają się dokładnie dwie linie (znaleziono: {_1})
+@msg	a line has no end point	linia nie ma punktu końcowego
+@msg	a line has no end points	linia nie ma punktów końcowych
+@msg	a line has no length	linia nie ma długości
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	więz {name} wymaga istniejących punktów lub kształtów odpowiedniego rodzaju (punkty i kształty mają osobne identyfikatory)
+@msg	must not be negative	nie może być ujemne
+@msg	no lines to offset	brak linii do odsunięcia
+@msg	no such corner	nie ma takiego narożnika
+@msg	no such line	nie ma takiej linii
+@msg	not a dimension	to nie jest wymiar
+@msg	only lines can be offset for now	na razie można odsuwać tylko linie
+@msg	sketch.new returned no id	sketch.new nie zwróciło identyfikatora
+@msg	the line has no end points	linia nie ma punktów końcowych
+@msg	the line has no length	linia nie ma długości
+@msg	the lines are parallel	linie są równoległe
+@msg	the radius is too large for these lines	promień jest za duży dla tych linii
+@msg	the radius must be a positive number	promień musi być liczbą dodatnią

@@ -4790,3 +4790,83 @@ mark-style	Japanese	Japonesas
 @msg	{name}: empty	{name}: vacío
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	número incorrecto "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 grado de libertad
+	2-Point Rectangle	Rectángulo por 2 puntos
+	3-Point Arc	Arco por 3 puntos
+	Angle between lines	Ángulo entre líneas
+	Angle of line	Ángulo de la línea
+	CONSTRAINTS	RESTRICCIONES
+	CREATE	CREAR
+	Center Diameter Circle	Círculo por centro y diámetro
+	Center Rectangle	Rectángulo desde el centro
+	Change Parameters	Cambiar parámetros
+	Coincident	Coincidente
+	Concentric	Concéntrica
+	Construction	Construcción
+	Diameter of	Diámetro de
+	Distance between points	Distancia entre puntos
+	Drives	Controla
+	Equal	Igual
+	FINISH SKETCH	FINALIZAR BOCETO
+	Fillet	Empalme
+	Finish Sketch	Finalizar boceto
+	Fix/Unfix	Fijar/Liberar
+	Fully constrained	Totalmente restringido
+	Horizontal/Vertical	Horizontal/Vertical
+	Length of line	Longitud de la línea
+	MODIFY	MODIFICAR
+	Midpoint	Punto medio
+	Model Parameters	Parámetros del modelo
+	Move the mouse off the line or type a distance	Aparte el ratón de la línea o escriba una distancia
+	Offset from line	Desfase desde la línea
+	Parallel	Paralela
+	Parameter	Parámetro
+	Perpendicular	Perpendicular
+	Point on circle	Punto en círculo
+	Point on line	Punto en línea
+	Radius of	Radio de
+	SKETCH DIMENSION	COTA DE BOCETO
+	Select the shapes to mirror first	Seleccione primero las formas que desea reflejar
+	Sketch	Boceto
+	Sketch Dimension	Cota de boceto
+	Symmetric	Simétrica
+	Tangent	Tangente
+	Type a radius first	Escriba primero un radio
+	User Parameters	Parámetros de usuario
+	and	y
+	arc	arco
+	degrees of freedom	grados de libertad
+	Add Sketch Constraint	Añadir restricción de boceto
+	Add Sketch Dimension	Añadir cota de boceto
+	Delete Sketch Geometry	Eliminar geometría del boceto
+	New Sketch	Nuevo boceto
+	Remove Sketch Constraint	Quitar restricción de boceto
+	Set Sketch Dimension	Establecer cota de boceto
+	Sketch Arc	Arco de boceto
+	Sketch Circle	Círculo de boceto
+	Sketch Fillet	Empalme de boceto
+	Sketch Line	Línea de boceto
+	Sketch Mirror	Simetría de boceto
+	Sketch Offset	Desfase de boceto
+	Sketch Rectangle	Rectángulo de boceto
+	Sketch Trim	Recortar boceto
+	Toggle Construction	Alternar construcción
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	un empalme necesita una esquina donde se unan exactamente dos líneas (encontradas: {_1})
+@msg	a line has no end point	una línea no tiene punto final
+@msg	a line has no end points	una línea no tiene puntos finales
+@msg	a line has no length	una línea no tiene longitud
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	una restricción {name} necesita puntos o formas existentes del tipo correcto (los puntos y las formas tienen ids distintos)
+@msg	must not be negative	no debe ser negativo
+@msg	no lines to offset	no hay líneas que desfasar
+@msg	no such corner	no existe esa esquina
+@msg	no such line	no existe esa línea
+@msg	not a dimension	no es una cota
+@msg	only lines can be offset for now	por ahora solo se pueden desfasar líneas
+@msg	sketch.new returned no id	sketch.new no devolvió ningún id
+@msg	the line has no end points	la línea no tiene puntos finales
+@msg	the line has no length	la línea no tiene longitud
+@msg	the lines are parallel	las líneas son paralelas
+@msg	the radius is too large for these lines	el radio es demasiado grande para estas líneas
+@msg	the radius must be a positive number	el radio debe ser un número positivo

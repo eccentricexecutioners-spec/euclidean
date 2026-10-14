@@ -4849,3 +4849,83 @@ theme	Appearance	Apparence
 @msg	{name}: empty	{name} : vide
 @msg	{name}: {e}	{name} : {e}
 @msg	bad number "{text}"	nombre incorrect "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	1 degré de liberté
+	2-Point Rectangle	Rectangle par 2 points
+	3-Point Arc	Arc par 3 points
+	Angle between lines	Angle entre les lignes
+	Angle of line	Angle de la ligne
+	CONSTRAINTS	CONTRAINTES
+	CREATE	CRÉER
+	Center Diameter Circle	Cercle centre et diamètre
+	Center Rectangle	Rectangle centré
+	Change Parameters	Modifier les paramètres
+	Coincident	Coïncidence
+	Concentric	Concentrique
+	Construction	Construction
+	Diameter of	Diamètre de
+	Distance between points	Distance entre les points
+	Drives	Pilote
+	Equal	Égal
+	FINISH SKETCH	TERMINER L'ESQUISSE
+	Fillet	Congé
+	Finish Sketch	Terminer l'esquisse
+	Fix/Unfix	Fixer/Libérer
+	Fully constrained	Entièrement contrainte
+	Horizontal/Vertical	Horizontal/Vertical
+	Length of line	Longueur de la ligne
+	MODIFY	MODIFIER
+	Midpoint	Milieu
+	Model Parameters	Paramètres du modèle
+	Move the mouse off the line or type a distance	Éloignez la souris de la ligne ou saisissez une distance
+	Offset from line	Décalage depuis la ligne
+	Parallel	Parallèle
+	Parameter	Paramètre
+	Perpendicular	Perpendiculaire
+	Point on circle	Point sur le cercle
+	Point on line	Point sur la ligne
+	Radius of	Rayon de
+	SKETCH DIMENSION	COTE D'ESQUISSE
+	Select the shapes to mirror first	Sélectionnez d'abord les formes à symétriser
+	Sketch	Esquisse
+	Sketch Dimension	Cote d'esquisse
+	Symmetric	Symétrique
+	Tangent	Tangente
+	Type a radius first	Saisissez d'abord un rayon
+	User Parameters	Paramètres utilisateur
+	and	et
+	arc	arc
+	degrees of freedom	degrés de liberté
+	Add Sketch Constraint	Ajouter une contrainte d'esquisse
+	Add Sketch Dimension	Ajouter une cote d'esquisse
+	Delete Sketch Geometry	Supprimer la géométrie de l'esquisse
+	New Sketch	Nouvelle esquisse
+	Remove Sketch Constraint	Supprimer une contrainte d'esquisse
+	Set Sketch Dimension	Définir une cote d'esquisse
+	Sketch Arc	Arc d'esquisse
+	Sketch Circle	Cercle d'esquisse
+	Sketch Fillet	Congé d'esquisse
+	Sketch Line	Ligne d'esquisse
+	Sketch Mirror	Symétrie d'esquisse
+	Sketch Offset	Décalage d'esquisse
+	Sketch Rectangle	Rectangle d'esquisse
+	Sketch Trim	Ajuster l'esquisse
+	Toggle Construction	Basculer en construction
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	un congé nécessite un coin où se rejoignent exactement deux lignes ({_1} trouvées)
+@msg	a line has no end point	une ligne n'a pas de point d'extrémité
+@msg	a line has no end points	une ligne n'a pas de points d'extrémité
+@msg	a line has no length	une ligne n'a pas de longueur
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	une contrainte {name} nécessite des points ou formes existants du bon type (les points et les formes ont des identifiants distincts)
+@msg	must not be negative	ne doit pas être négatif
+@msg	no lines to offset	aucune ligne à décaler
+@msg	no such corner	aucun coin de ce type
+@msg	no such line	aucune ligne de ce type
+@msg	not a dimension	n'est pas une cote
+@msg	only lines can be offset for now	seules les lignes peuvent être décalées pour l'instant
+@msg	sketch.new returned no id	sketch.new n'a renvoyé aucun identifiant
+@msg	the line has no end points	la ligne n'a pas de points d'extrémité
+@msg	the line has no length	la ligne n'a pas de longueur
+@msg	the lines are parallel	les lignes sont parallèles
+@msg	the radius is too large for these lines	le rayon est trop grand pour ces lignes
+@msg	the radius must be a positive number	le rayon doit être un nombre positif

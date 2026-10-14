@@ -4413,3 +4413,83 @@ lighting	Light	ライト
 @msg	{name}: empty	{name}: 空です
 @msg	{name}: {e}	{name}: {e}
 @msg	bad number "{text}"	不正な数値 "{text}"
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+	1 degree of freedom	自由度 1
+	2-Point Rectangle	2点指定の長方形
+	3-Point Arc	3点指定の円弧
+	Angle between lines	線間の角度
+	Angle of line	線の角度
+	CONSTRAINTS	拘束
+	CREATE	作成
+	Center Diameter Circle	中心と直径の円
+	Center Rectangle	中心指定の長方形
+	Change Parameters	パラメータを変更
+	Coincident	一致
+	Concentric	同心
+	Construction	補助線
+	Diameter of	直径
+	Distance between points	点間の距離
+	Drives	駆動先
+	Equal	等しい
+	FINISH SKETCH	スケッチを終了
+	Fillet	フィレット
+	Finish Sketch	スケッチを終了
+	Fix/Unfix	固定/固定解除
+	Fully constrained	完全拘束
+	Horizontal/Vertical	水平/垂直
+	Length of line	線の長さ
+	MODIFY	修正
+	Midpoint	中点
+	Model Parameters	モデルパラメータ
+	Move the mouse off the line or type a distance	マウスを線から離すか、距離を入力してください
+	Offset from line	線からのオフセット
+	Parallel	平行
+	Parameter	パラメータ
+	Perpendicular	直交
+	Point on circle	円上の点
+	Point on line	線上の点
+	Radius of	半径
+	SKETCH DIMENSION	スケッチ寸法
+	Select the shapes to mirror first	先にミラーする図形を選択してください
+	Sketch	スケッチ
+	Sketch Dimension	スケッチ寸法
+	Symmetric	対称
+	Tangent	接線
+	Type a radius first	先に半径を入力してください
+	User Parameters	ユーザーパラメータ
+	and	と
+	arc	円弧
+	degrees of freedom	自由度
+	Add Sketch Constraint	スケッチ拘束を追加
+	Add Sketch Dimension	スケッチ寸法を追加
+	Delete Sketch Geometry	スケッチのジオメトリを削除
+	New Sketch	新規スケッチ
+	Remove Sketch Constraint	スケッチ拘束を削除
+	Set Sketch Dimension	スケッチ寸法を設定
+	Sketch Arc	スケッチ円弧
+	Sketch Circle	スケッチ円
+	Sketch Fillet	スケッチフィレット
+	Sketch Line	スケッチ線
+	Sketch Mirror	スケッチミラー
+	Sketch Offset	スケッチオフセット
+	Sketch Rectangle	スケッチ長方形
+	Sketch Trim	スケッチトリム
+	Toggle Construction	補助線を切り替え
+# Euclidean (B3, 2026-10-14): sketch mode, Change Parameters; machine-translated, for a native speaker's check.
+@msg	a fillet needs a corner where exactly two lines meet (found {_1})	フィレットには、ちょうど2本の線が交わる角が必要です（{_1} 個見つかりました）
+@msg	a line has no end point	線に端点がありません
+@msg	a line has no end points	線に端点がありません
+@msg	a line has no length	線の長さがありません
+@msg	a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)	{name} 拘束には、正しい種類の既存の点または図形が必要です（点と図形は別々の ID を持ちます）
+@msg	must not be negative	負の値にはできません
+@msg	no lines to offset	オフセットする線がありません
+@msg	no such corner	そのような角はありません
+@msg	no such line	そのような線はありません
+@msg	not a dimension	寸法ではありません
+@msg	only lines can be offset for now	現時点ではオフセットできるのは線のみです
+@msg	sketch.new returned no id	sketch.new が ID を返しませんでした
+@msg	the line has no end points	その線に端点がありません
+@msg	the line has no length	その線に長さがありません
+@msg	the lines are parallel	線が平行です
+@msg	the radius is too large for these lines	これらの線に対して半径が大きすぎます
+@msg	the radius must be a positive number	半径は正の数でなければなりません
