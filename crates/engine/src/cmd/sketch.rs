@@ -7,7 +7,10 @@ use super::*;
 use serde_json::{Value, json};
 use std::sync::Arc;
 use vectorcraft_color::{Color, Paint};
-use vectorcraft_doc::sketch::{self, Sketch, SketchShape};
+use vectorcraft_doc::params::ParamRow;
+use vectorcraft_doc::sketch::model::{Constraint, Entity};
+use vectorcraft_doc::sketch::solve::{self, SolveError};
+use vectorcraft_doc::sketch::{self, Sketch, SketchShape, output};
 use vectorcraft_doc::{Appearance, Document, Node, NodeId, NodeKind, Unit, expr, params};
 
 /// The Layers panel name of a sketch group.
@@ -61,11 +64,119 @@ pub fn specs() -> Vec<CommandSpec> {
             remove_shape
         ),
         cmd!(
+            "sketch.new",
+            "New Sketch",
+            ["Object", "Parametric Sketch"],
+            None,
+            "{} a new, empty drawn sketch (points, lines, circles and arcs with constraints and dimensions) in the current layer, selected → {id}",
+            has_doc,
+            new_sketch
+        ),
+        cmd!(
+            "sketch.addLine",
+            "Sketch Line",
+            [],
+            None,
+            "{id?, from?: [x, y], fromPoint?: point id, to?: [x, y], toPoint?: point id, length?, angle?, horizontal?: bool, vertical?: bool, construction?: bool} sketch coordinates in mm, y down; typed length (mm) and angle (degrees, counter-clockwise) become dimensions d1, d2…; fromPoint/toPoint reuse a point (a chain) → {id, line, a, b, dimensions: [{name, index}]}",
+            has_doc,
+            add_line
+        ),
+        cmd!(
+            "sketch.addRect",
+            "Sketch Rectangle",
+            [],
+            None,
+            "{id?, mode?: corner|center, from: [x, y], to: [x, y], width?, height?, construction?} corner mode: opposite corners; center mode: from is the centre; typed width/height (mm) override the mouse extents and become dimensions → {id, lines: [top, right, bottom, left], points, dimensions}",
+            has_doc,
+            add_rect
+        ),
+        cmd!(
+            "sketch.addCircle",
+            "Sketch Circle",
+            [],
+            None,
+            "{id?, center?: [x, y], centerPoint?: point id, diameter?, r?: mm} a typed diameter becomes a dimension; r is the mouse radius → {id, circle, center, dimensions}",
+            has_doc,
+            add_circle
+        ),
+        cmd!(
+            "sketch.addArc",
+            "Sketch Arc",
+            [],
+            None,
+            "{id?, start?: [x, y], startPoint?, end?: [x, y], endPoint?, through: [x, y], radius?} a three-point arc, counter-clockwise on screen through `through`; a typed radius becomes a dimension → {id, arc, center, start, end, dimensions}",
+            has_doc,
+            add_arc
+        ),
+        cmd!(
+            "sketch.fillet",
+            "Sketch Fillet",
+            [],
+            None,
+            "{id?, point: corner point id, radius} rounds a corner where two lines meet with a tangent arc and a radius dimension → {id, arc, dimensions}",
+            has_doc,
+            fillet
+        ),
+        cmd!(
+            "sketch.addConstraint",
+            "Add Sketch Constraint",
+            [],
+            None,
+            "{id?, constraint: {type: coincident|pointOnLine|pointOnCircle|horizontal|vertical|parallel|perpendicular|tangent|equal|fix|midpoint|concentric, …refs: a, b, p, line, e}} fix without x/y pins the point where it is; refused when redundant or contradictory → {id, index}",
+            has_doc,
+            add_constraint
+        ),
+        cmd!(
+            "sketch.addDimension",
+            "Add Sketch Dimension",
+            [],
+            None,
+            "{id?, constraint: {type: distance|length|angle|angleBetween|radius|diameter, …refs: a, b, line, e}, expression?} without expression the current measured value is used; creates a model parameter dN → {id, index, name, value}",
+            has_doc,
+            add_dimension
+        ),
+        cmd!(
+            "sketch.setDimension",
+            "Set Sketch Dimension",
+            [],
+            None,
+            "{id?, name? | index?, expression} sets the dimension's model parameter; refused when the sketch no longer solves; the same value is no undo step → {id, name, value, error}",
+            has_doc,
+            set_dimension
+        ),
+        cmd!(
+            "sketch.removeConstraint",
+            "Remove Sketch Constraint",
+            [],
+            None,
+            "{id?, index} removing a dimension also removes its model parameter when nothing else uses it → {id, removed}",
+            has_doc,
+            remove_constraint
+        ),
+        cmd!(
+            "sketch.deleteEntities",
+            "Delete Sketch Geometry",
+            [],
+            None,
+            "{id?, entities: [entity ids]} deletes lines, circles and arcs with their constraints, dimensions and unused points → {id}",
+            has_doc,
+            delete_entities
+        ),
+        cmd!(
+            "sketch.setConstruction",
+            "Toggle Construction",
+            [],
+            None,
+            "{id?, entities: [entity ids], construction?: bool} construction geometry is drawn but not output; absent toggles each → {id}",
+            has_doc,
+            set_construction
+        ),
+        cmd!(
             query "sketch.inspect",
             "Inspect Parametric Sketch",
             [],
             None,
-            "{id? (default: the selected sketch)} → {id, origin: [x, y] (mm), shapes: [{id, kind, fields: {field: {expression, value, error}}}]}",
+            "{id? (default: the selected sketch)} → {id, origin: [x, y] (mm), shapes: [{id, kind, fields: {field: {expression, value, error}}}]}; a drawn sketch adds points: [{id, x, y, constrained}], entities: [{id, kind, a?, b?, c?, r?, construction, constrained}], constraints: [{index, type, …refs, param?, expression?, value?, error?}], dof, fullyConstrained, solveError?",
             has_doc,
             inspect
         ),
@@ -281,7 +392,13 @@ fn inspect(s: &mut Session, p: &Value) -> Result<Value> {
             json!({"id": b.id, "kind": b.kind, "fields": fields, "error": b.paths.err()})
         })
         .collect();
-    Ok(json!({"id": id.0, "origin": sketch.origin, "shapes": shapes}))
+    let mut out = json!({"id": id.0, "origin": sketch.origin, "shapes": shapes});
+    if sketch.is_v2()
+        && let Some(o) = out.as_object_mut()
+    {
+        o.extend(inspect_v2(&sketch, &params::rows(doc), &solved));
+    }
+    Ok(out)
 }
 
 /// What a sketch's paths look like: the document's default 1 pt black stroke, no fill.
@@ -305,6 +422,14 @@ fn rebuild(doc: &mut Document, id: NodeId, sketch: &Sketch, solved: &expr::Solve
                 }
             }
             Err(_) => children.extend(old.iter().filter(|c| c.name.as_deref() == Some(b.id.as_str())).cloned()),
+        }
+    }
+    if sketch.is_v2() {
+        for (name, path) in output::paths(sketch) {
+            let cid = doc.alloc_id();
+            let mut n = Node::path(cid, path, appearance());
+            n.name = Some(name);
+            children.push(Arc::new(n));
         }
     }
     if let Some(n) = doc.node_mut(id) {
@@ -336,6 +461,17 @@ pub(crate) fn refresh(before: &Document, doc: &mut Document) {
         if params_changed || recipe_changed {
             let mut sketch = sketch;
             sketch.sanitize();
+            // A drawn sketch is solved first; the solved positions are written back so the next
+            // solve starts there. When it does not solve, the stored positions are drawn.
+            if sketch.is_v2()
+                && let Ok(solution) = solve::solve(&sketch, &solved)
+                && solution.sketch != sketch
+            {
+                sketch = solution.sketch;
+                if let Some(n) = doc.node_mut(id) {
+                    n.extras_mut().sketch = Some(Box::new(sketch.clone()));
+                }
+            }
             rebuild(doc, id, &sketch, &solved);
             continue;
         }
@@ -355,4 +491,715 @@ pub(crate) fn refresh(before: &Document, doc: &mut Document) {
             }
         }
     }
+}
+
+// ---------- drawn sketches (v2): points, lines, circles and arcs with constraints ----------
+
+/// The message when a new constraint or value contradicts, or repeats, what is already there.
+const OVER_CONSTRAINED: &str = "This would over-constrain the sketch";
+/// The message when the solver does not converge.
+const NO_SOLUTION: &str = "The sketch cannot be solved with this value";
+/// The message (inspect) for a stored sketch whose constraints contradict each other.
+const CONTRADICTION: &str = "The constraints contradict each other";
+
+/// A drawn sketch being edited: the group, the would-be recipe and the would-be parameter rows.
+/// Nothing reaches the document until [`save`].
+struct Work {
+    id: NodeId,
+    sketch: Sketch,
+    rows: Vec<ParamRow>,
+}
+
+/// A typed value: its expression text and what it evaluates to (mm or degrees).
+struct Typed {
+    expression: String,
+    value: f64,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum Kind {
+    Length,
+    Angle,
+}
+
+impl Kind {
+    fn unit(self) -> &'static str {
+        match self {
+            Kind::Length => "mm",
+            Kind::Angle => "deg",
+        }
+    }
+}
+
+fn work(s: &Session, p: &Value, cmd: &str) -> Result<Work> {
+    let id = target(s, p, cmd)?;
+    let doc = &s.doc()?.doc;
+    let sketch = recipe_of(doc, id).unwrap_or_default();
+    if !sketch.is_v2() {
+        return Err(bad(cmd, "this sketch is made of shapes; use a sketch from sketch.new"));
+    }
+    Ok(Work { id, sketch, rows: params::rows(doc) })
+}
+
+fn solve_error(e: SolveError, cmd: &str) -> EngineError {
+    match e {
+        SolveError::OverConstrained => bad(cmd, OVER_CONSTRAINED),
+        SolveError::NoSolution => bad(cmd, NO_SOLUTION),
+    }
+}
+
+fn check_caps(sketch: &Sketch, cmd: &str) -> Result<()> {
+    use sketch::model::{MAX_CONSTRAINTS, MAX_ENTITIES, MAX_POINTS};
+    if sketch.points.len() > MAX_POINTS || sketch.entities.len() > MAX_ENTITIES || sketch.constraints.len() > MAX_CONSTRAINTS {
+        return Err(bad(cmd, format!("a sketch holds at most {MAX_POINTS} points, {MAX_ENTITIES} shapes and {MAX_CONSTRAINTS} constraints")));
+    }
+    Ok(())
+}
+
+/// Solve the would-be recipe with the would-be parameters; the solved recipe replaces it. Fails
+/// (and the caller edits nothing) when the sketch is over-constrained or does not solve.
+fn solve_work(w: &mut Work, cmd: &str) -> Result<()> {
+    check_caps(&w.sketch, cmd)?;
+    let solved = params::solve(&w.rows);
+    w.sketch = solve::solve(&w.sketch, &solved).map_err(|e| solve_error(e, cmd))?.sketch;
+    Ok(())
+}
+
+/// Store the parameter rows and the recipe together: one undo step.
+fn save(s: &mut Session, w: Work, label: &str) -> Result<()> {
+    let Work { id, sketch, rows } = w;
+    s.edit(label, |d, _| {
+        params::store(d, &rows);
+        set_recipe(d, id, sketch)
+    })
+}
+
+/// Solve, then store (the usual end of a command that adds something).
+fn commit(s: &mut Session, mut w: Work, label: &str, cmd: &str) -> Result<()> {
+    solve_work(&mut w, cmd)?;
+    save(s, w, label)
+}
+
+/// A typed value under `key`: text or a number, evaluated against the document's parameters. A
+/// plain length gets `mm`. Lengths must be above zero.
+fn typed(w: &Work, p: &Value, key: &str, kind: Kind, cmd: &str) -> Result<Option<Typed>> {
+    let raw = match p.get(key) {
+        None | Some(Value::Null) => return Ok(None),
+        Some(v) => v,
+    };
+    let mut expression = expression_value(raw, cmd)?;
+    if kind == Kind::Length && expr::is_plain(&expression) && expression.ends_with(|c: char| c.is_ascii_digit() || c == '.') {
+        expression.push_str(" mm");
+    }
+    let value = params::solve(&w.rows).eval(&expression).map_err(|e| bad(cmd, e))?;
+    if !value.is_finite() {
+        return Err(bad(cmd, format!("`{key}` is not a number")));
+    }
+    if kind == Kind::Length && value <= 1e-9 {
+        return Err(bad(cmd, format!("`{key}` must be greater than zero")));
+    }
+    Ok(Some(Typed { expression, value }))
+}
+
+/// Add a model parameter row and return its name.
+fn add_param(w: &mut Work, kind: Kind, expression: &str) -> String {
+    let name = params::next_model_name(&w.rows);
+    w.rows.push(ParamRow { name: name.clone(), unit: kind.unit().into(), expression: expression.into(), sketch: Some(w.id.0), ..Default::default() });
+    name
+}
+
+/// Add a dimension bound to a new model parameter holding `t`; returns `{name, index}`.
+fn add_dim(w: &mut Work, kind: Kind, t: &Typed, make: impl FnOnce(String) -> Constraint) -> Value {
+    let name = add_param(w, kind, &t.expression);
+    w.sketch.constraints.push(make(name.clone()));
+    json!({"name": name, "index": w.sketch.constraints.len() - 1})
+}
+
+fn xy(p: &Value, key: &str, cmd: &str) -> Result<Option<(f64, f64)>> {
+    match p.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(v) => match finite_numbers::<2>(v) {
+            Some([x, y]) => Ok(Some((x, y))),
+            None => Err(bad(cmd, format!("`{key}` must be [x, y] in mm"))),
+        },
+    }
+}
+
+fn index_value(v: &Value) -> Option<u32> {
+    v.as_u64().and_then(|n| u32::try_from(n).ok())
+}
+
+/// An existing point id under `key`.
+fn point_ref(w: &Work, p: &Value, key: &str, cmd: &str) -> Result<Option<u32>> {
+    match p.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(v) => {
+            let id = index_value(v).ok_or_else(|| bad(cmd, format!("`{key}` must be a point id")))?;
+            if w.sketch.point(id).is_some() { Ok(Some(id)) } else { Err(bad(cmd, format!("no point {id} in this sketch"))) }
+        }
+    }
+}
+
+fn position(w: &Work, id: u32) -> (f64, f64) {
+    w.sketch.point(id).map_or((0.0, 0.0), |p| (p.x, p.y))
+}
+
+fn new_sketch(s: &mut Session, _p: &Value) -> Result<Value> {
+    let id = insert(s, "New Sketch", Sketch::new_v2())?;
+    Ok(json!({"id": id.0}))
+}
+
+fn add_line(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addLine";
+    let mut w = work(s, p, C)?;
+    let length = typed(&w, p, "length", Kind::Length, C)?;
+    let angle = typed(&w, p, "angle", Kind::Angle, C)?;
+    let (from_point, from_xy) = (point_ref(&w, p, "fromPoint", C)?, xy(p, "from", C)?);
+    let (to_point, to_xy) = (point_ref(&w, p, "toPoint", C)?, xy(p, "to", C)?);
+    let start = match (from_point, from_xy) {
+        (Some(id), _) => position(&w, id),
+        (None, Some(at)) => at,
+        _ => return Err(bad(C, "missing `from` or `fromPoint`")),
+    };
+    let end = match (to_point, to_xy) {
+        (Some(id), _) => position(&w, id),
+        (None, mouse) => {
+            let mouse_len = mouse.map(|m| (m.0 - start.0).hypot(m.1 - start.1));
+            let len = length.as_ref().map(|t| t.value).or(mouse_len).ok_or_else(|| bad(C, "missing `to`, `toPoint` or a typed length"))?;
+            let (ux, uy) = match (&angle, mouse) {
+                (Some(a), _) => (a.value.to_radians().cos(), -a.value.to_radians().sin()),
+                (None, Some(m)) if mouse_len.is_some_and(|l| l > 1e-9) => {
+                    let l = mouse_len.unwrap_or(1.0);
+                    ((m.0 - start.0) / l, (m.1 - start.1) / l)
+                }
+                _ => return Err(bad(C, "the line has no direction: give `to`, `toPoint` or a typed angle")),
+            };
+            (start.0 + ux * len, start.1 + uy * len)
+        }
+    };
+    if from_point.is_some() && from_point == to_point {
+        return Err(bad(C, "a line needs two different points"));
+    }
+    let a = from_point.unwrap_or_else(|| w.sketch.add_point(start.0, start.1));
+    let b = to_point.unwrap_or_else(|| w.sketch.add_point(end.0, end.1));
+    let line = w.sketch.add_line(a, b, bool_or(p, "construction", false));
+    if bool_or(p, "horizontal", false) {
+        w.sketch.constraints.push(Constraint::Horizontal { line });
+    }
+    if bool_or(p, "vertical", false) {
+        w.sketch.constraints.push(Constraint::Vertical { line });
+    }
+    let mut dimensions = Vec::new();
+    if let Some(t) = &length {
+        dimensions.push(add_dim(&mut w, Kind::Length, t, |param| Constraint::Length { line, param }));
+    }
+    if let Some(t) = &angle {
+        dimensions.push(add_dim(&mut w, Kind::Angle, t, |param| Constraint::Angle { line, param }));
+    }
+    let id = w.id;
+    commit(s, w, "Sketch Line", C)?;
+    Ok(json!({"id": id.0, "line": line, "a": a, "b": b, "dimensions": dimensions}))
+}
+
+fn add_rect(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addRect";
+    let mut w = work(s, p, C)?;
+    let centred = match str_param(p, "mode") {
+        None | Some("corner") => false,
+        Some("center") => true,
+        Some(_) => return Err(bad(C, "`mode` must be corner or center")),
+    };
+    let from = xy(p, "from", C)?.ok_or_else(|| bad(C, "missing `from`"))?;
+    let to = xy(p, "to", C)?.ok_or_else(|| bad(C, "missing `to`"))?;
+    let width = typed(&w, p, "width", Kind::Length, C)?;
+    let height = typed(&w, p, "height", Kind::Length, C)?;
+    let (dx, dy) = (to.0 - from.0, to.1 - from.1);
+    let sign = |v: f64| if v < 0.0 { -1.0 } else { 1.0 };
+    let (wd, ht) = if centred {
+        (width.as_ref().map_or(2.0 * dx.abs(), |t| t.value), height.as_ref().map_or(2.0 * dy.abs(), |t| t.value))
+    } else {
+        (width.as_ref().map_or(dx.abs(), |t| t.value), height.as_ref().map_or(dy.abs(), |t| t.value))
+    };
+    if wd <= 1e-9 || ht <= 1e-9 {
+        return Err(bad(C, "the rectangle has no size"));
+    }
+    // Corners: top-left, top-right, bottom-right, bottom-left as drawn from the first corner.
+    let (x0, y0, sx, sy) = if centred { (from.0 - wd / 2.0, from.1 - ht / 2.0, 1.0, 1.0) } else { (from.0, from.1, sign(dx), sign(dy)) };
+    let corners = [(x0, y0), (x0 + sx * wd, y0), (x0 + sx * wd, y0 + sy * ht), (x0, y0 + sy * ht)];
+    let mut points: Vec<u32> = corners.iter().map(|c| w.sketch.add_point(c.0, c.1)).collect();
+    let construction = bool_or(p, "construction", false);
+    let mut lines = Vec::new();
+    for i in 0..4 {
+        let (a, b) = (points.get(i).copied().unwrap_or(0), points.get((i + 1) % 4).copied().unwrap_or(0));
+        lines.push(w.sketch.add_line(a, b, construction));
+    }
+    let [top, right, bottom, left] = lines[..] else { return Err(bad(C, "the rectangle needs four lines")) };
+    w.sketch.constraints.extend([
+        Constraint::Horizontal { line: top },
+        Constraint::Horizontal { line: bottom },
+        Constraint::Vertical { line: right },
+        Constraint::Vertical { line: left },
+    ]);
+    let mut dimensions = Vec::new();
+    if let Some(t) = &width {
+        dimensions.push(add_dim(&mut w, Kind::Length, t, |param| Constraint::Length { line: top, param }));
+    }
+    if let Some(t) = &height {
+        dimensions.push(add_dim(&mut w, Kind::Length, t, |param| Constraint::Length { line: left, param }));
+    }
+    let mut out = json!({});
+    if centred {
+        let centre = w.sketch.add_point(from.0, from.1);
+        let (a, c) = (points.first().copied().unwrap_or(0), points.get(2).copied().unwrap_or(0));
+        let diagonal = w.sketch.add_line(a, c, true);
+        w.sketch.constraints.push(Constraint::Midpoint { p: centre, line: diagonal });
+        points.push(centre);
+        out = json!({"diagonal": diagonal});
+    }
+    let id = w.id;
+    commit(s, w, "Sketch Rectangle", C)?;
+    out["id"] = json!(id.0);
+    out["lines"] = json!(lines);
+    out["points"] = json!(points);
+    out["dimensions"] = json!(dimensions);
+    Ok(out)
+}
+
+fn add_circle(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addCircle";
+    let mut w = work(s, p, C)?;
+    let diameter = typed(&w, p, "diameter", Kind::Length, C)?;
+    let radius = match &diameter {
+        Some(t) => t.value / 2.0,
+        None => f64_or(p, "r", 0.0),
+    };
+    if !(radius.is_finite() && radius > 1e-9) {
+        return Err(bad(C, "give a `diameter`, or a mouse radius `r` above zero"));
+    }
+    let centre = match (point_ref(&w, p, "centerPoint", C)?, xy(p, "center", C)?) {
+        (Some(id), _) => id,
+        (None, Some(at)) => w.sketch.add_point(at.0, at.1),
+        _ => return Err(bad(C, "missing `center` or `centerPoint`")),
+    };
+    let circle = w.sketch.add_circle(centre, radius);
+    let mut dimensions = Vec::new();
+    if let Some(t) = &diameter {
+        dimensions.push(add_dim(&mut w, Kind::Length, t, |param| Constraint::Diameter { e: circle, param }));
+    }
+    let id = w.id;
+    commit(s, w, "Sketch Circle", C)?;
+    Ok(json!({"id": id.0, "circle": circle, "center": centre, "dimensions": dimensions}))
+}
+
+/// The circumcentre of three points, or `None` when they lie in a line.
+fn circumcentre(a: (f64, f64), b: (f64, f64), c: (f64, f64)) -> Option<(f64, f64)> {
+    let d = 2.0 * (a.0 * (b.1 - c.1) + b.0 * (c.1 - a.1) + c.0 * (a.1 - b.1));
+    if d.abs() < 1e-9 {
+        return None;
+    }
+    let (a2, b2, c2) = (a.0 * a.0 + a.1 * a.1, b.0 * b.0 + b.1 * b.1, c.0 * c.0 + c.1 * c.1);
+    let x = (a2 * (b.1 - c.1) + b2 * (c.1 - a.1) + c2 * (a.1 - b.1)) / d;
+    let y = (a2 * (c.0 - b.0) + b2 * (a.0 - c.0) + c2 * (b.0 - a.0)) / d;
+    (x.is_finite() && y.is_finite()).then_some((x, y))
+}
+
+/// The centre of an arc from `start` to `end` with radius `r`: on the chord's perpendicular
+/// bisector, at the side that keeps `through` on the arc's bulge (the one nearest the three-point
+/// circle when there is one).
+fn centre_with_radius(start: (f64, f64), end: (f64, f64), through: (f64, f64), r: f64, cmd: &str) -> Result<(f64, f64)> {
+    let (dx, dy) = (end.0 - start.0, end.1 - start.1);
+    let chord = dx.hypot(dy);
+    if chord < 1e-9 {
+        return Err(bad(cmd, "the arc's start and end are the same place"));
+    }
+    if 2.0 * r < chord - 1e-9 {
+        return Err(bad(cmd, "the radius is too small for this arc"));
+    }
+    let k = (r * r - chord * chord / 4.0).max(0.0).sqrt();
+    let mid = ((start.0 + end.0) / 2.0, (start.1 + end.1) / 2.0);
+    let n = (-dy / chord, dx / chord);
+    let (c1, c2) = ((mid.0 + n.0 * k, mid.1 + n.1 * k), (mid.0 - n.0 * k, mid.1 - n.1 * k));
+    let near = |c: (f64, f64), to: (f64, f64)| (c.0 - to.0).hypot(c.1 - to.1);
+    Ok(match circumcentre(start, end, through) {
+        Some(guess) => {
+            if near(c1, guess) <= near(c2, guess) {
+                c1
+            } else {
+                c2
+            }
+        }
+        // Collinear: the centre goes on the side away from `through`.
+        None => {
+            if (through.0 - mid.0) * n.0 + (through.1 - mid.1) * n.1 > 0.0 {
+                c2
+            } else {
+                c1
+            }
+        }
+    })
+}
+
+fn add_arc(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addArc";
+    let mut w = work(s, p, C)?;
+    let radius = typed(&w, p, "radius", Kind::Length, C)?;
+    let (start_point, start_xy) = (point_ref(&w, p, "startPoint", C)?, xy(p, "start", C)?);
+    let (end_point, end_xy) = (point_ref(&w, p, "endPoint", C)?, xy(p, "end", C)?);
+    let through = xy(p, "through", C)?.ok_or_else(|| bad(C, "missing `through`"))?;
+    let start = match (start_point, start_xy) {
+        (Some(id), _) => position(&w, id),
+        (None, Some(at)) => at,
+        _ => return Err(bad(C, "missing `start` or `startPoint`")),
+    };
+    let end = match (end_point, end_xy) {
+        (Some(id), _) => position(&w, id),
+        (None, Some(at)) => at,
+        _ => return Err(bad(C, "missing `end` or `endPoint`")),
+    };
+    if start_point.is_some() && start_point == end_point {
+        return Err(bad(C, "an arc needs two different end points"));
+    }
+    let centre_at = match &radius {
+        Some(t) => centre_with_radius(start, end, through, t.value, C)?,
+        None => circumcentre(start, end, through).ok_or_else(|| bad(C, "the three points are in a line"))?,
+    };
+    if (start.0 - end.0).hypot(start.1 - end.1) < 1e-9 {
+        return Err(bad(C, "the arc's start and end are the same place"));
+    }
+    // Counter-clockwise on screen (y is down): measure angles with y flipped.
+    let angle = |q: (f64, f64)| (-(q.1 - centre_at.1)).atan2(q.0 - centre_at.0);
+    let sweep = (angle(end) - angle(start)).rem_euclid(std::f64::consts::TAU);
+    let through_sweep = (angle(through) - angle(start)).rem_euclid(std::f64::consts::TAU);
+    let start_id = start_point.unwrap_or_else(|| w.sketch.add_point(start.0, start.1));
+    let end_id = end_point.unwrap_or_else(|| w.sketch.add_point(end.0, end.1));
+    let centre = w.sketch.add_point(centre_at.0, centre_at.1);
+    let (first, second) = if through_sweep <= sweep { (start_id, end_id) } else { (end_id, start_id) };
+    let arc = w.sketch.add_arc(centre, first, second);
+    let mut dimensions = Vec::new();
+    if let Some(t) = &radius {
+        dimensions.push(add_dim(&mut w, Kind::Length, t, |param| Constraint::Radius { e: arc, param }));
+    }
+    let id = w.id;
+    commit(s, w, "Sketch Arc", C)?;
+    Ok(json!({"id": id.0, "arc": arc, "center": centre, "start": start_id, "end": end_id, "dimensions": dimensions}))
+}
+
+fn fillet(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.fillet";
+    let mut w = work(s, p, C)?;
+    let corner = point_ref(&w, p, "point", C)?.ok_or_else(|| bad(C, "missing `point`"))?;
+    let radius = typed(&w, p, "radius", Kind::Length, C)?.ok_or_else(|| bad(C, "missing `radius`"))?;
+    let (arc, _, _) = w.sketch.fillet(corner, radius.value).map_err(|e| bad(C, e))?;
+    let dimension = add_dim(&mut w, Kind::Length, &radius, |param| Constraint::Radius { e: arc, param });
+    let id = w.id;
+    commit(s, w, "Sketch Fillet", C)?;
+    Ok(json!({"id": id.0, "arc": arc, "dimensions": [dimension]}))
+}
+
+/// Do the references of `c` exist and have the right kinds?
+fn check_refs(sketch: &Sketch, c: &Constraint) -> std::result::Result<(), String> {
+    let pt = |id: &u32| sketch.point(*id).is_some();
+    let line = |id: &u32| matches!(sketch.entity(*id), Some(Entity::Line { .. }));
+    let round = |id: &u32| matches!(sketch.entity(*id), Some(Entity::Circle { .. } | Entity::Arc { .. }));
+    let ok = match c {
+        Constraint::Coincident { a, b } | Constraint::Distance { a, b, .. } => pt(a) && pt(b) && a != b,
+        Constraint::PointOnLine { p, line: l } | Constraint::Midpoint { p, line: l } => pt(p) && line(l),
+        Constraint::PointOnCircle { p, e } => pt(p) && round(e),
+        Constraint::Horizontal { line: l }
+        | Constraint::Vertical { line: l }
+        | Constraint::Length { line: l, .. }
+        | Constraint::Angle { line: l, .. } => line(l),
+        Constraint::Parallel { a, b } | Constraint::Perpendicular { a, b } | Constraint::AngleBetween { a, b, .. } => line(a) && line(b) && a != b,
+        Constraint::Tangent { a, b } => a != b && ((line(a) && round(b)) || (round(a) && line(b)) || (round(a) && round(b))),
+        Constraint::Equal { a, b } => a != b && ((line(a) && line(b)) || (round(a) && round(b))),
+        Constraint::Concentric { a, b } => a != b && round(a) && round(b),
+        Constraint::Fix { p, .. } => pt(p),
+        Constraint::Radius { e, .. } | Constraint::Diameter { e, .. } => round(e),
+    };
+    if ok {
+        Ok(())
+    } else {
+        let name = serde_json::to_value(c).ok().and_then(|v| v.get("type").and_then(Value::as_str).map(str::to_string)).unwrap_or_default();
+        Err(format!("a {name} constraint needs existing points or shapes of the right kind (points and shapes have separate ids)"))
+    }
+}
+
+const GEOMETRIC: [&str; 12] = [
+    "coincident",
+    "pointOnLine",
+    "pointOnCircle",
+    "horizontal",
+    "vertical",
+    "parallel",
+    "perpendicular",
+    "tangent",
+    "equal",
+    "fix",
+    "midpoint",
+    "concentric",
+];
+const DIMENSIONS: [&str; 6] = ["distance", "length", "angle", "angleBetween", "radius", "diameter"];
+
+/// The `constraint` object of `p`, its `type` among `allowed`.
+fn constraint_object(p: &Value, allowed: &[&str], cmd: &str) -> Result<serde_json::Map<String, Value>> {
+    let obj = p.get("constraint").and_then(Value::as_object).ok_or_else(|| bad(cmd, "missing `constraint`"))?;
+    match obj.get("type").and_then(Value::as_str) {
+        Some(t) if allowed.contains(&t) => Ok(obj.clone()),
+        _ => Err(bad(cmd, format!("`constraint.type` must be one of {}", allowed.join(", ")))),
+    }
+}
+
+fn add_constraint(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addConstraint";
+    let mut w = work(s, p, C)?;
+    let mut obj = constraint_object(p, &GEOMETRIC, C)?;
+    if obj.get("type").and_then(Value::as_str) == Some("fix") && !(obj.contains_key("x") && obj.contains_key("y")) {
+        let point = obj.get("p").and_then(index_value).ok_or_else(|| bad(C, "`fix` needs a point `p`"))?;
+        let at = w.sketch.point(point).ok_or_else(|| bad(C, format!("no point {point} in this sketch")))?;
+        obj.insert("x".into(), json!(at.x));
+        obj.insert("y".into(), json!(at.y));
+    }
+    let c: Constraint = serde_json::from_value(Value::Object(obj)).map_err(|e| bad(C, format!("bad constraint: {e}")))?;
+    check_refs(&w.sketch, &c).map_err(|e| bad(C, e))?;
+    check_caps(&w.sketch, C)?;
+    let solved = params::solve(&w.rows);
+    w.sketch = solve::try_add(&w.sketch, c, &solved).map_err(|e| solve_error(e, C))?.sketch;
+    let (id, index) = (w.id, w.sketch.constraints.len() - 1);
+    save(s, w, "Add Sketch Constraint")?;
+    Ok(json!({"id": id.0, "index": index}))
+}
+
+fn add_dimension(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.addDimension";
+    let mut w = work(s, p, C)?;
+    let mut obj = constraint_object(p, &DIMENSIONS, C)?;
+    let name = params::next_model_name(&w.rows);
+    obj.insert("param".into(), json!(name));
+    let c: Constraint = serde_json::from_value(Value::Object(obj)).map_err(|e| bad(C, format!("bad constraint: {e}")))?;
+    check_refs(&w.sketch, &c).map_err(|e| bad(C, e))?;
+    let kind = if c.is_angular() { Kind::Angle } else { Kind::Length };
+    let t = match typed(&w, p, "expression", kind, C)? {
+        Some(t) => t,
+        None => {
+            let v = w.sketch.measure(&c).ok_or_else(|| bad(C, "cannot measure this yet"))?;
+            if kind == Kind::Length && v <= 1e-9 {
+                return Err(bad(C, "there is no length to measure here; give an `expression`"));
+            }
+            Typed { expression: params::plain_expression(v, kind.unit()), value: v }
+        }
+    };
+    add_param(&mut w, kind, &t.expression);
+    check_caps(&w.sketch, C)?;
+    let solved = params::solve(&w.rows);
+    w.sketch = solve::try_add(&w.sketch, c, &solved).map_err(|e| solve_error(e, C))?.sketch;
+    let (id, index) = (w.id, w.sketch.constraints.len() - 1);
+    save(s, w, "Add Sketch Dimension")?;
+    Ok(json!({"id": id.0, "index": index, "name": name, "value": t.value}))
+}
+
+fn set_dimension(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.setDimension";
+    let mut w = work(s, p, C)?;
+    let c = match (str_param(p, "name"), p.get("index").and_then(Value::as_u64)) {
+        (Some(name), _) => w.sketch.constraints.iter().find(|c| c.param() == Some(name)),
+        (None, Some(i)) => usize::try_from(i).ok().and_then(|i| w.sketch.constraints.get(i)),
+        (None, None) => return Err(bad(C, "give the dimension's `name` or `index`")),
+    };
+    let (name, kind) = match c.and_then(|c| c.param().map(|n| (n.to_string(), c.is_angular()))) {
+        Some((n, true)) => (n, Kind::Angle),
+        Some((n, false)) => (n, Kind::Length),
+        None => return Err(bad(C, "no such dimension in this sketch")),
+    };
+    let expression = typed(&w, p, "expression", kind, C)?.ok_or_else(|| bad(C, "missing `expression`"))?.expression;
+    let before = w.rows.clone();
+    let row = w
+        .rows
+        .iter_mut()
+        .find(|r| r.name == name && r.sketch == Some(w.id.0))
+        .ok_or_else(|| bad(C, format!("no parameter `{name}` for this sketch")))?;
+    row.expression = expression;
+    let solved = params::solve(&w.rows);
+    let value = match solved.value(&name) {
+        Some(v) => v,
+        None => return Err(bad(C, solved.error(&name).unwrap_or("not a number"))),
+    };
+    if w.rows == before {
+        return Ok(json!({"id": w.id.0, "name": name, "value": value, "error": null}));
+    }
+    solve_work(&mut w, C)?;
+    let id = w.id;
+    save(s, w, "Set Sketch Dimension")?;
+    Ok(json!({"id": id.0, "name": name, "value": value, "error": null}))
+}
+
+/// Is model parameter `name` still used by another dimension of this sketch, by a dimension or a
+/// shape field of another sketch, or by another row's expression?
+fn param_in_use(doc: &Document, id: NodeId, current: &Sketch, rows: &[ParamRow], name: &str) -> bool {
+    let uses = |sk: &Sketch| {
+        sk.constraints.iter().any(|c| c.param() == Some(name))
+            || sk.shapes.iter().any(|shape| shape.fields.values().any(|e| expr::references(e).iter().any(|r| r == name)))
+    };
+    if uses(current) || rows.iter().any(|r| r.name != name && expr::references(&r.expression).iter().any(|x| x == name)) {
+        return true;
+    }
+    let mut used = false;
+    doc.walk(|n| {
+        if n.id != id
+            && let Some(sk) = n.extras().sketch.as_deref()
+            && uses(sk)
+        {
+            used = true;
+        }
+    });
+    used
+}
+
+/// Remove the model parameters of dimensions that `before` had and the recipe no longer has,
+/// unless something else still uses them.
+fn prune_params(doc: &Document, w: &mut Work, before: &Sketch) {
+    let dropped: Vec<String> = before
+        .constraints
+        .iter()
+        .filter_map(Constraint::param)
+        .filter(|n| !w.sketch.constraints.iter().any(|c| c.param() == Some(*n)))
+        .map(str::to_string)
+        .collect();
+    for name in dropped {
+        if !param_in_use(doc, w.id, &w.sketch, &w.rows, &name) {
+            let id = w.id.0;
+            w.rows.retain(|r| !(r.name == name && r.sketch == Some(id)));
+        }
+    }
+}
+
+/// Solve for the stored positions after something was taken away (this cannot over-constrain;
+/// when the solver does not converge the recipe is kept as it is).
+fn tidy(w: &mut Work) {
+    if let Ok(sol) = solve::solve(&w.sketch, &params::solve(&w.rows)) {
+        w.sketch = sol.sketch;
+    }
+}
+
+fn remove_constraint(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.removeConstraint";
+    let mut w = work(s, p, C)?;
+    let before = w.sketch.clone();
+    let i = p.get("index").and_then(Value::as_u64).and_then(|i| usize::try_from(i).ok()).ok_or_else(|| bad(C, "missing `index`"))?;
+    if w.sketch.remove_constraint(i).is_none() {
+        return Err(bad(C, format!("no constraint {i} in this sketch")));
+    }
+    prune_params(&s.doc()?.doc, &mut w, &before);
+    tidy(&mut w);
+    let id = w.id;
+    save(s, w, "Remove Sketch Constraint")?;
+    Ok(json!({"id": id.0, "removed": i}))
+}
+
+/// Entity ids under `key`, each of which must exist.
+fn entity_ids(w: &Work, p: &Value, cmd: &str) -> Result<Vec<u32>> {
+    let list = p.get("entities").and_then(Value::as_array).ok_or_else(|| bad(cmd, "`entities` must be a list of shape ids"))?;
+    let mut ids = Vec::new();
+    for v in list {
+        let id = index_value(v).ok_or_else(|| bad(cmd, "`entities` must be a list of shape ids"))?;
+        if w.sketch.entity(id).is_none() {
+            return Err(bad(cmd, format!("no shape {id} in this sketch")));
+        }
+        ids.push(id);
+    }
+    if ids.is_empty() {
+        return Err(bad(cmd, "`entities` is empty"));
+    }
+    Ok(ids)
+}
+
+fn delete_entities(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.deleteEntities";
+    let mut w = work(s, p, C)?;
+    let ids = entity_ids(&w, p, C)?;
+    let before = w.sketch.clone();
+    w.sketch.remove_entities(&ids);
+    prune_params(&s.doc()?.doc, &mut w, &before);
+    tidy(&mut w);
+    let id = w.id;
+    save(s, w, "Delete Sketch Geometry")?;
+    Ok(json!({"id": id.0}))
+}
+
+fn set_construction(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.setConstruction";
+    let mut w = work(s, p, C)?;
+    let ids = entity_ids(&w, p, C)?;
+    let want = match p.get("construction") {
+        None | Some(Value::Null) => None,
+        Some(v) => Some(v.as_bool().ok_or_else(|| bad(C, "`construction` must be true or false"))?),
+    };
+    for e in &mut w.sketch.entities {
+        if ids.contains(&e.id()) {
+            let on = want.unwrap_or(!e.construction());
+            match e {
+                Entity::Line { construction, .. } | Entity::Circle { construction, .. } | Entity::Arc { construction, .. } => *construction = on,
+            }
+        }
+    }
+    let id = w.id;
+    save(s, w, "Toggle Construction")?;
+    Ok(json!({"id": id.0}))
+}
+
+/// The extra fields `sketch.inspect` reports for a drawn sketch.
+fn inspect_v2(sketch: &Sketch, rows: &[ParamRow], params_solved: &expr::Solved) -> serde_json::Map<String, Value> {
+    let solution = solve::solve(sketch, params_solved);
+    let (entities_ok, points_ok, errors, dof, solve_error) = match &solution {
+        Ok(s) => (s.constrained.clone(), s.point_constrained.clone(), s.errors.clone(), Some(s.dof), None),
+        Err(SolveError::OverConstrained) => (Default::default(), Default::default(), Default::default(), None, Some(CONTRADICTION)),
+        Err(SolveError::NoSolution) => (Default::default(), Default::default(), Default::default(), None, Some(NO_SOLUTION)),
+    };
+    let points: Vec<Value> =
+        sketch.points.iter().map(|q| json!({"id": q.id, "x": q.x, "y": q.y, "constrained": points_ok.contains(&q.id)})).collect();
+    let entities: Vec<Value> = sketch
+        .entities
+        .iter()
+        .map(|e| {
+            let constrained = entities_ok.contains(&e.id());
+            match e {
+                Entity::Line { id, a, b, construction } => {
+                    json!({"id": id, "kind": "line", "a": a, "b": b, "construction": construction, "constrained": constrained})
+                }
+                Entity::Circle { id, c, r, construction } => {
+                    json!({"id": id, "kind": "circle", "c": c, "r": r, "construction": construction, "constrained": constrained})
+                }
+                Entity::Arc { id, c, a, b, construction } => {
+                    let r = sketch.point(*c).zip(sketch.point(*a)).map(|(c, a)| (a.x - c.x).hypot(a.y - c.y));
+                    json!({"id": id, "kind": "arc", "c": c, "a": a, "b": b, "r": r, "construction": construction, "constrained": constrained})
+                }
+            }
+        })
+        .collect();
+    let constraints: Vec<Value> = sketch
+        .constraints
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let mut v = serde_json::to_value(c).unwrap_or(Value::Null);
+            if let Some(o) = v.as_object_mut() {
+                o.insert("index".into(), json!(i));
+                if let Some(param) = c.param() {
+                    let expression = rows.iter().find(|r| r.name == param).map(|r| r.expression.clone());
+                    let error = errors.get(&i).cloned().or_else(|| params_solved.error(param).map(str::to_string));
+                    o.insert("expression".into(), json!(expression));
+                    o.insert("value".into(), json!(params_solved.value(param)));
+                    o.insert("error".into(), json!(error));
+                }
+            }
+            v
+        })
+        .collect();
+    let mut out = serde_json::Map::new();
+    out.insert("points".into(), json!(points));
+    out.insert("entities".into(), json!(entities));
+    out.insert("constraints".into(), json!(constraints));
+    out.insert("dof".into(), json!(dof));
+    out.insert("fullyConstrained".into(), json!(dof == Some(0)));
+    out.insert("solveError".into(), json!(solve_error));
+    out
 }

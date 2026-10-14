@@ -15,7 +15,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "List Parameters",
             [],
             None,
-            "{} → {rows: [{name, unit: mm|in|'', expression, value (in the row's unit, null on error), error, comment, favourite, min, max, step}]} the drawing's user parameters, solved",
+            "{} → {rows: [{name, unit: mm|in|'', expression, value (in the row's unit, null on error), error, comment, favourite, min, max, step, sketch (the owning sketch's id for a dimension's model parameter d1, d2…, else null)}]} the drawing's parameters, solved",
             has_doc,
             list
         ),
@@ -152,6 +152,7 @@ fn row_json(row: &ParamRow, solved: &expr::Solved) -> Value {
         "min": row.min,
         "max": row.max,
         "step": row.step,
+        "sketch": row.sketch,
     })
 }
 
