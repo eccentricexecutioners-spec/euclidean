@@ -1323,8 +1323,10 @@ impl VectorcraftApp {
             if self.ui.screen_mode < 3 {
                 chrome::doc_tabs(self, ui);
             }
+            sketch::strip::show(self, ui);
             canvas::show(self, ui);
         });
+        sketch::params_dialog::show(self, &ctx);
         dock::floating_panel(self, &ctx);
         floating::show(self, &ctx);
         panels::library_panel::show_window(self, &ctx);

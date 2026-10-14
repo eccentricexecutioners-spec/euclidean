@@ -330,6 +330,9 @@ pub struct UiState {
     /// Draw Normal / Behind / Inside.
     pub draw_mode: u8,
     pub about: bool,
+    /// The Change Parameters dialog (Euclidean) is showing. Not saved.
+    #[serde(skip)]
+    pub change_parameters: bool,
     /// Recorded actions (Actions panel), persisted with the UI preferences.
     #[serde(default = "crate::panels::actions::default_sets")]
     pub action_sets: Vec<crate::panels::actions::ActionSet>,
@@ -640,6 +643,7 @@ impl UiState {
         self.palette_open = false;
         self.status.clear();
         self.about = false;
+        self.change_parameters = false;
         self.open_panel = None;
         if self.group_tool.len() != vectorcraft_tools::TOOL_GROUPS.len() {
             self.group_tool = UiState::default().group_tool;
@@ -700,6 +704,7 @@ impl Default for UiState {
             screen_mode: 0,
             draw_mode: 0,
             about: false,
+            change_parameters: false,
             action_sets: crate::panels::actions::default_sets(),
             recording: None,
             shortcut_overrides: Default::default(),

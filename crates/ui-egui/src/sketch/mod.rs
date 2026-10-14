@@ -11,6 +11,8 @@
 pub mod hit;
 pub mod hud;
 pub mod overlay;
+pub mod params_dialog;
+pub mod strip;
 pub mod toolbar;
 pub mod tools;
 

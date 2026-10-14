@@ -3,7 +3,6 @@
 //! FINISH SKETCH button at the right.
 
 use egui::{Align, Color32, Layout, Sense, Stroke, Ui, vec2};
-use serde_json::json;
 
 use super::SketchTool;
 use crate::VectorcraftApp;
@@ -71,9 +70,7 @@ fn run(app: &mut VectorcraftApp, act: Act) {
         Act::Constrain(kind) => super::constrain(app, kind),
         Act::Soon => app.status(tl!("Coming next")),
         Act::Params => {
-            if let Err(e) = app.run("window.panel", json!({"panel": "parameters"})) {
-                app.status(e);
-            }
+            app.ui.change_parameters = true;
         }
     }
 }

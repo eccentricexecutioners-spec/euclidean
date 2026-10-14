@@ -127,6 +127,43 @@ fn unit_label(unit: &str) -> String {
     if unit.is_empty() { tl!("No unit").to_string() } else { unit.to_string() }
 }
 
+/// The unit dropdown's entries, as shown.
+pub(crate) fn unit_labels() -> Vec<String> {
+    params::UNITS.iter().map(|u| unit_label(u)).collect()
+}
+
+/// One parameter's cells: star, name, unit, expression, value, comment. Each edit is one command
+/// (`parameters.set` / `parameters.rename`), so one undo step. Shared by this panel's table and
+/// the Change Parameters dialog's.
+pub(crate) fn edit_row(app: &mut VectorcraftApp, ui: &mut Ui, r: &Row, unit_names: &[&str]) {
+    let t = crate::theme::Tokens::get(ui.ctx());
+    let name = r.row.name.clone();
+    if widgets::icon_button(ui, "star", tl!("Favorite"), r.row.favourite, 18.0).clicked() {
+        app.run("parameters.set", json!({"name": name, "favourite": !r.row.favourite})).ok();
+    }
+    if let Some(to) = widgets::exact_text_field(ui, "name", &name, 72.0)
+        && let Err(e) = app.run("parameters.rename", json!({"from": name, "to": to.trim()}))
+    {
+        app.ui.status = e;
+    }
+    let current = unit_label(&r.row.unit);
+    if let Some(i) = widgets::dropdown_names(ui, "unit", &current, unit_names, 64.0)
+        && let Some(u) = params::UNITS.get(i)
+    {
+        app.run("parameters.set", json!({"name": name, "unit": u})).ok();
+    }
+    if let Some(e) = widgets::exact_text_field(ui, "expr", &r.row.expression, 96.0) {
+        app.run("parameters.set", json!({"name": name, "expression": e})).ok();
+    }
+    let value = ui.label(egui::RichText::new(shown_value(r)).size(12.0).color(if r.error.is_some() { t.accent_strong } else { t.text }));
+    if let Some(err) = &r.error {
+        value.on_hover_text(err);
+    }
+    if let Some(c) = widgets::exact_text_field(ui, "comment", &r.row.comment, 96.0) {
+        app.run("parameters.set", json!({"name": name, "comment": c})).ok();
+    }
+}
+
 pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     let Some(st) = app.session.active() else {
         widgets::dim_label(ui, tl!("No document"));
@@ -167,7 +204,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         if rows.is_empty() {
             widgets::dim_label(ui, tl!("None"));
         }
-        let units: Vec<String> = params::UNITS.iter().map(|u| unit_label(u)).collect();
+        let units = unit_labels();
         let unit_names: Vec<&str> = units.iter().map(String::as_str).collect();
         egui::Grid::new("parameters-table").num_columns(7).spacing([4.0, 2.0]).show(ui, |ui| {
             ui.label("");
@@ -179,35 +216,10 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
             ui.label("");
             ui.end_row();
             for r in &rows {
-                let name = r.row.name.clone();
-                ui.push_id(("row", &name), |ui| {
-                    if widgets::icon_button(ui, "star", tl!("Favorite"), r.row.favourite, 18.0).clicked() {
-                        app.run("parameters.set", json!({"name": name, "favourite": !r.row.favourite})).ok();
-                    }
-                    if let Some(to) = widgets::exact_text_field(ui, "name", &name, 72.0)
-                        && let Err(e) = app.run("parameters.rename", json!({"from": name, "to": to.trim()}))
-                    {
-                        app.ui.status = e;
-                    }
-                    let current = unit_label(&r.row.unit);
-                    if let Some(i) = widgets::dropdown_names(ui, "unit", &current, &unit_names, 64.0)
-                        && let Some(u) = params::UNITS.get(i)
-                    {
-                        app.run("parameters.set", json!({"name": name, "unit": u})).ok();
-                    }
-                    if let Some(e) = widgets::exact_text_field(ui, "expr", &r.row.expression, 96.0) {
-                        app.run("parameters.set", json!({"name": name, "expression": e})).ok();
-                    }
-                    let value =
-                        ui.label(egui::RichText::new(shown_value(r)).size(12.0).color(if r.error.is_some() { t.accent_strong } else { t.text }));
-                    if let Some(err) = &r.error {
-                        value.on_hover_text(err);
-                    }
-                    if let Some(c) = widgets::exact_text_field(ui, "comment", &r.row.comment, 96.0) {
-                        app.run("parameters.set", json!({"name": name, "comment": c})).ok();
-                    }
+                ui.push_id(("row", &r.row.name), |ui| {
+                    edit_row(app, ui, r, &unit_names);
                     if widgets::icon_button(ui, "trash-2", tl!("Delete Parameter"), false, 18.0).clicked() {
-                        app.run("parameters.remove", json!({"name": name})).ok();
+                        app.run("parameters.remove", json!({"name": r.row.name})).ok();
                     }
                 });
                 ui.end_row();
@@ -368,12 +380,17 @@ mod tests {
     fn window_parameters_opens_the_panel_and_object_has_the_submenu() {
         let app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
         let entries = crate::menus::menu_entries(&app);
-        let panel = entries
-            .iter()
-            .find(|e| e.command.as_deref() == Some("window.panel") && e.params.get("panel").and_then(serde_json::Value::as_str) == Some(ID))
-            .expect("the Parameters panel is listed");
-        assert_eq!((panel.path.clone(), panel.label.as_str()), (vec!["Window".to_string()], "Parameters"));
+        // Window > Parameters now opens the Change Parameters dialog; the panel stays reachable by `window.panel`.
+        let dialog = entries.iter().find(|e| e.command.as_deref() == Some("window.changeParameters")).expect("Window > Parameters is listed");
+        assert_eq!((dialog.path.clone(), dialog.label.as_str()), (vec!["Window".to_string()], "Parameters"));
+        assert!(
+            !entries
+                .iter()
+                .any(|e| e.command.as_deref() == Some("window.panel") && e.params.get("panel").and_then(serde_json::Value::as_str) == Some(ID)),
+            "the panel is no longer a Window menu row"
+        );
+        assert!(crate::menus::UI_COMMANDS.iter().any(|c| c.0 == "window.panel"));
         let sketch: Vec<&str> = entries.iter().filter(|e| e.path == ["Object", "Parametric Sketch"]).map(|e| e.label.as_str()).collect();
-        assert_eq!(sketch, ["New Rectangle", "New Circle", "New Line", "Sample: Mounting plate"]);
+        assert_eq!(sketch, ["New Sketch", "New Rectangle", "New Circle", "New Line", "Sample: Mounting plate"]);
     }
 }

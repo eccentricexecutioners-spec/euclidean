@@ -294,6 +294,12 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
     ),
     ("window.taskBar", "Contextual Task Bar", "", "{}"),
     (
+        "window.changeParameters",
+        "Change Parameters",
+        "",
+        "{} show/hide the Change Parameters dialog (user and model parameters, a table like Fusion's); returns the new state",
+    ),
+    (
         "window.taskBar.pin",
         "Pin Bar Position",
         "",
@@ -1193,6 +1199,7 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
             crate::toolbar::float_group(app, &tool, floating).map(Value::Bool)
         }
         "window.taskBar" => flag(&mut app.ui.task_bar),
+        "window.changeParameters" => flag(&mut app.ui.change_parameters),
         "window.taskBar.pin" => {
             let place = &mut app.ui.task_bar_place;
             opt_bool(p, "pinned").map(|pinned| {
@@ -1559,6 +1566,7 @@ pub fn checked(app: &VectorcraftApp, id: &str, p: &Value) -> Option<bool> {
             app.ui.floating_flyouts.iter().any(|f| f.tools.iter().any(|id| id == tool))
         }
         "window.taskBar" => app.ui.task_bar,
+        "window.changeParameters" => app.ui.change_parameters,
         "window.taskBar.pin" => app.ui.task_bar_place.pinned,
         "window.panel" => {
             let panel = p.get("panel").and_then(Value::as_str).unwrap_or("");
@@ -2683,7 +2691,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 panel("Links", crate::panels::links::ID),
                 panel("Magic Wand", "magicWand"),
                 panel("Navigator", "navigator"),
-                panel("Parameters", crate::panels::parameters::ID),
+                c("Parameters", "window.changeParameters"),
                 panel("Pathfinder", "pathfinder"),
                 panel("Pattern Options", "patternOptions"),
                 panel("Properties", "properties"),
