@@ -28,14 +28,14 @@ fn window_id() -> egui::Id {
 fn drives(sketch: &Sketch, param: &str) -> Option<String> {
     let c = sketch.constraints.iter().find(|c| c.param() == Some(param))?;
     let radius_of = |e: u32, what: &str| match sketch.entities.iter().find(|x| x.id() == e) {
-        Some(Entity::Arc { .. }) => format!("{what} {} {e}", tl!("arc")),
-        _ => format!("{what} {} {e}", tl!("circle")),
+        Some(Entity::Arc { .. }) => format!("{what} {} {}", tl!("arc"), e + 1),
+        _ => format!("{what} {} {}", tl!("circle"), e + 1),
     };
     Some(match c {
-        Constraint::Length { line, .. } => format!("{} {line}", tl!("Length of line")),
-        Constraint::Angle { line, .. } => format!("{} {line}", tl!("Angle of line")),
-        Constraint::AngleBetween { a, b, .. } => format!("{} {a} {} {b}", tl!("Angle between lines"), tl!("and")),
-        Constraint::Distance { a, b, .. } => format!("{} {a} {} {b}", tl!("Distance between points"), tl!("and")),
+        Constraint::Length { line, .. } => format!("{} {}", tl!("Length of line"), line + 1),
+        Constraint::Angle { line, .. } => format!("{} {}", tl!("Angle of line"), line + 1),
+        Constraint::AngleBetween { a, b, .. } => format!("{} {} {} {}", tl!("Angle between lines"), a + 1, tl!("and"), b + 1),
+        Constraint::Distance { a, b, .. } => format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1),
         Constraint::Radius { e, .. } => radius_of(*e, tl!("Radius of")),
         Constraint::Diameter { e, .. } => radius_of(*e, tl!("Diameter of")),
         _ => return None,
@@ -125,32 +125,50 @@ fn body(app: &mut VectorcraftApp, ui: &mut Ui) {
     }
 }
 
-/// One table of rows; a model group adds the "Drives" column.
+/// One table of rows; a model group adds the "Drives" column. Each row is one cell of widgets of
+/// known widths (the shared row editor's), so the header row is laid out with the same widths.
 fn table(app: &mut VectorcraftApp, ui: &mut Ui, id: &str, rows: &[Row], unit_names: &[&str], group: Option<&Group>) {
     let t = crate::theme::Tokens::get(ui.ctx());
-    let head = |ui: &mut Ui, text: &str| {
-        widgets::field_label(ui, egui::RichText::new(text).size(11.0).color(t.text_dim));
-    };
-    egui::Grid::new(("change-parameters", id)).num_columns(if group.is_some() { 7 } else { 6 }).spacing([6.0, 3.0]).show(ui, |ui| {
-        ui.label("");
-        head(ui, tl!("Parameter"));
-        head(ui, tl!("Unit"));
-        head(ui, tl!("Expression"));
-        head(ui, tl!("Value"));
-        head(ui, tl!("Comment"));
-        if group.is_some() {
-            head(ui, tl!("Drives"));
-        }
-        ui.end_row();
+    let font = egui::FontId::proportional(12.0);
+    // The value cell is as wide as its text: the header's is as wide as the widest of them.
+    let value_w = rows
+        .iter()
+        .map(|r| {
+            let text = if r.error.is_some() {
+                tl!("error").to_string()
+            } else {
+                vectorcraft_doc::params::format_value(r.value.map(|v| vectorcraft_doc::params::from_unit(v, &r.row.unit)), &r.row.unit)
+            };
+            ui.painter().layout_no_wrap(text, font.clone(), t.text).size().x
+        })
+        .fold(40.0_f32, f32::max);
+    ui.push_id(("change-parameters", id), |ui| {
+        ui.spacing_mut().item_spacing = egui::vec2(6.0, 3.0);
+        ui.horizontal(|ui| {
+            let head = |ui: &mut Ui, text: &str, width: f32| {
+                let (rect, _) = ui.allocate_exact_size(egui::vec2(width, 16.0), egui::Sense::hover());
+                ui.painter().text(rect.left_center(), egui::Align2::LEFT_CENTER, text, egui::FontId::proportional(11.0), t.text_dim);
+            };
+            head(ui, "", 18.0);
+            head(ui, tl!("Parameter"), 72.0);
+            head(ui, tl!("Unit"), 64.0);
+            head(ui, tl!("Expression"), 96.0);
+            head(ui, tl!("Value"), value_w);
+            head(ui, tl!("Comment"), 96.0);
+            if group.is_some() {
+                head(ui, tl!("Drives"), 140.0);
+            }
+        });
         for r in rows {
             ui.push_id(("row", &r.row.name), |ui| {
-                parameters::edit_row(app, ui, r, unit_names);
-                if let Some(g) = group {
-                    let text = g.sketch.as_ref().and_then(|s| drives(s, &r.row.name)).unwrap_or_default();
-                    ui.label(egui::RichText::new(text).size(12.0).color(t.text_dim));
-                }
+                ui.horizontal(|ui| {
+                    parameters::edit_row(app, ui, r, unit_names);
+                    if let Some(g) = group {
+                        let text = g.sketch.as_ref().and_then(|s| drives(s, &r.row.name)).unwrap_or_default();
+                        ui.label(egui::RichText::new(text).size(12.0).color(t.text_dim));
+                    }
+                });
             });
-            ui.end_row();
         }
     });
 }
@@ -174,7 +192,8 @@ mod tests {
         let text = crate::tests_labels::painted_text(&mut app, body);
         let at = |s: &str| text.find(s).unwrap_or_else(|| panic!("{s} missing:\n{text}"));
         assert!(at("User Parameters") < at("width") && at("width") < at("Model Parameters") && at("Model Parameters") < at("d1"), "{text}");
-        assert!(text.contains("Length of line"), "which dimension it drives:\n{text}");
+        assert!(text.contains("Length of line 1"), "which dimension it drives, numbered from 1:\n{text}");
+        assert!(text.contains("Drives") && text.contains("Expression"), "the model table has its own header row:\n{text}");
         assert!(text.contains("Parametric Sketch"), "the sketch group's name:\n{text}");
     }
 

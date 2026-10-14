@@ -266,4 +266,18 @@ mod tests {
         type_text(&mut h, "7", &solved);
         assert!(matches!(h.handle(HudEvent::Enter, &solved), HudOutcome::Commit(_)));
     }
+
+    #[test]
+    fn one_box_tools_commit_on_enter() {
+        let solved = Solved::default();
+        for label in ["diameter", "radius"] {
+            let mut h = Hud::new(&[(label, BoxUnit::Mm)]);
+            h.follow_mouse(&[12.5]);
+            assert_eq!(h.handle(HudEvent::Enter, &solved), HudOutcome::Commit(vec![None]), "the mouse supplies it");
+            type_text(&mut h, "20", &solved);
+            assert_eq!(h.handle(HudEvent::Tab, &solved), HudOutcome::None);
+            assert_eq!(h.focus, 0, "Tab cycles back to the only box");
+            assert_eq!(h.handle(HudEvent::Enter, &solved), HudOutcome::Commit(vec![Some("20".into())]));
+        }
+    }
 }

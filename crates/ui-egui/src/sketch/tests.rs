@@ -62,6 +62,25 @@ impl Rig {
         self.frame(vec![button(false)]);
     }
 
+    fn button(&mut self, p: Pos2, pressed: bool) -> Event {
+        Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE }
+    }
+
+    /// Two clicks as a double-click: each event in its own frame, or all four in one frame (what
+    /// automation and a fast trackpad send).
+    fn double_click(&mut self, mm: Mm, one_frame: bool) {
+        let p = self.at(mm);
+        let (down, up) = (self.button(p, true), self.button(p, false));
+        if one_frame {
+            self.frame(vec![Event::PointerMoved(p), down.clone(), up.clone(), down, up]);
+        } else {
+            self.frame(vec![Event::PointerMoved(p)]);
+            for e in [down.clone(), up.clone(), down, up] {
+                self.frame(vec![e]);
+            }
+        }
+    }
+
     fn key(&mut self, key: Key) -> String {
         let e = |pressed| Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE };
         self.frame(vec![e(true), e(false)])
@@ -231,4 +250,261 @@ fn undoing_the_new_sketch_leaves_sketch_mode() {
     rig.frame(vec![]);
     assert!(!active(&rig.app));
     assert!(rig.app.sketch.is_none());
+}
+
+fn dims(r: &Value) -> Vec<(String, f64)> {
+    r["constraints"].as_array().unwrap().iter().filter_map(|c| Some((c.get("param")?.as_str()?.to_string(), c["value"].as_f64()?))).collect()
+}
+
+fn kinds(r: &Value, kind: &str) -> usize {
+    r["entities"].as_array().unwrap().iter().filter(|e| e["kind"] == kind).count()
+}
+
+fn near(a: f64, b: f64) -> bool {
+    (a - b).abs() < 1e-3
+}
+
+#[test]
+fn the_rubber_band_follows_typed_and_locked_values() {
+    let mut rig = Rig::new();
+    rig.new_sketch();
+    rig.type_text("l");
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    rig.mv([80.0, 80.0]);
+    rig.type_text("50");
+    rig.key(Key::Tab);
+    rig.type_text("30");
+    rig.mv([90.0, 20.0]);
+    let end = rig.app.sketch.as_ref().unwrap().rubber.unwrap();
+    let want = tools::polar([20.0, 20.0], 50.0, 30.0);
+    assert!(near(end[0], want[0]) && near(end[1], want[1]), "{end:?} vs {want:?}");
+    // Only the untyped quantity follows the mouse: length typed, the angle is the mouse's.
+    let mut rig = Rig::new();
+    rig.new_sketch();
+    rig.type_text("l");
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    rig.mv([20.0, 70.0]);
+    rig.type_text("30");
+    rig.mv([20.0, 90.0]);
+    let end = rig.app.sketch.as_ref().unwrap().rubber.unwrap();
+    assert!(near(end[0], 20.0) && near(end[1], 50.0), "30 mm straight down: {end:?}");
+}
+
+#[test]
+fn the_rectangle_rubber_band_follows_the_typed_width() {
+    let mut rig = Rig::new();
+    rig.new_sketch();
+    rig.type_text("r");
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    rig.mv([50.0, 60.0]);
+    rig.type_text("40");
+    rig.mv([55.0, 62.0]);
+    let end = rig.app.sketch.as_ref().unwrap().rubber.unwrap();
+    assert!(near(end[0], 60.0) && near(end[1], 62.0), "{end:?}");
+}
+
+#[test]
+fn double_clicking_a_dimension_edits_it_through_whole_frames() {
+    for one_frame in [false, true] {
+        let mut rig = Rig::new();
+        let id = rig.new_sketch();
+        rig.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 40.0], "to": [60.0, 40.0], "length": "50"})).unwrap();
+        rig.frame(vec![]);
+        let cache = snapshot(&mut rig.app).unwrap();
+        let xf = Xf::new(rig.app.canvas_rect.unwrap(), rig.app.view().unwrap());
+        let geom = overlay::dimension_geoms(&cache, &xf).into_iter().next().unwrap();
+        let screen = geom.label;
+        let at = Mm::from(to_mm(&xf, &cache.sketch, screen));
+        rig.double_click(at, one_frame);
+        let edit = rig.app.sketch.as_ref().unwrap().edit_dim.as_ref().unwrap_or_else(|| panic!("the box opened (one frame: {one_frame})"));
+        assert_eq!(edit.1.boxes[0].text, "50 mm");
+        let painted = rig.frame(vec![]);
+        assert!(painted.contains("50 mm"), "{painted}");
+        rig.type_text("70");
+        let painted = rig.frame(vec![]);
+        assert!(painted.contains("70"), "the typed text shows: {painted}");
+        rig.key(Key::Enter);
+        assert!(rig.app.sketch.as_ref().unwrap().edit_dim.is_none());
+        let r = rig.inspect(id);
+        assert!(dims(&r).iter().any(|(n, v)| n == "d1" && near(*v, 70.0)), "{r}");
+    }
+}
+
+#[test]
+fn cmd_a_selects_the_sketch_entities_and_not_the_page() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 40.0], "to": [60.0, 40.0]})).unwrap();
+    rig.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 50.0], "to": [60.0, 70.0]})).unwrap();
+    rig.frame(vec![]);
+    let before = rig.app.session.active().unwrap().selection.objects.clone();
+    let e = Event::Key { key: Key::A, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::COMMAND };
+    rig.frame(vec![e]);
+    assert_eq!(rig.app.sketch.as_ref().unwrap().selected.len(), 2, "both lines");
+    assert_eq!(rig.app.session.active().unwrap().selection.objects, before, "the page selection did not change");
+}
+
+#[test]
+fn the_hint_bar_shows_the_sketch_tools_hint() {
+    let mut rig = Rig::new();
+    rig.new_sketch();
+    let text = rig.frame(vec![]).replace('\n', "");
+    assert!(text.contains("Pick a sketch tool"), "{text}");
+    assert!(!text.contains("to select multiple objects"), "{text}");
+    rig.type_text("l");
+    let text = rig.frame(vec![]).replace('\n', "");
+    assert!(text.contains("Click to start a line"), "{text}");
+}
+
+#[test]
+fn rectangle_tool_typed_width_and_height_commit_one_rectangle() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.type_text("r");
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    rig.mv([50.0, 50.0]);
+    rig.type_text("40");
+    rig.key(Key::Tab);
+    rig.type_text("25");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert_eq!(kinds(&r, "line"), 4, "{r}");
+    let d = dims(&r);
+    assert!(d.iter().any(|(_, v)| near(*v, 40.0)) && d.iter().any(|(_, v)| near(*v, 25.0)), "{r}");
+    assert!(rig.app.sketch.as_ref().unwrap().start.is_none(), "the gesture is over");
+}
+
+#[test]
+fn center_rectangle_commits_around_the_centre() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    set_tool(&mut rig.app, SketchTool::RectCenter);
+    rig.mv([50.0, 40.0]);
+    rig.click([50.0, 40.0]);
+    rig.mv([60.0, 50.0]);
+    rig.type_text("40");
+    rig.key(Key::Tab);
+    rig.type_text("20");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    let d = dims(&r);
+    assert!(d.iter().any(|(_, v)| near(*v, 40.0)) && d.iter().any(|(_, v)| near(*v, 20.0)), "{r}");
+    let pts = r["points"].as_array().unwrap();
+    let has = |x: f64, y: f64| pts.iter().any(|p| near(p["x"].as_f64().unwrap(), x) && near(p["y"].as_f64().unwrap(), y));
+    assert!(has(30.0, 30.0) && has(70.0, 50.0) && has(50.0, 40.0), "corners around the centre: {r}");
+}
+
+#[test]
+fn circle_tool_typed_diameter() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.type_text("c");
+    assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::Circle);
+    rig.mv([50.0, 50.0]);
+    rig.click([50.0, 50.0]);
+    rig.mv([60.0, 50.0]);
+    rig.type_text("20");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert_eq!(kinds(&r, "circle"), 1, "{r}");
+    assert!(dims(&r).iter().any(|(_, v)| near(*v, 20.0)), "a diameter dimension of 20: {r}");
+    assert!(r["constraints"].as_array().unwrap().iter().any(|c| c["type"] == "diameter"), "{r}");
+}
+
+#[test]
+fn arc_tool_typed_radius() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    set_tool(&mut rig.app, SketchTool::Arc3);
+    rig.mv([20.0, 40.0]);
+    rig.click([20.0, 40.0]);
+    rig.mv([60.0, 40.0]);
+    rig.click([60.0, 40.0]);
+    assert!(rig.app.sketch.as_ref().unwrap().second.is_some());
+    rig.mv([40.0, 20.0]);
+    rig.type_text("25");
+    rig.mv([40.0, 18.0]);
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert_eq!(kinds(&r, "arc"), 1, "{r}");
+    assert!(dims(&r).iter().any(|(_, v)| near(*v, 25.0)), "a radius dimension of 25: {r}");
+}
+
+#[test]
+fn fillet_tool_rounds_a_rectangle_corner() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addRect", json!({"id": id.0, "from": [20.0, 20.0], "to": [80.0, 60.0]})).unwrap();
+    rig.frame(vec![]);
+    set_tool(&mut rig.app, SketchTool::Fillet);
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    assert!(rig.app.sketch.as_ref().unwrap().start.is_some(), "the corner is picked");
+    rig.type_text("5");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert_eq!(kinds(&r, "arc"), 1, "{r}");
+    assert!(dims(&r).iter().any(|(_, v)| near(*v, 5.0)), "a radius dimension of 5: {r}");
+}
+
+#[test]
+fn fillet_without_a_radius_says_so() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addRect", json!({"id": id.0, "from": [20.0, 20.0], "to": [80.0, 60.0]})).unwrap();
+    rig.frame(vec![]);
+    set_tool(&mut rig.app, SketchTool::Fillet);
+    rig.mv([20.0, 20.0]);
+    rig.click([20.0, 20.0]);
+    rig.key(Key::Enter);
+    assert_eq!(kinds(&rig.inspect(id), "arc"), 0);
+    assert!(rig.app.ui.status.contains("radius"), "{}", rig.app.ui.status);
+}
+
+/// Frames through the host's input hook (one synthetic event a frame, as the control channel's
+/// `ui.click` and `ui.key` are fed in the real app) until the queue is drained.
+fn drain(rig: &mut Rig) {
+    for _ in 0..40 {
+        let screen = egui::Rect::from_min_size(Pos2::ZERO, egui::vec2(1600.0, 850.0));
+        let mut raw = egui::RawInput { screen_rect: Some(screen), ..Default::default() };
+        let done = rig.app.synthetic.is_empty();
+        rig.app.raw_input_hook(&mut raw);
+        let app = &mut rig.app;
+        let mut out = rig.ctx.run_ui(raw, |ui| {
+            app.logic(ui.ctx());
+            app.ui(ui);
+        });
+        out.textures_delta.clear();
+        if done {
+            return;
+        }
+    }
+    panic!("the synthetic queue did not drain");
+}
+
+#[test]
+fn double_click_edit_works_through_the_control_channel() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 40.0], "to": [60.0, 40.0], "length": "50"})).unwrap();
+    rig.frame(vec![]);
+    let cache = snapshot(&mut rig.app).unwrap();
+    let xf = Xf::new(rig.app.canvas_rect.unwrap(), rig.app.view().unwrap());
+    let label = overlay::dimension_geoms(&cache, &xf).into_iter().next().unwrap().label;
+    let send = |rig: &mut Rig, method: &str, params: Value| {
+        crate::tests_synthetic::control(&mut rig.app, &rig.ctx, method, params);
+        drain(rig);
+    };
+    send(&mut rig, "ui.click", json!({"x": label.x, "y": label.y, "count": 2}));
+    assert!(rig.app.sketch.as_ref().unwrap().edit_dim.is_some(), "the box opened");
+    for (key, text) in [("7", "7"), ("0", "0")] {
+        send(&mut rig, "ui.key", json!({"key": key, "text": text}));
+    }
+    send(&mut rig, "ui.key", json!({"key": "Enter"}));
+    let r = rig.inspect(id);
+    assert!(dims(&r).iter().any(|(n, v)| n == "d1" && near(*v, 70.0)), "{r}");
 }

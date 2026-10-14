@@ -38,8 +38,7 @@ use hud::{Hud, HudEvent, HudOutcome};
 /// A place in the sketch, millimetres.
 pub type Mm = [f64; 2];
 
-/// The sketch tool in use. Only `None` (select) and `Line` draw in this phase; the others are
-/// toolbar buttons that set the tool and say what is coming.
+/// The sketch tool in use. `Dimension` is a toolbar button that says what is coming.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SketchTool {
     #[default]
@@ -93,8 +92,11 @@ pub struct SketchMode {
     pub tool: SketchTool,
     /// The heads-up boxes of the segment being drawn.
     pub hud: Option<Hud>,
-    /// Where the segment being drawn starts.
+    /// Where the segment being drawn starts (a rectangle's first corner, a circle's centre, an
+    /// arc's start, a fillet's corner).
     pub start: Option<Start>,
+    /// The 3-Point Arc's end, once clicked.
+    pub second: Option<Start>,
     /// The end point of the last segment of the chain.
     pub chain: Option<u32>,
     /// The first point of the chain (clicking it closes the loop).
@@ -119,6 +121,7 @@ impl SketchMode {
             tool: SketchTool::None,
             hud: None,
             start: None,
+            second: None,
             chain: None,
             chain_start: None,
             rubber: None,
@@ -269,9 +272,32 @@ pub fn set_tool(app: &mut VectorcraftApp, tool: SketchTool) {
     m.tool = tool;
     tools::end_chain(m);
     m.edit_dim = None;
-    if !matches!(tool, SketchTool::None | SketchTool::Line) {
+    if tool == SketchTool::Dimension {
         app.status(tl!("Coming next"));
     }
+    if tool == SketchTool::Fillet {
+        tools::fillet_from_selection(app);
+    }
+}
+
+/// The hint-bar text for the sketch tool in use (what to do next).
+pub fn hint(app: &VectorcraftApp) -> Option<&'static str> {
+    let m = app.sketch.as_ref()?;
+    Some(match (m.tool, m.start.is_some(), m.second.is_some()) {
+        (SketchTool::None, ..) => tl!("Pick a sketch tool, or click geometry to select it · Esc finishes the sketch"),
+        (SketchTool::Line, ..) => tl!("Click to start a line · type a length, Tab, an angle, Enter · Esc ends the chain"),
+        (SketchTool::Rect2, false, _) => tl!("Click the first corner · Esc cancels"),
+        (SketchTool::RectCenter, false, _) => tl!("Click the centre · Esc cancels"),
+        (SketchTool::Rect2 | SketchTool::RectCenter, true, _) => tl!("Click, or type a width, Tab, a height, Enter · Esc cancels"),
+        (SketchTool::Circle, false, _) => tl!("Click the centre · Esc cancels"),
+        (SketchTool::Circle, true, _) => tl!("Click, or type a diameter, Enter · Esc cancels"),
+        (SketchTool::Arc3, false, _) => tl!("Click the arc's start · Esc cancels"),
+        (SketchTool::Arc3, true, false) => tl!("Click the arc's end · Esc cancels"),
+        (SketchTool::Arc3, true, true) => tl!("Click to set the bulge, or type a radius, Enter · Esc cancels"),
+        (SketchTool::Fillet, false, _) => tl!("Click a corner where two lines meet · Esc cancels"),
+        (SketchTool::Fillet, true, _) => tl!("Type a radius, Enter · Esc cancels"),
+        (SketchTool::Dimension, ..) => tl!("Sketch Dimension is coming next · Esc leaves the tool"),
+    })
 }
 
 // ---- keys ----
@@ -291,6 +317,10 @@ pub fn release_button_focus(ctx: &egui::Context) {
 /// events are removed, so the tools' letters, Tab, Enter, arrows and Delete never see them);
 /// Command chords are left to the normal path.
 pub fn keys(app: &mut VectorcraftApp, ctx: &egui::Context) {
+    // Select All is the sketch's: every entity of the sketch, and the page selection stays as it is.
+    if ctx.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, Key::A)) {
+        select_all(app);
+    }
     let taken: Vec<Event> = ctx.input_mut(|i| {
         let mut taken = vec![];
         i.events.retain(|e| {
@@ -312,6 +342,14 @@ pub fn keys(app: &mut VectorcraftApp, ctx: &egui::Context) {
             Event::Key { key, pressed: true, repeat, .. } => key_press(app, key, repeat),
             _ => {}
         }
+    }
+}
+
+/// Cmd+A: select every entity of the sketch.
+fn select_all(app: &mut VectorcraftApp) {
+    let Some(cache) = snapshot(app) else { return };
+    if let Some(m) = app.sketch.as_mut() {
+        m.selected = cache.sketch.entities.iter().map(|e| Pick::Entity(e.id())).collect();
     }
 }
 
@@ -364,7 +402,7 @@ fn escape(app: &mut VectorcraftApp) {
         return;
     }
     if m.hud.as_ref().is_some_and(Hud::any_typed) {
-        m.hud = Some(tools::new_line_hud());
+        m.hud = Some(tools::new_hud(m.tool));
         return;
     }
     if m.start.is_some() || m.chain.is_some() {
@@ -408,7 +446,7 @@ pub(super) fn feed(app: &mut VectorcraftApp, ev: HudEvent) -> bool {
             HudOutcome::None => {}
         },
         Fed::Line(out) => match out {
-            HudOutcome::Commit(texts) => tools::commit_line(app, texts),
+            HudOutcome::Commit(texts) => tools::commit(app, texts),
             HudOutcome::Blocked(e) => app.status(e),
             HudOutcome::Cancel | HudOutcome::None => {}
         },
@@ -590,13 +628,24 @@ pub fn pointer(app: &mut VectorcraftApp, ui: &egui::Ui, resp: &egui::Response, r
     if app.sketch.is_none() {
         return;
     }
-    let (pos, pressed, released, shift) = ui.input(|i| {
-        (i.pointer.hover_pos().or_else(|| i.pointer.interact_pos()), i.pointer.primary_pressed(), i.pointer.primary_released(), i.modifiers.shift)
+    // The pointer's own facts, not the canvas response's: a press and release that arrive in one
+    // frame (a double-click from automation, a fast trackpad) never register on a response.
+    let (pos, pressed, released, clicked, double, shift) = ui.input(|i| {
+        let b = egui::PointerButton::Primary;
+        (
+            i.pointer.hover_pos().or_else(|| i.pointer.interact_pos()),
+            i.pointer.button_pressed(b),
+            i.pointer.button_released(b),
+            i.pointer.button_clicked(b),
+            i.pointer.button_double_clicked(b),
+            i.modifiers.shift,
+        )
     });
     let pos = pos.filter(|p| rect.contains(*p));
-    let over = resp.hovered() || resp.dragged();
-    let input =
-        PointerInput { pos, pressed: pressed && over, released: released && over, clicked: resp.clicked(), double: resp.double_clicked(), shift };
+    // Over the canvas itself: the response says so, and so does nothing floating above the point
+    // (a dialog or popup would take the click).
+    let over = resp.hovered() || resp.dragged() || pos.is_some_and(|p| ui.ctx().layer_id_at(p) == Some(ui.layer_id()));
+    let input = PointerInput { pos, pressed: pressed && over, released: released && over, clicked: clicked && over, double: double && over, shift };
     handle_pointer(app, xf, input);
     if pos.is_some() {
         ui.ctx().request_repaint();
@@ -617,8 +666,10 @@ pub fn handle_pointer(app: &mut VectorcraftApp, xf: &Xf, input: PointerInput) {
     match m.tool {
         SketchTool::Line => tools::line_pointer(app, &cache, xf, pos, input),
         SketchTool::None => select_pointer(app, &cache, xf, pos, input),
-        _ => {
-            m.hover = hit::pick(&cache, xf, pos, m.tool == SketchTool::None);
+        SketchTool::Rect2 | SketchTool::RectCenter | SketchTool::Circle | SketchTool::Arc3 => tools::shape_pointer(app, &cache, xf, pos, input),
+        SketchTool::Fillet => tools::fillet_pointer(app, &cache, xf, pos, input),
+        SketchTool::Dimension => {
+            m.hover = hit::pick(&cache, xf, pos, false);
         }
     }
 }

@@ -6,7 +6,7 @@ use egui::{Align2, Color32, FontId, Painter, Pos2, Rect, Stroke, Vec2, pos2, vec
 use vectorcraft_doc::sketch::model::{Constraint, Entity};
 
 use super::hud::{BoxUnit, Hud, HudBox};
-use super::tools::{length_angle, start_pos};
+use super::tools::{arc_center, arc_polyline, corner_points, length_angle, rect_corners, start_pos, typed};
 use super::{Cache, Pick, SketchMode, SketchTool, Snap, px_per_mm, to_screen};
 use crate::VectorcraftApp;
 use crate::canvas::Xf;
@@ -16,6 +16,12 @@ use crate::theme::Tokens;
 const BLUE: Color32 = Color32::from_rgb(0x1f, 0x6f, 0xeb);
 const BLACK: Color32 = Color32::from_rgb(0x1a, 0x1a, 0x1a);
 const LIGHT: Color32 = Color32::from_rgb(0xe6, 0xe6, 0xe6);
+/// Dimension lines, arrowheads and extension lines: they are drawn on the white artboard, so they
+/// are dark whatever the theme.
+const DIM_INK: Color32 = Color32::from_rgb(0x4a, 0x4a, 0x4a);
+/// The value chip's fill and text.
+const CHIP: Color32 = Color32::from_rgb(0xf4, 0xf4, 0xf4);
+const CHIP_TEXT: Color32 = Color32::from_rgb(0x1a, 0x1a, 0x1a);
 /// Distance of a dimension line from the geometry it measures, in screen points.
 const DIM_OFFSET: f32 = 16.0;
 const ARC_RADIUS: f32 = 30.0;
@@ -268,10 +274,8 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
             t.accent_strong
         } else if m.hover == Some(pick) {
             t.accent
-        } else if t.dark {
-            LIGHT
         } else {
-            BLACK
+            DIM_INK
         };
         let stroke = Stroke::new(1.0, color);
         for s in &g.segments {
@@ -287,23 +291,19 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
             painter.add(Shape::convex_polygon(vec![*tip, base + perp * 3.0, base - perp * 3.0], color, Stroke::NONE));
         }
         let rect = g.label_rect();
-        painter.rect_filled(rect, 2.0, t.pasteboard);
-        if selected(pick) || m.hover == Some(pick) {
-            painter.rect_stroke(rect, 2.0, Stroke::new(1.0, color), egui::StrokeKind::Outside);
-        }
-        painter.text(g.label, Align2::CENTER_CENTER, &g.text, FontId::proportional(12.0), color);
+        painter.rect_filled(rect, 4.0, CHIP);
+        painter.rect_stroke(rect, 4.0, Stroke::new(1.0, color), egui::StrokeKind::Inside);
+        painter.text(g.label, Align2::CENTER_CENTER, &g.text, FontId::proportional(12.0), if g.error.is_some() { t.error } else { CHIP_TEXT });
     }
 
-    // The segment being drawn.
-    if m.tool == SketchTool::Line {
+    // The shape being drawn.
+    if m.tool != SketchTool::None {
         if let Some(Pick::Point(p)) = m.hover
             && let Some(at) = pt(p)
         {
             painter.circle_stroke(at, 6.0, Stroke::new(1.5, t.accent));
         }
-        if let (Some(start), Some(end)) = (m.start, m.rubber) {
-            line_rubber(painter, xf, cache, t, m, start_pos(sk, start), end);
-        }
+        shape_rubber(painter, xf, cache, t, m);
     }
 
     // A dimension being edited in place.
@@ -341,9 +341,98 @@ fn line_rubber(painter: &Painter, xf: &Xf, cache: &Cache, t: &Tokens, m: &Sketch
         painter.line_segment([s, s + vec2(34.0, 0.0)], Stroke::new(1.0, t.text_dim));
     }
     if let Some(hud) = &m.hud {
-        let length_at = mid + n * 24.0;
-        let angle_at = on_circle(s, 26.0 + 36.0, angle / 2.0);
+        // The angle box sits beside the arc on the side of the horizontal away from the line (below
+        // it for a positive angle); the length box is on the other side of the line, far enough
+        // out that neither box covers it.
+        let below = if angle >= 0.0 { 1.0 } else { -1.0 };
+        let angle_at = s + vec2(70.0, 22.0 * below);
+        let side = if n.dot(angle_at - mid) > 0.0 { -1.0 } else { 1.0 };
+        let reach = 8.0 + 32.0 * n.x.abs() + 10.0 * n.y.abs();
+        let length_at = mid + n * (side * reach);
         paint_hud(painter, t, hud, &[length_at, angle_at], cache);
+    }
+}
+
+/// The rubber band of the rectangle, circle, arc and fillet tools, and their boxes.
+fn shape_rubber(painter: &Painter, xf: &Xf, cache: &Cache, t: &Tokens, m: &SketchMode) {
+    let sk = &cache.sketch;
+    let sc = |p: [f64; 2]| to_screen(xf, sk, p);
+    let blue = Stroke::new(1.5, BLUE);
+    let (Some(start), Some(rubber)) = (m.start, m.rubber) else {
+        // The corners Fillet can round.
+        if m.tool == SketchTool::Fillet {
+            for id in corner_points(sk) {
+                if let Some(p) = sk.point(id) {
+                    painter.circle_stroke(sc([p.x, p.y]), 5.0, Stroke::new(1.0, t.text_dim));
+                }
+            }
+        }
+        return;
+    };
+    let from = start_pos(sk, start);
+    match m.tool {
+        SketchTool::Line | SketchTool::None | SketchTool::Dimension => {
+            if m.tool == SketchTool::Line {
+                line_rubber(painter, xf, cache, t, m, from, rubber);
+            }
+        }
+        SketchTool::Rect2 | SketchTool::RectCenter => {
+            let pts: Vec<Pos2> = rect_corners(m.tool, from, rubber).iter().map(|c| sc(*c)).collect();
+            painter.add(PathShape::closed_line(pts.clone(), blue));
+            if let Some(hud) = &m.hud {
+                let bounds = Rect::from_points(&pts);
+                let top = pos2(bounds.center().x, bounds.top() - 24.0);
+                let right = pos2(bounds.right() + 50.0, bounds.center().y);
+                paint_hud(painter, t, hud, &[top, right], cache);
+            }
+        }
+        SketchTool::Circle => {
+            let r = (rubber[0] - from[0]).hypot(rubber[1] - from[1]);
+            let pts: Vec<Pos2> = (0..=72)
+                .map(|i| {
+                    let a = std::f64::consts::TAU * f64::from(i) / 72.0;
+                    sc([from[0] + r * a.cos(), from[1] - r * a.sin()])
+                })
+                .collect();
+            painter.add(PathShape::line(pts, blue));
+            let c = sc(from);
+            painter.line_segment([c, sc(rubber)], Stroke::new(1.0, t.text_dim));
+            if let Some(hud) = &m.hud {
+                let reach = (sc(rubber) - c).length().max(8.0);
+                paint_hud(painter, t, hud, &[c + vec2(reach + 50.0, 0.0)], cache);
+            }
+        }
+        SketchTool::Arc3 => {
+            let Some(second) = m.second else {
+                painter.line_segment([sc(from), sc(rubber)], blue);
+                return;
+            };
+            let end = start_pos(sk, second);
+            let radius = m.hud.as_ref().and_then(|h| typed(h, 0, &cache.params));
+            match arc_center(from, end, rubber, radius) {
+                Some(c) => {
+                    let pts: Vec<Pos2> = arc_polyline(from, end, rubber, c).iter().map(|p| sc(*p)).collect();
+                    painter.add(PathShape::line(pts, blue));
+                    painter.circle_filled(sc(c), 2.0, t.text_dim);
+                }
+                None => {
+                    painter.line_segment([sc(from), sc(end)], blue);
+                }
+            }
+            if let Some(hud) = &m.hud {
+                let far = sc(rubber);
+                let away = (far - sc(arc_center(from, end, rubber, None).unwrap_or(from))).normalized();
+                let away = if away.length() > 0.5 { away } else { vec2(1.0, -1.0).normalized() };
+                paint_hud(painter, t, hud, &[far + away * 44.0], cache);
+            }
+        }
+        SketchTool::Fillet => {
+            let corner = sc(from);
+            painter.circle_stroke(corner, 7.0, Stroke::new(1.5, t.accent_strong));
+            if let Some(hud) = &m.hud {
+                paint_hud(painter, t, hud, &[corner + vec2(60.0, -30.0)], cache);
+            }
+        }
     }
 }
 
@@ -375,6 +464,11 @@ fn paint_box(painter: &Painter, t: &Tokens, centre: Pos2, b: &HudBox, focused: b
         BoxUnit::Deg => "\u{b0}",
     };
     let shown = format!("{}{}", b.text, unit);
+    if focused && !b.typed && !b.text.is_empty() {
+        // The value is selected as a whole: typing replaces it.
+        let sel = Rect::from_min_size(rect.left_top() + vec2(5.0, 3.0), vec2(text_w + 4.0, rect.height() - 6.0));
+        painter.rect_filled(sel, 2.0, t.accent.gamma_multiply(0.45));
+    }
     painter.text(
         rect.left_center() + vec2(7.0, 0.0),
         Align2::LEFT_CENTER,

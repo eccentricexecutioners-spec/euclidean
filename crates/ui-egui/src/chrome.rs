@@ -828,6 +828,9 @@ pub fn hint_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                 let mut job = egui::text::LayoutJob::default();
                 let segments = if let Some(d) = app.ui.dialog.as_ref().filter(|d| crate::dialogs::revolve_gizmo::active(d)) {
                     vec![(crate::dialogs::revolve_gizmo::hint(d).into(), false)]
+                } else if let Some(h) = crate::sketch::active(app).then(|| crate::sketch::hint(app)).flatten() {
+                    // Sketch mode: the sketch tool's hint, not the page tool's.
+                    vec![(Cow::Borrowed(h), false)]
                 } else {
                     let tool = app.session.tool_id();
                     let hint = if tool == "zoom" && crate::canvas::animated_zoom(&app.session.prefs) { ANIMATED_ZOOM_HINT } else { tool };
