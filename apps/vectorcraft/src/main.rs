@@ -122,9 +122,9 @@ impl App {
             // eframe can't give a window a new device: the user saves and starts again.
             self.graphics_lost = self.app.graphics_lost(&why);
             self.app.status(if self.graphics_lost {
-                "The graphics device was lost: unsaved changes are kept for Data Recovery. Save your documents and restart VectorCraft"
+                "The graphics device was lost: unsaved changes are kept for Data Recovery. Save your documents and restart Euclidean"
             } else {
-                "The graphics device was lost: save your documents and restart VectorCraft"
+                "The graphics device was lost: save your documents and restart Euclidean"
             });
         }
         if self.graphics_lost && ctx.input(|i| i.viewport().close_requested()) {
@@ -188,14 +188,14 @@ fn discard_marked_text() {
     }
 }
 
-/// Where UI preferences live: ~/Library/Application Support/VectorCraft (macOS),
-/// %APPDATA%\VectorCraft (Windows), $XDG_CONFIG_HOME or ~/.config/vectorcraft (Linux).
+/// Where UI preferences live: ~/Library/Application Support/Euclidean (macOS),
+/// %APPDATA%\Euclidean (Windows), $XDG_CONFIG_HOME or ~/.config/euclidean (Linux).
 fn prefs_path() -> Option<std::path::PathBuf> {
-    prefs_dir::prefs_path_for("VectorCraft", "vectorcraft")
+    prefs_dir::prefs_path_for("Euclidean", "euclidean")
 }
 
 /// The same place under the project's former name (DrawCraft): read once if there are no
-/// VectorCraft preferences yet, so settings survive the rename.
+/// Euclidean preferences yet, so settings survive the rename.
 fn legacy_prefs_path() -> Option<std::path::PathBuf> {
     prefs_dir::prefs_path_for("DrawCraft", "drawcraft")
 }
@@ -602,7 +602,7 @@ fn custom_titlebar(saved: Option<&vectorcraft_ui_egui::UiState>) -> bool {
 fn native_options(custom_titlebar: bool) -> eframe::NativeOptions {
     eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("VectorCraft")
+            .with_title("Euclidean")
             .with_inner_size(window::DEFAULT_SIZE)
             .with_min_inner_size(window::MIN_SIZE)
             .with_drag_and_drop(true)
@@ -611,7 +611,7 @@ fn native_options(custom_titlebar: bool) -> eframe::NativeOptions {
             .with_titlebar_shown(false)
             .with_title_shown(false)
             .with_icon(app_icon())
-            .with_app_id("ai.storyteller.vectorcraft"),
+            .with_app_id("ca.eccentricexecutioners.euclidean"),
         #[cfg(feature = "windows7")]
         renderer: eframe::Renderer::Glow,
         ..Default::default()
@@ -666,7 +666,7 @@ fn main() -> std::process::ExitCode {
     system_fonts::install();
     #[cfg(target_os = "macos")]
     mac_fonts::install();
-    // VectorCraft's own Fonts folder, which text.addFontFiles copies fonts into.
+    // Euclidean's own Fonts folder, which text.addFontFiles copies fonts into.
     prefs_dir::install_fonts();
     // The log file lives in the settings directory, next to the preferences; opened after the
     // arguments, so `--version` leaves no file behind. Records logged until now are written to it
@@ -675,7 +675,7 @@ fn main() -> std::process::ExitCode {
     if let Some(logger) = logger {
         match log_dir().filter(|_| prefs_enabled()) {
             Some(dir) => match logger.attach_dir(&dir) {
-                Ok(path) => log::info!("VectorCraft {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
+                Ok(path) => log::info!("Euclidean {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
                 // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
                 Err(e) => log::warn!("no log file: {e}"),
             },
@@ -792,7 +792,7 @@ fn main() -> std::process::ExitCode {
     // A panic that ends the window (egui-wgpu's own, #502) is caught here: never a crash.
     let outcome = vectorcraft_engine::guard::catch_panic(|| {
         eframe::run_native(
-            "VectorCraft",
+            "Euclidean",
             options,
             Box::new(move |cc| {
                 let mut app = VectorcraftApp::new(Session::new(), services(cc.winit_window().cloned(), cc.egui_ctx.clone()));
@@ -834,7 +834,7 @@ fn main() -> std::process::ExitCode {
                             ""
                         };
                         app.status(format!(
-                            "The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}{hint}"
+                            "The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}{hint}"
                         ));
                     }
                     app.graphics_adapter = Some(summary);
@@ -883,7 +883,7 @@ fn main() -> std::process::ExitCode {
     match outcome {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(e) => {
-            log::error!("VectorCraft stopped: {e}");
+            log::error!("Euclidean stopped: {e}");
             std::process::ExitCode::FAILURE
         }
     }
@@ -984,6 +984,6 @@ mod tests {
         assert!(!plist.contains("<key>NSDocumentClass</key>"), "not an NSDocument app: AppKit would refuse the files");
         let types = plist.matches("<key>CFBundleTypeName</key>").count();
         assert!(types > 1 && plist.matches("<key>LSHandlerRank</key>").count() == types, "every document type has a rank");
-        assert_eq!(plist.matches("<string>Owner</string>").count(), 2, "only VectorCraft documents and templates are owned");
+        assert_eq!(plist.matches("<string>Owner</string>").count(), 2, "only Euclidean documents and templates are owned");
     }
 }

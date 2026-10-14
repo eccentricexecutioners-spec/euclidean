@@ -106,7 +106,7 @@
 	A lower value follows the stroke closely; a higher one gives fewer points and smoother curves.	Um valor menor segue o traço de perto; um valor maior gera menos pontos e curvas mais suaves.
 	A new preset starting from the selected one	Um novo predefinido a partir do selecionado
 	A saved copy of the selected preset	Uma cópia salva do predefinido selecionado
-	About VectorCraft	Sobre o VectorCraft
+	About Euclidean	Sobre o Euclidean
 	Absolute Position	Posição Absoluta
 	Accurate	Preciso
 	Abutting	Contíguo
@@ -225,8 +225,8 @@
 	Arrange: Bring to Front	Organizar: Trazer para Frente
 	Arrowheads:	Pontas de Seta:
 	Art using a deleted global swatch keeps its colour.	A arte que usa uma amostra global excluída mantém sua cor.
-	ArtCraft Website	Site do ArtCraft
-	ArtCraft website	Site do ArtCraft
+	Eccentric Executioners Website	Site do Eccentric Executioners
+	Eccentric Executioners website	Site do Eccentric Executioners
 	Artboard Options	Opções de Mesa de Trabalho
 	Artboard Options: edit with the Artboard tool	Opções de Mesa de Trabalho: edite com a ferramenta Mesa de Trabalho
 	Artboard Options…	Opções de Mesa de Trabalho…
@@ -1797,7 +1797,7 @@
 	Quarter Space	Espaço de Quarto
 	Quick Actions	Ações Rápidas
 	Quickly start a new file	Começar rapidamente um novo arquivo
-	Quit VectorCraft	Sair do VectorCraft
+	Quit Euclidean	Sair do Euclidean
 	RECENT	RECENTES
 	RGB Color	Cor RGB
 	Radar Graph Tool	Ferramenta Gráfico de Radar
@@ -2615,10 +2615,10 @@
 	Vector Halftone	Meio-tom Vetorial
 	Vector Halftone…	Meio-tom Vetorial…
 	Vector illustration — fast, open, scriptable.	Ilustração vetorial — rápida, aberta, scriptável.
-	VectorCraft Help…	Ajuda do VectorCraft…
+	Euclidean Help…	Ajuda do Euclidean…
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	O VectorCraft não fechou normalmente da última vez. Estes documentos tinham alterações não salvas:
-	VectorCraft on GitHub	VectorCraft no GitHub
-	VectorCraft on getartcraft.com	VectorCraft em getartcraft.com
+	Euclidean on GitHub	Euclidean no GitHub
+	Euclidean on eccentricexecutioners.ca	Euclidean em eccentricexecutioners.ca
 	Vectors	Vetores
 	Version {version} — open-source vector illustration in pure Rust.	Versão {version} — ilustração vetorial de código aberto em Rust puro.
 	Version:	Versão:
@@ -2649,7 +2649,7 @@
 	Web Shift	Web Shift
 	Web Snap:	Web Snap:
 	Weight:	Peso:
-	Welcome to VectorCraft	Bem-vindo ao VectorCraft
+	Welcome to Euclidean	Bem-vindo ao Euclidean
 	When pasting text	Ao colar texto
 	White	Branco
 	Widget Position:	Posição do Widget:
@@ -2774,7 +2774,7 @@ imageTrace	Outline	Contorno
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	Serviços
-	Hide VectorCraft	Ocultar o VectorCraft
+	Hide Euclidean	Ocultar o Euclidean
 	Hide Others	Ocultar Outros
 	Zoom	Zoom
 	Bring All to Front	Trazer Todas para a Frente
@@ -3626,7 +3626,7 @@ axis	Both	Ambos
 @msg	Sent to {_1}	Enviado para {_1}
 @msg	{_1} files	{_1} arquivos
 @msg	The graphics were lost and have been restarted	Os gráficos foram perdidos e reiniciados
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	O processador gráfico tentado primeiro não conseguiu exibir a janela, então o VectorCraft reiniciou em {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	O processador gráfico tentado primeiro não conseguiu exibir a janela, então o Euclidean reiniciou em {summary}
 @msg	Loading VectorCraft…	Carregando o VectorCraft…
 @msg	VectorCraft failed to start: {e}	Falha ao iniciar o VectorCraft: {e}
 @msg	A browser with WebGPU or WebGL2 is required.	É necessário um navegador com WebGPU ou WebGL2.

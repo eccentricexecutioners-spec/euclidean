@@ -56,7 +56,7 @@
 	A lower value follows the stroke closely; a higher one gives fewer points and smoother curves.	數值較小時會貼近筆畫，較大時則錨點較少、曲線較平滑。
 	A new preset starting from the selected one	以所選預設集為基礎建立新預設集
 	A saved copy of the selected preset	所選預設集的已儲存拷貝
-	About VectorCraft	關於 VectorCraft
+	About Euclidean	關於 Euclidean
 	above	以上
 	Absolute Position	絕對位置
 	Accurate	精確
@@ -197,8 +197,8 @@
 	Artboard {number}	工作區域 {number}
 	Artboard:	工作區域：
 	Artboards	工作區域
-	ArtCraft Website	ArtCraft 網站
-	ArtCraft website	ArtCraft 網站
+	Eccentric Executioners Website	Eccentric Executioners 網站
+	Eccentric Executioners website	Eccentric Executioners 網站
 	Artwork Colors	圖稿顏色
 	As Multiple Assets	作為多個資產
 	As Single Asset	作為單一資產
@@ -1948,7 +1948,7 @@
 	Paragraph Style Options	段落樣式選項
 	Paragraph Styles	段落樣式
 	Paragraph Symbol	段落符號
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	ArtCraft 的一部分。MIT OR Apache-2.0。字體：Source Sans 3、Inter、JetBrains Mono (OFL)。圖示：Lucide (ISC) + VectorCraft。
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	基於 ArtCraft 團隊的 VectorCraft。MIT OR Apache-2.0。字體：Source Sans 3、Inter、JetBrains Mono (OFL)。圖示：Lucide (ISC) + VectorCraft。
 	Password	密碼
 	Paste	貼上
 	Paste in Back	貼至後方
@@ -2127,7 +2127,7 @@
 	Quarter Space	四分之一空格
 	Quick Actions	快速動作
 	Quickly start a new file	快速開始新檔案
-	Quit VectorCraft	結束 VectorCraft
+	Quit Euclidean	結束 Euclidean
 	Radar Graph Tool	雷達圖工具
 	Radial	放射狀
 	Radial Glows	放射狀光暈
@@ -3183,11 +3183,11 @@
 	Vector Halftone	向量半色調
 	Vector Halftone…	向量半色調…
 	Vector illustration — fast, open, scriptable.	向量插圖：快速、開放、可用指令碼操控。
-	VectorCraft	VectorCraft
+	Euclidean	Euclidean
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	VectorCraft 上次未正常結束。下列文件有未儲存的變更：
-	VectorCraft Help…	VectorCraft 說明…
-	VectorCraft on getartcraft.com	getartcraft.com 上的 VectorCraft
-	VectorCraft on GitHub	GitHub 上的 VectorCraft
+	Euclidean Help…	Euclidean 說明…
+	Euclidean on eccentricexecutioners.ca	eccentricexecutioners.ca 上的 Euclidean
+	Euclidean on GitHub	GitHub 上的 Euclidean
 	Vectors	向量
 	Version {version} — open-source vector illustration in pure Rust.	版本 {version} — 以純 Rust 打造的開放原始碼向量插畫軟體。
 	Version:	版本：
@@ -3228,7 +3228,7 @@
 	Web Snap:	網頁靠齊：
 	Weight	寬度
 	Weight:	寬度：
-	Welcome to VectorCraft	歡迎使用 VectorCraft
+	Welcome to Euclidean	歡迎使用 Euclidean
 	When pasting text	貼上文字時
 	White	白色
 	Widget Position:	Widget 位置：
@@ -3417,7 +3417,7 @@ axis	Both	兩者
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	服務
-	Hide VectorCraft	隱藏 VectorCraft
+	Hide Euclidean	隱藏 Euclidean
 	Zoom	縮放
 	Bring All to Front	將全部移至最前
 	Settings	設定

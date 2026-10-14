@@ -155,7 +155,7 @@
 	A5	A5
 	A6	A6
 	About	Névjegy
-	About VectorCraft	A VectorCraft névjegye
+	About Euclidean	A Euclidean névjegye
 	above	fölötte
 	Above Text	Szöveg fölött
 	Absolute	Abszolút
@@ -334,8 +334,8 @@
 	Artboard:	Rajztábla:
 	Artboards	Rajztáblák
 	Artboards: {n}	Rajztáblák: {n}
-	ArtCraft Website	Az ArtCraft webhelye
-	ArtCraft website	Az ArtCraft webhelye
+	Eccentric Executioners Website	Az Eccentric Executioners webhelye
+	Eccentric Executioners website	Az Eccentric Executioners webhelye
 	Artwork Colors	Grafika színei
 	As Multiple Assets	Több elemként
 	As Single Asset	Egy elemként
@@ -1610,7 +1610,7 @@
 	Hide Thumbnail	Bélyegkép elrejtése
 	Hide Thumbnails	Bélyegképek elrejtése
 	Hide Transparency Grid	Átlátszósági rács elrejtése
-	Hide VectorCraft	VectorCraft elrejtése
+	Hide Euclidean	Euclidean elrejtése
 	High	Magas
 	High (300 ppi)	Magas (300 ppi)
 	High Contrast	Erős kontraszt
@@ -2426,7 +2426,7 @@
 	Paragraph Style Options	Bekezdésstílus beállításai
 	Paragraph Styles	Bekezdésstílusok
 	Paragraph Symbol	Bekezdésjel
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Az ArtCraft része. MIT OR Apache-2.0. Betűtípusok: Source Sans 3, Inter, JetBrains Mono (OFL). Ikonok: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Az ArtCraft csapat VectorCraft programján alapul. MIT OR Apache-2.0. Betűtípusok: Source Sans 3, Inter, JetBrains Mono (OFL). Ikonok: Lucide (ISC) + VectorCraft.
 	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono, Noto Sans SC (OFL). Icons: Lucide (ISC) + VectorCraft.	Az ArtCraft része. MIT OR Apache-2.0. Betűtípusok: Source Sans 3, Inter, JetBrains Mono, Noto Sans SC (OFL). Ikonok: Lucide (ISC) + VectorCraft.
 	Password	Jelszó
 	Paste	Beillesztés
@@ -2650,7 +2650,7 @@
 	Quarter Space	Negyedkvirt-szóköz
 	Quick Actions	Gyorsműveletek
 	Quickly start a new file	Új fájl gyors létrehozása
-	Quit VectorCraft	Kilépés a VectorCraftból
+	Quit Euclidean	Kilépés a Euclideanból
 	Radar Graph Tool	Sugárdiagram
 	Radial	Körkörös
 	Radial Blur	Körkörös elmosás
@@ -3838,9 +3838,9 @@
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	A VectorCraft legutóbb nem szabályosan lépett ki. Ezekben a dokumentumokban mentetlen módosítások voltak:
 	VectorCraft documents: one locked object, updated when the file changes.	VectorCraft-dokumentumok: egyetlen zárolt objektum, amely a fájl változásakor frissül.
 	VectorCraft Generic CMYK (SWOP-like)	VectorCraft általános CMYK (SWOP-szerű)
-	VectorCraft Help…	VectorCraft súgó…
-	VectorCraft on getartcraft.com	A VectorCraft a getartcraft.com oldalon
-	VectorCraft on GitHub	A VectorCraft a GitHubon
+	Euclidean Help…	Euclidean súgó…
+	Euclidean on eccentricexecutioners.ca	A Euclidean a eccentricexecutioners.ca oldalon
+	Euclidean on GitHub	A Euclidean a GitHubon
 	VectorCraft Swatches (.vcswatches)	VectorCraft-színminták (.vcswatches)
 	Vectors	Vektorok
 	Version	Verzió
@@ -3907,7 +3907,7 @@
 	WebP	WebP
 	Weight	Vastagság
 	Weight:	Vastagság:
-	Welcome to VectorCraft	Üdvözöl a VectorCraft
+	Welcome to Euclidean	Üdvözöl a Euclidean
 	When pasting text	Szöveg beillesztésekor
 	White	Fehér
 	White Intensity	Fehér erőssége
@@ -4529,7 +4529,7 @@ imageTrace	Outline	Körvonal
 @msg	the file was read up to an error ({why}): what follows it was left out	a fájl beolvasása egy hibáig jutott ({why}): az utána következő rész kimaradt
 @msg	the file's preview header points outside the file	a fájl előnézeti fejléce a fájlon kívülre mutat
 @msg	the files come to more than 1 GB: add fewer at a time	a fájlok együtt nagyobbak 1 GB-nál: egyszerre kevesebbet adj hozzá
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Az először kipróbált grafikus processzor nem tudta megjeleníteni az ablakot, ezért a VectorCraft újraindult ezen: {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Az először kipróbált grafikus processzor nem tudta megjeleníteni az ablakot, ezért a Euclidean újraindult ezen: {summary}
 @msg	The graphics were lost and couldn't be restarted.	A grafikus megjelenítés megszakadt, és nem sikerült újraindítani.
 @msg	The graphics were lost and have been restarted	A grafikus megjelenítés megszakadt, és újraindult
 @msg	the guide is on a hidden or locked layer	a segédvonal rejtett vagy zárolt rétegen van

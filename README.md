@@ -1,3 +1,5 @@
+> **Euclidean** is Eccentric Executioners' build of VectorCraft by the ArtCraft team. The ArtCraft name and logos are theirs and are not used by Euclidean.
+
 <p align="center">
   <a href="https://getartcraft.com/">
     <picture>

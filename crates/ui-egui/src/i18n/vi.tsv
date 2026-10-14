@@ -102,7 +102,7 @@
 	A new preset starting from the selected one	Thiết lập sẵn mới bắt đầu từ thiết lập đang chọn
 	A saved copy of the selected preset	Bản sao đã lưu của thiết lập đang chọn
 	About	Giới thiệu
-	About VectorCraft	Giới thiệu VectorCraft
+	About Euclidean	Giới thiệu Euclidean
 	above	phía trên
 	Above Text	Phía trên văn bản
 	Absolute	Tuyệt đối
@@ -263,8 +263,8 @@
 	Artboard:	Bảng vẽ:
 	Artboards	Các bảng vẽ
 	Artboards: {n}	Bảng vẽ: {n}
-	ArtCraft Website	Trang web ArtCraft
-	ArtCraft website	Trang web ArtCraft
+	Eccentric Executioners Website	Trang web Eccentric Executioners
+	Eccentric Executioners website	Trang web Eccentric Executioners
 	Artistic	Nghệ thuật
 	Artwork Colors	Màu sắc tác phẩm
 	As Multiple Assets	Thành nhiều asset
@@ -1444,7 +1444,7 @@
 	Hide Thumbnail	Ẩn hình thu nhỏ
 	Hide Thumbnails	Ẩn các hình thu nhỏ
 	Hide Transparency Grid	Ẩn lưới trong suốt
-	Hide VectorCraft	Ẩn VectorCraft
+	Hide Euclidean	Ẩn Euclidean
 	High	Cao
 	High (300 ppi)	Cao (300 ppi)
 	High Performance (discrete)	Hiệu suất cao (rời rạc)
@@ -2219,7 +2219,7 @@
 	Paragraph Style Options	Tùy chọn kiểu đoạn văn
 	Paragraph Styles	Kiểu đoạn văn
 	Paragraph Symbol	Ký hiệu đoạn văn
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Một phần của ArtCraft. MIT OR Apache-2.0. Phông chữ: Source Sans 3, Inter, JetBrains Mono (OFL). Biểu tượng: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Dựa trên VectorCraft của nhóm ArtCraft. MIT OR Apache-2.0. Phông chữ: Source Sans 3, Inter, JetBrains Mono (OFL). Biểu tượng: Lucide (ISC) + VectorCraft.
 	Password	Mật khẩu
 	Paste	Dán
 	Paste Design	Dán thiết kế
@@ -2413,7 +2413,7 @@
 	Quarter Space	Khoảng cách một phần tư
 	Quick Actions	Hành động nhanh
 	Quickly start a new file	Tạo nhanh tệp mới
-	Quit VectorCraft	Thoát VectorCraft
+	Quit Euclidean	Thoát Euclidean
 	Radar Graph Tool	Công cụ Biểu đồ radar
 	Radial	Hướng tâm
 	Radial Blur	Mờ hướng tâm
@@ -3505,9 +3505,9 @@
 	VectorCraft copies the fonts to {folder}.	VectorCraft sao chép phông chữ vào {folder}.
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	VectorCraft không thoát bình thường lần trước. Các tài liệu này có thay đổi chưa lưu:
 	VectorCraft documents: one locked object, updated when the file changes.	Tài liệu VectorCraft: một đối tượng bị khóa, cập nhật khi tệp thay đổi.
-	VectorCraft Help…	Trợ giúp VectorCraft…
-	VectorCraft on getartcraft.com	VectorCraft trên getartcraft.com
-	VectorCraft on GitHub	VectorCraft trên GitHub
+	Euclidean Help…	Trợ giúp Euclidean…
+	Euclidean on eccentricexecutioners.ca	Euclidean trên eccentricexecutioners.ca
+	Euclidean on GitHub	Euclidean trên GitHub
 	Vectors	Vector
 	Version	Phiên bản
 	Version {version} — open-source vector illustration in pure Rust.	Phiên bản {version} — minh họa vector mã nguồn mở bằng Rust thuần túy.
@@ -3553,7 +3553,7 @@
 	Web Snap:	Khớp màu Web:
 	Weight	Độ dày
 	Weight:	Độ dày:
-	Welcome to VectorCraft	Chào mừng đến với VectorCraft
+	Welcome to Euclidean	Chào mừng đến với Euclidean
 	When pasting text	Khi dán văn bản
 	White	Trắng
 	White Intensity	Cường độ trắng
@@ -4163,7 +4163,7 @@ theme	Appearance	Giao diện
 @msg	the file was read up to an error ({why}): what follows it was left out	tệp được đọc đến khi gặp lỗi ({why}): phần sau đó bị bỏ qua
 @msg	the file's preview header points outside the file	tiêu đề xem trước của tệp trỏ ra ngoài tệp
 @msg	the files come to more than 1 GB: add fewer at a time	các tệp tổng cộng hơn 1 GB: thêm ít hơn mỗi lần
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Bộ xử lý đồ họa thử trước không hiển thị được cửa sổ, VectorCraft đã khởi động lại trên {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Bộ xử lý đồ họa thử trước không hiển thị được cửa sổ, Euclidean đã khởi động lại trên {summary}
 @msg	The graphics were lost and couldn't be restarted.	Đồ họa đã mất và không thể khởi động lại.
 @msg	The graphics were lost and have been restarted	Đồ họa đã mất và đã được khởi động lại
 @msg	the guide is on a hidden or locked layer	đường căn nằm trên lớp ẩn hoặc bị khóa

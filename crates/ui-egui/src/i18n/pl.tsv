@@ -27,7 +27,7 @@
 	Paste Design	Wklej projekt
 	Select Unused	Zaznacz nieużywane
 	Glowing Edges…	Świecące krawędzie…
-	About VectorCraft	O programie VectorCraft
+	About Euclidean	O programie Euclidean
 	Align to Path	Wyrównaj do ścieżki
 	Cut Path at Selected Anchor Points	Rozetnij ścieżkę w zaznaczonych punktach kontrolnych
 	Join Our Discord	Dołącz do naszego Discorda
@@ -37,7 +37,7 @@
 	Medium Dark	Średnio ciemny
 	Medium Light	Średnio jasny
 	Light	Jasny
-	Quit VectorCraft	Zakończ VectorCraft
+	Quit Euclidean	Zakończ Euclidean
 	File	Plik
 	New…	Nowy…
 	New from Template…	Nowy z szablonu…
@@ -604,11 +604,11 @@
 	Save Swatch Library…	Zapisz bibliotekę próbek…
 	Symbol Libraries	Biblioteki symboli
 	Help	Pomoc
-	ArtCraft Website	Strona ArtCraft
-	VectorCraft on getartcraft.com	VectorCraft w getartcraft.com
-	VectorCraft on GitHub	VectorCraft w serwisie GitHub
+	Eccentric Executioners Website	Strona Eccentric Executioners
+	Euclidean on eccentricexecutioners.ca	Euclidean w eccentricexecutioners.ca
+	Euclidean on GitHub	Euclidean w serwisie GitHub
 	Search Commands…	Szukaj poleceń…
-	VectorCraft Help…	Pomoc VectorCraft…
+	Euclidean Help…	Pomoc Euclidean…
 	Auto Color	Kolor automatyczny
 	Automatic	Automatycznie
 	Isolate Selected Group	Izoluj zaznaczoną grupę
@@ -658,7 +658,7 @@
 	Dock Panel	Zadokuj panel
 	Float Tool Group	Odepnij grupę narzędzi
 	Services	Usługi
-	Hide VectorCraft	Ukryj VectorCraft
+	Hide Euclidean	Ukryj Euclidean
 	Hide Others	Ukryj pozostałe
 	Minimize	Minimalizuj
 	Zoom	Zmień rozmiar
@@ -1739,7 +1739,7 @@ lighting	Light	Światło
 	Select All Bound Objects	Zaznacz wszystkie powiązane obiekty
 	Multiple objects	Wiele obiektów
 	Graphics: {adapter}	Grafika: {adapter}
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Część ArtCraft. MIT LUB Apache-2.0. Czcionki: Source Sans 3, Inter, JetBrains Mono (OFL). Ikony: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Oparte na VectorCraft zespołu ArtCraft. MIT LUB Apache-2.0. Czcionki: Source Sans 3, Inter, JetBrains Mono (OFL). Ikony: Lucide (ISC) + VectorCraft.
 	Version {version} — open-source vector illustration in pure Rust.	Wersja {version} — otwartoźródłowa grafika wektorowa w czystym Ruście.
 	Align to Page	Wyrównaj do strony
 	Smooth Color	Gładki kolor
@@ -3354,8 +3354,8 @@ effect	Regular	Normalny
 	Quickly start a new file	Szybko rozpocznij nowy plik
 	Recent Files	Ostatnie pliki
 	Vector illustration — fast, open, scriptable.	Ilustracja wektorowa — szybka, otwarta, skryptowalna.
-	Welcome to VectorCraft	Witamy w VectorCraft
-	ArtCraft website	Strona ArtCraft
+	Welcome to Euclidean	Witamy w Euclidean
+	Eccentric Executioners website	Strona Eccentric Executioners
 	Discord	Discord
 	Join our Discord	Dołącz do naszego Discorda
 	Join the ArtCraft community on Discord (discord.gg/artcraft)	Dołącz do społeczności ArtCraft na Discordzie (discord.gg/artcraft)
@@ -4143,7 +4143,7 @@ imageTrace	Outline	Kontur
 @msg	Sent to {_1}	Wysłano do {_1}
 @msg	{_1} files	Pliki {_1}
 @msg	The graphics were lost and have been restarted	Utracono grafikę i uruchomiono ją ponownie
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Pierwszy wypróbowany procesor graficzny nie mógł wyświetlić okna, więc VectorCraft uruchomił się ponownie na {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Pierwszy wypróbowany procesor graficzny nie mógł wyświetlić okna, więc Euclidean uruchomił się ponownie na {summary}
 @msg	Loading VectorCraft…	Wczytywanie VectorCraft…
 @msg	VectorCraft failed to start: {e}	Nie udało się uruchomić VectorCraft: {e}
 @msg	A browser with WebGPU or WebGL2 is required.	Wymagana jest przeglądarka z obsługą WebGPU lub WebGL2.

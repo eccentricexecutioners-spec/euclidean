@@ -81,7 +81,7 @@
 	A lower value follows the stroke closely; a higher one gives fewer points and smoother curves.	Менше значення точніше відтворює обведення; більше дає менше точок і плавніші криві.
 	A new preset starting from the selected one	Новий набір на основі вибраного
 	A saved copy of the selected preset	Збережена копія вибраного набору
-	About VectorCraft	Про програму VectorCraft
+	About Euclidean	Про програму Euclidean
 	above	зверху
 	Absolute Position	Абсолютна позиція
 	Accurate	Точний
@@ -222,8 +222,8 @@
 	Artboard {number}	Монтажна область {number}
 	Artboard:	Монтажна область:
 	Artboards	Монтажні області
-	ArtCraft Website	Веб-сайт ArtCraft
-	ArtCraft website	Веб-сайт ArtCraft
+	Eccentric Executioners Website	Веб-сайт Eccentric Executioners
+	Eccentric Executioners website	Веб-сайт Eccentric Executioners
 	Artwork Colors	Кольори малюнка
 	As Multiple Assets	Як кілька ресурсів
 	As Single Asset	Як один ресурс
@@ -1963,7 +1963,7 @@
 	Paragraph Style Options	Параметри стилю абзацу
 	Paragraph Styles	Стилі абзаців
 	Paragraph Symbol	Символ абзацу
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Частина ArtCraft. MIT OR Apache-2.0. Шрифти: Source Sans 3, Inter, JetBrains Mono (OFL). Значки: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Засновано на VectorCraft від команди ArtCraft. MIT OR Apache-2.0. Шрифти: Source Sans 3, Inter, JetBrains Mono (OFL). Значки: Lucide (ISC) + VectorCraft.
 	Password	Пароль
 	Paste	Вставити
 	Paste in Back	Вставити позаду
@@ -2141,7 +2141,7 @@
 	Quarter Space	Четверта шпація
 	Quick Actions	Швидкі дії
 	Quickly start a new file	Швидко створити новий файл
-	Quit VectorCraft	Вийти з VectorCraft
+	Quit Euclidean	Вийти з Euclidean
 	Radar Graph Tool	Інструмент «Пелюсткова діаграма»
 	Radial	Радіальний
 	Radial Glows	Радіальні світіння
@@ -3192,9 +3192,9 @@ effect	Points	Точки
 	Vector Halftone…	Векторний напівтон…
 	Vector illustration — fast, open, scriptable.	Векторне малювання — швидке, відкрите, кероване сценаріями.
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	VectorCraft не завершився нормально минулого разу. У цих документах були незбережені зміни:
-	VectorCraft Help…	Довідка VectorCraft…
-	VectorCraft on getartcraft.com	VectorCraft на getartcraft.com
-	VectorCraft on GitHub	VectorCraft на GitHub
+	Euclidean Help…	Довідка Euclidean…
+	Euclidean on eccentricexecutioners.ca	Euclidean на eccentricexecutioners.ca
+	Euclidean on GitHub	Euclidean на GitHub
 	Vectors	Вектори
 	Version {version} — open-source vector illustration in pure Rust.	Версія {version} — векторне малювання з відкритим кодом, написане на Rust.
 	Version:	Версія:
@@ -3234,7 +3234,7 @@ effect	Points	Точки
 	Web Snap:	Прив’язка до web:
 	Weight	Товщина
 	Weight:	Товщина:
-	Welcome to VectorCraft	Ласкаво просимо до VectorCraft
+	Welcome to Euclidean	Ласкаво просимо до Euclidean
 	When pasting text	При вставці тексту
 	White	Білий
 	Widget Position:	Положення віджету:
@@ -3967,7 +3967,7 @@ axis	Both	Обидві
 @msg	Sent to {_1}	Відправлено до {_1}
 @msg	{_1} files	{_1} файлів
 @msg	The graphics were lost and have been restarted	Графіка була втрачена та перезапущена
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Графічний процесор, обраний першим, не зміг показати вікно, тому VectorCraft запустився знову на {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Графічний процесор, обраний першим, не зміг показати вікно, тому Euclidean запустився знову на {summary}
 @msg	Loading VectorCraft…	Завантаження VectorCraft…
 @msg	VectorCraft failed to start: {e}	VectorCraft не вдалося запустити: {e}
 @msg	A browser with WebGPU or WebGL2 is required.	Потрібен браузер із WebGPU або WebGL2.
@@ -4024,7 +4024,7 @@ axis	Both	Обидві
 @msg	No linked files to look for	Немає пов’язаних файлів для пошуку
 @msg	Relinked {n} image(s); {name} couldn't be relinked: {reason}	Відновлено зв’язок із зображеннями: {n}; не вдалося відновити зв’язок із {name}: {reason}
 	Services	Служби
-	Hide VectorCraft	Приховати VectorCraft
+	Hide Euclidean	Приховати Euclidean
 	Zoom	Масштаб
 	Bring All to Front	Усі вікна на передній план
 	Settings	Налаштування

@@ -10,7 +10,7 @@
 	Edge Width	가장자리 너비
 	Edge Brightness	가장자리 밝기
 	Smoothness	부드러움
-	About VectorCraft	VectorCraft 정보
+	About Euclidean	Euclidean 정보
 	All Scripts	모든 스크립트
 	Anchors:	앵커:
 	Any Kind	모든 종류
@@ -65,7 +65,7 @@
 	Medium Dark	약간 어둡게
 	Medium Light	약간 밝게
 	Light	밝게
-	Quit VectorCraft	VectorCraft 종료
+	Quit Euclidean	Euclidean 종료
 	File	파일
 	New…	새로 만들기…
 	New from Template…	템플릿에서 새로 만들기…
@@ -643,11 +643,11 @@
 	Save Swatch Library…	견본 라이브러리 저장…
 	Symbol Libraries	심볼 라이브러리
 	Help	도움말
-	ArtCraft Website	ArtCraft 웹사이트
-	VectorCraft on getartcraft.com	getartcraft.com의 VectorCraft
-	VectorCraft on GitHub	GitHub의 VectorCraft
+	Eccentric Executioners Website	Eccentric Executioners 웹사이트
+	Euclidean on eccentricexecutioners.ca	eccentricexecutioners.ca의 Euclidean
+	Euclidean on GitHub	GitHub의 Euclidean
 	Search Commands…	명령 검색…
-	VectorCraft Help…	VectorCraft 도움말…
+	Euclidean Help…	Euclidean 도움말…
 	Preview	미리 보기
 	Show Edges	가장자리 표시
 	Show Corner Widget	모퉁이 위젯 표시
@@ -849,7 +849,7 @@
 	Arrange: Bring to Front	배열: 맨 앞으로 가져오기
 	Arrowheads:	화살촉:
 	Art using a deleted global swatch keeps its colour.	삭제된 글로벌 견본을 사용한 아트워크는 색상을 유지합니다.
-	ArtCraft website	ArtCraft 웹사이트
+	Eccentric Executioners website	Eccentric Executioners 웹사이트
 	Artboard Options	아트보드 옵션
 	Artboard Options: edit with the Artboard tool	아트보드 옵션: 아트보드 도구로 편집
 	Artboard Options…	아트보드 옵션…
@@ -2852,7 +2852,7 @@
 	Web Shift	웹 이동
 	Web Snap:	웹 스냅:
 	Weight:	두께:
-	Welcome to VectorCraft	VectorCraft에 오신 것을 환영합니다
+	Welcome to Euclidean	Euclidean에 오신 것을 환영합니다
 	When pasting text	텍스트를 붙여넣을 때
 	White	흰색
 	Widget Position:	위젯 위치:
@@ -3149,7 +3149,7 @@
 	Packaged {n} file(s){note}	파일 {n}개를 패키지했습니다{note}
 	Page information	페이지 정보
 	Paragraph Style	단락 스타일
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	ArtCraft의 일부입니다. MIT OR Apache-2.0. 글꼴: Source Sans 3, Inter, JetBrains Mono (OFL). 아이콘: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	ArtCraft 팀의 VectorCraft를 기반으로 합니다. MIT OR Apache-2.0. 글꼴: Source Sans 3, Inter, JetBrains Mono (OFL). 아이콘: Lucide (ISC) + VectorCraft.
 	Perspective grid presets	원근 격자 프리셋
 	Phone 390×844	휴대폰 390×844
 	Place onto a new locked, dimmed template layer below the current layer	현재 레이어 아래의 잠기고 흐리게 처리된 새 템플릿 레이어에 배치
@@ -3372,7 +3372,7 @@ axis	Both	양쪽
 	Drag to the window's left edge to dock	창 왼쪽 가장자리로 드래그하여 고정
 	Float Tool Group	도구 그룹 분리
 	Services	서비스
-	Hide VectorCraft	VectorCraft 숨기기
+	Hide Euclidean	Euclidean 숨기기
 	Zoom	확대/축소
 	Bring All to Front	모두 앞으로 가져오기
 	Settings	설정
@@ -3450,7 +3450,7 @@ theme	Appearance	외관
 @msg	The graphics were lost and have been restarted	그래픽을 잃어 다시 시작했습니다
 @msg	VectorCraft failed to start: {e}	VectorCraft를 시작하지 못했습니다: {e}
 @msg	Your unsaved changes are kept in this browser: reload the page to get them back.	저장하지 않은 변경 내용은 이 브라우저에 보관되어 있습니다. 페이지를 새로 고치면 복원할 수 있습니다.
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	처음 시도한 그래픽 프로세서가 창을 표시하지 못해 {summary}에서 VectorCraft를 다시 시작했습니다
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	처음 시도한 그래픽 프로세서가 창을 표시하지 못해 {summary}에서 Euclidean를 다시 시작했습니다
 @msg	not a DXF drawing	DXF 도면이 아닙니다
 @msg	scale must be a number from {_1} to {_2}, not {s}	배율은 {_1}에서 {_2} 사이의 숫자여야 합니다: {s}
 @msg	the artboard to fit must be a positive size up to {_1} pt	맞출 아트보드는 최대 {_1} pt까지의 양수 크기여야 합니다

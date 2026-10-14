@@ -23,7 +23,7 @@
 	Paste Design	Vložit návrh
 	Select Unused	Vybrat nepoužité
 	Glowing Edges…	Zářící okraje…
-	About VectorCraft	O aplikaci VectorCraft
+	About Euclidean	O aplikaci Euclidean
 	Align to Path	Zarovnat k cestě
 	Cut Path at Selected Anchor Points	Rozdělit cestu ve vybraných kotevních bodech
 	Join Our Discord	Připojit se k našemu Discordu
@@ -33,7 +33,7 @@
 	Medium Dark	Středně tmavý
 	Medium Light	Středně světlý
 	Light	Světlý
-	Quit VectorCraft	Ukončit VectorCraft
+	Quit Euclidean	Ukončit Euclidean
 	File	Soubor
 	New…	Nový…
 	New from Template…	Nový ze šablony…
@@ -619,11 +619,11 @@
 	Save Swatch Library…	Uložit knihovnu vzorníku…
 	Symbol Libraries	Knihovny symbolů
 	Help	Nápověda
-	ArtCraft Website	Web ArtCraft
-	VectorCraft on getartcraft.com	VectorCraft na getartcraft.com
-	VectorCraft on GitHub	VectorCraft na GitHubu
+	Eccentric Executioners Website	Web Eccentric Executioners
+	Euclidean on eccentricexecutioners.ca	Euclidean na eccentricexecutioners.ca
+	Euclidean on GitHub	Euclidean na GitHubu
 	Search Commands…	Hledat příkazy…
-	VectorCraft Help…	Nápověda VectorCraft…
+	Euclidean Help…	Nápověda Euclidean…
 	Auto Color	Automatická barva
 	Automatic	Automaticky
 	Isolate Selected Group	Izolovat vybranou skupinu
@@ -677,7 +677,7 @@
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	Služby
-	Hide VectorCraft	Skrýt VectorCraft
+	Hide Euclidean	Skrýt Euclidean
 	Hide Others	Skrýt ostatní
 	Minimize	Minimalizovat
 	Zoom	Zvětšení
@@ -1792,7 +1792,7 @@ lighting	Light	Světlo
 
 # Dialogs
 	Graphics: {adapter}	Grafika: {adapter}
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Součást ArtCraft. MIT OR Apache-2.0. Písma: Source Sans 3, Inter, JetBrains Mono (OFL). Ikony: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Založeno na VectorCraftu od týmu ArtCraft. MIT OR Apache-2.0. Písma: Source Sans 3, Inter, JetBrains Mono (OFL). Ikony: Lucide (ISC) + VectorCraft.
 	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono, Noto Sans SC (OFL). Icons: Lucide (ISC) + VectorCraft.	Součást ArtCraft. MIT OR Apache-2.0. Písma: Source Sans 3, Inter, JetBrains Mono, Noto Sans SC (OFL). Ikony: Lucide (ISC) + VectorCraft.
 	Version {version} — open-source vector illustration in pure Rust.	Verze {version} — open-source vektorová ilustrace v čistém Rustu.
 	Align to Page	Zarovnat ke stránce
@@ -3471,8 +3471,8 @@ effect	Regular	Pravidelný
 	Quickly start a new file	Rychle začít nový soubor
 	Recent Files	Nedávné soubory
 	Vector illustration — fast, open, scriptable.	Vektorová ilustrace — rychlá, otevřená, skriptovatelná.
-	Welcome to VectorCraft	Vítejte ve VectorCraftu
-	ArtCraft website	Web ArtCraft
+	Welcome to Euclidean	Vítejte ve Euclideanu
+	Eccentric Executioners website	Web Eccentric Executioners
 	Discord	Discord
 	Join our Discord	Připojit se k našemu Discordu
 	Join the ArtCraft community on Discord (discord.gg/artcraft)	Připojte se ke komunitě ArtCraft na Discordu (discord.gg/artcraft)
@@ -4277,7 +4277,7 @@ imageTrace	Outline	Obrys
 @msg	Sent to {_1}	Odesláno do {_1}
 @msg	{_1} files	Soubory {_1}
 @msg	The graphics were lost and have been restarted	Grafika byla ztracena a byla restartována
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Grafický procesor zkoušený jako první nedokázal zobrazit okno, proto se VectorCraft znovu spustil na {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Grafický procesor zkoušený jako první nedokázal zobrazit okno, proto se Euclidean znovu spustil na {summary}
 @msg	Loading VectorCraft…	Načítání VectorCraftu…
 @msg	VectorCraft failed to start: {e}	VectorCraft se nepodařilo spustit: {e}
 @msg	A browser with WebGPU or WebGL2 is required.	Je potřeba prohlížeč s WebGPU nebo WebGL2.

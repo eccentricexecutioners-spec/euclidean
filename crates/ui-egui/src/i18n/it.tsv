@@ -87,7 +87,7 @@
 	A lower value follows the stroke closely; a higher one gives fewer points and smoother curves.	Un valore più basso segue fedelmente il tratto; uno più alto produce meno punti e curve più morbide.
 	A new preset starting from the selected one	Un nuovo preset basato su quello selezionato
 	A saved copy of the selected preset	Una copia salvata del preset selezionato
-	About VectorCraft	Informazioni su VectorCraft
+	About Euclidean	Informazioni su Euclidean
 	above	sopra
 	Absolute Position	Posizione assoluta
 	Accurate	Preciso
@@ -228,8 +228,8 @@
 	Artboard {number}	Tavola da disegno {number}
 	Artboard:	Tavola da disegno:
 	Artboards	Tavole da disegno
-	ArtCraft Website	Sito web di ArtCraft
-	ArtCraft website	Sito web di ArtCraft
+	Eccentric Executioners Website	Sito web di Eccentric Executioners
+	Eccentric Executioners website	Sito web di Eccentric Executioners
 	Artwork Colors	Colori della grafica
 	As Multiple Assets	Come più risorse
 	As Single Asset	Come risorsa unica
@@ -1971,7 +1971,7 @@
 	Paragraph Style Options	Opzioni stile paragrafo
 	Paragraph Styles	Stili paragrafo
 	Paragraph Symbol	Segno di paragrafo
-	Part of ArtCraft. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Parte di ArtCraft. MIT OR Apache-2.0. Font: Source Sans 3, Inter, JetBrains Mono (OFL). Icone: Lucide (ISC) + VectorCraft.
+	Based on VectorCraft by the ArtCraft team. MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC) + VectorCraft.	Basato su VectorCraft del team ArtCraft. MIT OR Apache-2.0. Font: Source Sans 3, Inter, JetBrains Mono (OFL). Icone: Lucide (ISC) + VectorCraft.
 	Password	Password
 	Paste	Incolla
 	Paste in Back	Incolla dietro
@@ -2149,7 +2149,7 @@
 	Quarter Space	Quarto di spazio
 	Quick Actions	Azioni rapide
 	Quickly start a new file	Inizia rapidamente un nuovo file
-	Quit VectorCraft	Esci da VectorCraft
+	Quit Euclidean	Esci da Euclidean
 	Radar Graph Tool	Strumento Grafico radar
 	Radial	Radiale
 	Radial Glows	Bagliori radiali
@@ -3199,9 +3199,9 @@
 	Vector Halftone…	Retino vettoriale…
 	Vector illustration — fast, open, scriptable.	Illustrazione vettoriale — veloce, aperta, programmabile.
 	VectorCraft didn't quit normally last time. These documents had unsaved changes:	VectorCraft non si è chiuso correttamente l'ultima volta. Questi documenti avevano modifiche non salvate:
-	VectorCraft Help…	Aiuto di VectorCraft…
-	VectorCraft on getartcraft.com	VectorCraft su getartcraft.com
-	VectorCraft on GitHub	VectorCraft su GitHub
+	Euclidean Help…	Aiuto di Euclidean…
+	Euclidean on eccentricexecutioners.ca	Euclidean su eccentricexecutioners.ca
+	Euclidean on GitHub	Euclidean su GitHub
 	Vectors	Vettori
 	Version {version} — open-source vector illustration in pure Rust.	Versione {version} — illustrazione vettoriale open source in puro Rust.
 	Version:	Versione:
@@ -3241,7 +3241,7 @@
 	Web Snap:	Aggancio ai colori Web:
 	Weight	Spessore
 	Weight:	Spessore:
-	Welcome to VectorCraft	Ti diamo il benvenuto in VectorCraft
+	Welcome to Euclidean	Ti diamo il benvenuto in Euclidean
 	When pasting text	Quando incolli testo
 	White	Bianco
 	Widget Position:	Posizione widget:
@@ -3983,7 +3983,7 @@ axis	Both	Entrambi
 @msg	Sent to {_1}	Inviato a {_1}
 @msg	{_1} files	{_1} file
 @msg	The graphics were lost and have been restarted	Il contesto grafico è stato perso ed è stato riavviato
-@msg	The graphics processor tried first couldn't show the window, so VectorCraft started again on {summary}	Il processore grafico provato per primo non è riuscito a mostrare la finestra, quindi VectorCraft è stato riavviato con {summary}
+@msg	The graphics processor tried first couldn't show the window, so Euclidean started again on {summary}	Il processore grafico provato per primo non è riuscito a mostrare la finestra, quindi Euclidean è stato riavviato con {summary}
 @msg	Loading VectorCraft…	Caricamento di VectorCraft…
 @msg	VectorCraft failed to start: {e}	Impossibile avviare VectorCraft: {e}
 @msg	A browser with WebGPU or WebGL2 is required.	È necessario un browser con WebGPU o WebGL2.
@@ -4042,7 +4042,7 @@ axis	Both	Entrambi
 
 # The macOS menu bar (native_menu): the app and Window menus' system items, Settings pages.
 	Services	Servizi
-	Hide VectorCraft	Nascondi VectorCraft
+	Hide Euclidean	Nascondi Euclidean
 	Zoom	Zoom
 	Bring All to Front	Porta tutto in primo piano
 	Settings	Impostazioni
