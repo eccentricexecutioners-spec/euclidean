@@ -4295,3 +4295,82 @@ theme	Appearance	Erscheinungsbild
 	Softness	Weichheit
 	Ambient Light	Umgebungslicht
 	Light behind the object	Licht hinter dem Objekt
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parameter
+	Parametric Sketch	Parametrische Skizze
+	Favorite	Favorit
+	No favorites yet. Star a parameter below.	Noch keine Favoriten. Markieren Sie unten einen Parameter mit einem Stern.
+	follows a formula · edit it below	folgt einer Formel · unten bearbeiten
+	Decrease	Verringern
+	Increase	Erhöhen
+	Unit	Einheit
+	Expression	Ausdruck
+	Value	Wert
+	Comment	Kommentar
+	No unit	Ohne Einheit
+	error	Fehler
+	New Parameter	Neuer Parameter
+	Delete Parameter	Parameter löschen
+	Copy Parameters as CSV	Parameter als CSV kopieren
+	Selected Sketch	Ausgewählte Skizze
+	Select a parametric sketch to see what drives it.	Wählen Sie eine parametrische Skizze aus, um zu sehen, was sie steuert.
+	Remove Shape	Form entfernen
+	Add Rectangle	Rechteck hinzufügen
+	Add Circle	Kreis hinzufügen
+	Add Line	Linie hinzufügen
+	New Rectangle	Neues Rechteck
+	New Circle	Neuer Kreis
+	New Line	Neue Linie
+	Sample: Mounting plate	Beispiel: Montageplatte
+	Add Parameter	Parameter hinzufügen
+	Set Parameter	Parameter festlegen
+	Remove Parameter	Parameter entfernen
+	Rename Parameter	Parameter umbenennen
+	List Parameters	Parameter auflisten
+	Parameters as CSV	Parameter als CSV
+	New Parametric Sketch	Neue parametrische Skizze
+	Add Sketch Shape	Skizzenform hinzufügen
+	Set Sketch Field	Skizzenfeld festlegen
+	Remove Sketch Shape	Skizzenform entfernen
+	Inspect Parametric Sketch	Parametrische Skizze untersuchen
+	rect	Rechteck
+	circle	Kreis
+	line	Linie
+	x	x
+	y	y
+	width	Breite
+	height	Höhe
+	corner radius	Eckenradius
+	centre x	Mitte x
+	centre y	Mitte y
+	diameter	Durchmesser
+	copies	Kopien
+	pitch	Abstand
+	length	Länge
+	angle	Winkel
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: keine Zahl
+@msg	divide by zero	Division durch null
+@msg	empty	leer
+@msg	expected "{c}"	"{c}" erwartet
+@msg	extra input	überzählige Eingabe
+@msg	n: not a number	n: keine Zahl
+@msg	no function "{name}"	keine Funktion "{name}"
+@msg	no parameter "{name}"	kein Parameter "{name}"
+@msg	not a number	keine Zahl
+@msg	out of range	außerhalb des Bereichs
+@msg	pitch: out of range	pitch: außerhalb des Bereichs
+@msg	too deeply nested	zu tief verschachtelt
+@msg	too long	zu lang
+@msg	too many parameters in a chain	zu viele Parameter in einer Kette
+@msg	unexpected "{c}"	unerwartet: "{c}"
+@msg	unfinished	unvollständig
+@msg	unknown shape "{kind}"	unbekannte Form "{kind}"
+@msg	{name} loops back to itself	{name} verweist auf sich selbst
+@msg	{name} needs a value	{name} braucht einen Wert
+@msg	{name} needs parentheses	{name} braucht Klammern
+@msg	{name} takes one value	{name} nimmt einen Wert
+@msg	{name}: empty	{name}: leer
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	ungültige Zahl "{text}"

@@ -4336,3 +4336,82 @@ lighting	Light	Свет
 	Softness	Мягкость
 	Ambient Light	Окружающий свет
 	Light behind the object	Свет позади объекта
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Параметры
+	Parametric Sketch	Параметрический эскиз
+	Favorite	Избранное
+	No favorites yet. Star a parameter below.	Избранных пока нет. Отметьте параметр звёздочкой ниже.
+	follows a formula · edit it below	задаётся формулой · измените её ниже
+	Decrease	Уменьшить
+	Increase	Увеличить
+	Unit	Единица
+	Expression	Выражение
+	Value	Значение
+	Comment	Комментарий
+	No unit	Без единицы
+	error	ошибка
+	New Parameter	Новый параметр
+	Delete Parameter	Удалить параметр
+	Copy Parameters as CSV	Копировать параметры как CSV
+	Selected Sketch	Выбранный эскиз
+	Select a parametric sketch to see what drives it.	Выберите параметрический эскиз, чтобы увидеть, что им управляет.
+	Remove Shape	Удалить фигуру
+	Add Rectangle	Добавить прямоугольник
+	Add Circle	Добавить окружность
+	Add Line	Добавить линию
+	New Rectangle	Новый прямоугольник
+	New Circle	Новая окружность
+	New Line	Новая линия
+	Sample: Mounting plate	Пример: монтажная пластина
+	Add Parameter	Добавить параметр
+	Set Parameter	Задать параметр
+	Remove Parameter	Убрать параметр
+	Rename Parameter	Переименовать параметр
+	List Parameters	Список параметров
+	Parameters as CSV	Параметры как CSV
+	New Parametric Sketch	Новый параметрический эскиз
+	Add Sketch Shape	Добавить фигуру эскиза
+	Set Sketch Field	Задать поле эскиза
+	Remove Sketch Shape	Убрать фигуру эскиза
+	Inspect Parametric Sketch	Просмотреть параметрический эскиз
+	rect	прямоугольник
+	circle	окружность
+	line	линия
+	x	x
+	y	y
+	width	ширина
+	height	высота
+	corner radius	радиус угла
+	centre x	центр x
+	centre y	центр y
+	diameter	диаметр
+	copies	копии
+	pitch	шаг
+	length	длина
+	angle	угол
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: не число
+@msg	divide by zero	деление на ноль
+@msg	empty	пусто
+@msg	expected "{c}"	ожидается "{c}"
+@msg	extra input	лишний ввод
+@msg	n: not a number	n: не число
+@msg	no function "{name}"	нет функции "{name}"
+@msg	no parameter "{name}"	нет параметра "{name}"
+@msg	not a number	не число
+@msg	out of range	вне диапазона
+@msg	pitch: out of range	pitch: вне диапазона
+@msg	too deeply nested	слишком глубокая вложенность
+@msg	too long	слишком длинно
+@msg	too many parameters in a chain	слишком много параметров в цепочке
+@msg	unexpected "{c}"	неожиданный символ "{c}"
+@msg	unfinished	не закончено
+@msg	unknown shape "{kind}"	неизвестная фигура "{kind}"
+@msg	{name} loops back to itself	{name} ссылается сам на себя
+@msg	{name} needs a value	{name} требует значение
+@msg	{name} needs parentheses	{name} требует скобки
+@msg	{name} takes one value	{name} принимает одно значение
+@msg	{name}: empty	{name}: пусто
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	неверное число "{text}"

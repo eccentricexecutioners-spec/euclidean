@@ -4320,3 +4320,82 @@ lighting	Light	Світло
 	Softness	М'якість
 	Ambient Light	Навколишнє світло
 	Light behind the object	Світло позаду об'єкта
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Параметри
+	Parametric Sketch	Параметричний ескіз
+	Favorite	Улюблене
+	No favorites yet. Star a parameter below.	Улюблених ще немає. Позначте параметр зірочкою нижче.
+	follows a formula · edit it below	задається формулою · змініть її нижче
+	Decrease	Зменшити
+	Increase	Збільшити
+	Unit	Одиниця
+	Expression	Вираз
+	Value	Значення
+	Comment	Коментар
+	No unit	Без одиниці
+	error	помилка
+	New Parameter	Новий параметр
+	Delete Parameter	Видалити параметр
+	Copy Parameters as CSV	Копіювати параметри як CSV
+	Selected Sketch	Вибраний ескіз
+	Select a parametric sketch to see what drives it.	Виберіть параметричний ескіз, щоб побачити, що ним керує.
+	Remove Shape	Вилучити фігуру
+	Add Rectangle	Додати прямокутник
+	Add Circle	Додати коло
+	Add Line	Додати лінію
+	New Rectangle	Новий прямокутник
+	New Circle	Нове коло
+	New Line	Нова лінія
+	Sample: Mounting plate	Приклад: монтажна пластина
+	Add Parameter	Додати параметр
+	Set Parameter	Задати параметр
+	Remove Parameter	Вилучити параметр
+	Rename Parameter	Перейменувати параметр
+	List Parameters	Список параметрів
+	Parameters as CSV	Параметри як CSV
+	New Parametric Sketch	Новий параметричний ескіз
+	Add Sketch Shape	Додати фігуру ескізу
+	Set Sketch Field	Задати поле ескізу
+	Remove Sketch Shape	Вилучити фігуру ескізу
+	Inspect Parametric Sketch	Переглянути параметричний ескіз
+	rect	прямокутник
+	circle	коло
+	line	лінія
+	x	x
+	y	y
+	width	ширина
+	height	висота
+	corner radius	радіус кута
+	centre x	центр x
+	centre y	центр y
+	diameter	діаметр
+	copies	копії
+	pitch	крок
+	length	довжина
+	angle	кут
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: не число
+@msg	divide by zero	ділення на нуль
+@msg	empty	порожньо
+@msg	expected "{c}"	очікується "{c}"
+@msg	extra input	зайве введення
+@msg	n: not a number	n: не число
+@msg	no function "{name}"	немає функції "{name}"
+@msg	no parameter "{name}"	немає параметра "{name}"
+@msg	not a number	не число
+@msg	out of range	поза діапазоном
+@msg	pitch: out of range	pitch: поза діапазоном
+@msg	too deeply nested	надто глибоке вкладення
+@msg	too long	надто довго
+@msg	too many parameters in a chain	надто багато параметрів у ланцюжку
+@msg	unexpected "{c}"	неочікуваний символ "{c}"
+@msg	unfinished	не завершено
+@msg	unknown shape "{kind}"	невідома фігура "{kind}"
+@msg	{name} loops back to itself	{name} посилається сам на себе
+@msg	{name} needs a value	{name} потребує значення
+@msg	{name} needs parentheses	{name} потребує дужок
+@msg	{name} takes one value	{name} приймає одне значення
+@msg	{name}: empty	{name}: порожньо
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	неправильне число "{text}"

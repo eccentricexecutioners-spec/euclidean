@@ -3921,3 +3921,57 @@ lighting	Light	光源
 	Softness	柔和度
 	Ambient Light	环境光
 	Light behind the object	光源位于对象后方
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	参数
+	Parametric Sketch	参数化草图
+	Favorite	收藏
+	No favorites yet. Star a parameter below.	还没有收藏。请在下方为参数加星。
+	follows a formula · edit it below	遵循公式 · 请在下方编辑
+	Decrease	减小
+	Increase	增大
+	Unit	单位
+	Expression	表达式
+	Value	值
+	Comment	注释
+	No unit	无单位
+	error	错误
+	New Parameter	新建参数
+	Delete Parameter	删除参数
+	Copy Parameters as CSV	以 CSV 形式复制参数
+	Selected Sketch	所选草图
+	Select a parametric sketch to see what drives it.	选择一个参数化草图，查看由什么驱动它。
+	Remove Shape	移除形状
+	Add Rectangle	添加矩形
+	Add Circle	添加圆形
+	Add Line	添加直线
+	New Rectangle	新建矩形
+	New Circle	新建圆形
+	New Line	新建直线
+	Sample: Mounting plate	示例：安装板
+	Add Parameter	添加参数
+	Set Parameter	设置参数
+	Remove Parameter	移除参数
+	Rename Parameter	重命名参数
+	List Parameters	列出参数
+	Parameters as CSV	参数的 CSV
+	New Parametric Sketch	新建参数化草图
+	Add Sketch Shape	添加草图形状
+	Set Sketch Field	设置草图字段
+	Remove Sketch Shape	移除草图形状
+	Inspect Parametric Sketch	检查参数化草图
+	rect	矩形
+	circle	圆形
+	line	直线
+	x	x
+	y	y
+	width	宽度
+	height	高度
+	corner radius	圆角半径
+	centre x	中心 x
+	centre y	中心 y
+	diameter	直径
+	copies	份数
+	pitch	间距
+	length	长度
+	angle	角度

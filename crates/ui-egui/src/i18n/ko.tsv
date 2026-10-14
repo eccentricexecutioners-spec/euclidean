@@ -4304,3 +4304,82 @@ lighting	Light	광원
 	Softness	부드러움
 	Ambient Light	주변광
 	Light behind the object	개체 뒤의 조명
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	매개변수
+	Parametric Sketch	파라메트릭 스케치
+	Favorite	즐겨찾기
+	No favorites yet. Star a parameter below.	즐겨찾기가 아직 없습니다. 아래에서 매개변수에 별표를 지정하세요.
+	follows a formula · edit it below	수식을 따릅니다 · 아래에서 편집
+	Decrease	감소
+	Increase	증가
+	Unit	단위
+	Expression	식
+	Value	값
+	Comment	설명
+	No unit	단위 없음
+	error	오류
+	New Parameter	새 매개변수
+	Delete Parameter	매개변수 삭제
+	Copy Parameters as CSV	매개변수를 CSV로 복사
+	Selected Sketch	선택한 스케치
+	Select a parametric sketch to see what drives it.	파라메트릭 스케치를 선택하면 무엇이 형태를 결정하는지 볼 수 있습니다.
+	Remove Shape	모양 제거
+	Add Rectangle	사각형 추가
+	Add Circle	원 추가
+	Add Line	선 추가
+	New Rectangle	새 사각형
+	New Circle	새 원
+	New Line	새 선
+	Sample: Mounting plate	샘플: 장착 플레이트
+	Add Parameter	매개변수 추가
+	Set Parameter	매개변수 설정
+	Remove Parameter	매개변수 제거
+	Rename Parameter	매개변수 이름 바꾸기
+	List Parameters	매개변수 목록
+	Parameters as CSV	매개변수를 CSV로
+	New Parametric Sketch	새 파라메트릭 스케치
+	Add Sketch Shape	스케치 모양 추가
+	Set Sketch Field	스케치 필드 설정
+	Remove Sketch Shape	스케치 모양 제거
+	Inspect Parametric Sketch	파라메트릭 스케치 검사
+	rect	사각형
+	circle	원
+	line	선
+	x	x
+	y	y
+	width	너비
+	height	높이
+	corner radius	모퉁이 반경
+	centre x	중심 x
+	centre y	중심 y
+	diameter	직경
+	copies	개수
+	pitch	간격
+	length	길이
+	angle	각도
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: 숫자가 아닙니다
+@msg	divide by zero	0으로 나눌 수 없습니다
+@msg	empty	비어 있습니다
+@msg	expected "{c}"	"{c}"이(가) 필요합니다
+@msg	extra input	입력이 남았습니다
+@msg	n: not a number	n: 숫자가 아닙니다
+@msg	no function "{name}"	"{name}" 함수가 없습니다
+@msg	no parameter "{name}"	"{name}" 매개변수가 없습니다
+@msg	not a number	숫자가 아닙니다
+@msg	out of range	범위를 벗어났습니다
+@msg	pitch: out of range	pitch: 범위를 벗어났습니다
+@msg	too deeply nested	중첩이 너무 깊습니다
+@msg	too long	너무 깁니다
+@msg	too many parameters in a chain	연결된 매개변수가 너무 많습니다
+@msg	unexpected "{c}"	예기치 않은 "{c}"
+@msg	unfinished	완성되지 않았습니다
+@msg	unknown shape "{kind}"	알 수 없는 모양 "{kind}"
+@msg	{name} loops back to itself	{name}이(가) 자기 자신을 참조합니다
+@msg	{name} needs a value	{name}에는 값이 필요합니다
+@msg	{name} needs parentheses	{name}에는 괄호가 필요합니다
+@msg	{name} takes one value	{name}은(는) 값을 하나만 받습니다
+@msg	{name}: empty	{name}: 비어 있습니다
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	잘못된 숫자 "{text}"

@@ -1323,7 +1323,9 @@ mod tests {
 
     #[test]
     fn a_panel_dropped_on_the_dock_lights_up_and_pops_out_of_its_icon() {
-        let mut h = Harness::new();
+        // Tall enough that the icon column shows every icon (24 since the Parameters panel), so
+        // the count says what it means rather than one scrolling into view.
+        let mut h = Harness::on(vec2(1400.0, 1600.0));
         let count = h.icons().len();
         h.drag(h.icons()[0].center(), pos2(500.0, 400.0));
         assert_eq!(h.groups(), [["color"]]);

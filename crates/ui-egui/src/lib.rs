@@ -49,6 +49,7 @@ pub mod render_worker;
 mod scrub;
 pub mod shortcut_editor;
 pub mod shortcuts;
+pub mod sketch_strip;
 pub mod state;
 pub mod sysclip;
 pub mod theme;

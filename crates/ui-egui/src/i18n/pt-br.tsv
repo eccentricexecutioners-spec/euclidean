@@ -3763,3 +3763,57 @@ axis	Both	Ambos
 	Softness	Suavidade
 	Ambient Light	Luz ambiente
 	Light behind the object	Luz atrás do objeto
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parâmetros
+	Parametric Sketch	Esboço paramétrico
+	Favorite	Favorito
+	No favorites yet. Star a parameter below.	Ainda não há favoritos. Marque um parâmetro com uma estrela abaixo.
+	follows a formula · edit it below	segue uma fórmula · edite-a abaixo
+	Decrease	Diminuir
+	Increase	Aumentar
+	Unit	Unidade
+	Expression	Expressão
+	Value	Valor
+	Comment	Comentário
+	No unit	Sem unidade
+	error	erro
+	New Parameter	Novo parâmetro
+	Delete Parameter	Excluir parâmetro
+	Copy Parameters as CSV	Copiar parâmetros como CSV
+	Selected Sketch	Esboço selecionado
+	Select a parametric sketch to see what drives it.	Selecione um esboço paramétrico para ver o que o controla.
+	Remove Shape	Remover forma
+	Add Rectangle	Adicionar retângulo
+	Add Circle	Adicionar círculo
+	Add Line	Adicionar linha
+	New Rectangle	Novo retângulo
+	New Circle	Novo círculo
+	New Line	Nova linha
+	Sample: Mounting plate	Exemplo: placa de montagem
+	Add Parameter	Adicionar parâmetro
+	Set Parameter	Definir parâmetro
+	Remove Parameter	Remover parâmetro
+	Rename Parameter	Renomear parâmetro
+	List Parameters	Listar parâmetros
+	Parameters as CSV	Parâmetros como CSV
+	New Parametric Sketch	Novo esboço paramétrico
+	Add Sketch Shape	Adicionar forma ao esboço
+	Set Sketch Field	Definir campo do esboço
+	Remove Sketch Shape	Remover forma do esboço
+	Inspect Parametric Sketch	Inspecionar esboço paramétrico
+	rect	retângulo
+	circle	círculo
+	line	linha
+	x	x
+	y	y
+	width	largura
+	height	altura
+	corner radius	raio do canto
+	centre x	centro x
+	centre y	centro y
+	diameter	diâmetro
+	copies	cópias
+	pitch	passo
+	length	comprimento
+	angle	ângulo

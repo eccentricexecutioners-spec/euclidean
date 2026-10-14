@@ -2337,6 +2337,15 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                     ],
                 ),
                 sub(
+                    "Parametric Sketch",
+                    vec![
+                        cp("New Rectangle", "sketch.create", json!({"shapes": [{"kind": "rect"}]})),
+                        cp("New Circle", "sketch.create", json!({"shapes": [{"kind": "circle"}]})),
+                        cp("New Line", "sketch.create", json!({"shapes": [{"kind": "line"}]})),
+                        c("Sample: Mounting plate", "sketch.sample"),
+                    ],
+                ),
+                sub(
                     "Live Paint",
                     vec![
                         c("Make", "livePaint.make"),
@@ -2666,6 +2675,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 panel("Links", crate::panels::links::ID),
                 panel("Magic Wand", "magicWand"),
                 panel("Navigator", "navigator"),
+                panel("Parameters", crate::panels::parameters::ID),
                 panel("Pathfinder", "pathfinder"),
                 panel("Pattern Options", "patternOptions"),
                 panel("Properties", "properties"),

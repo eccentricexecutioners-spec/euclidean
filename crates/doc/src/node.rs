@@ -555,6 +555,9 @@ pub struct NodeExtras {
     pub slice: Option<Box<crate::SliceOptions>>,
     /// Object › Perspective: the perspective grid plane the object is attached to.
     pub perspective: Option<Box<crate::PerspectiveAttachment>>,
+    /// Parametric sketch (Euclidean): the recipe this group's paths are built from
+    /// (Object › Parametric Sketch; the Parameters panel).
+    pub sketch: Option<Box<crate::sketch::Sketch>>,
 }
 
 /// No extras: what [`Node::extras`] gives for a node without any.
@@ -569,6 +572,7 @@ static NO_EXTRAS: NodeExtras = NodeExtras {
     attrs: None,
     slice: None,
     perspective: None,
+    sketch: None,
 };
 
 /// A node's [`NodeExtras`], if it has any ([`Node::extras`]). Extras that are all unset equal
@@ -699,6 +703,7 @@ impl Serialize for Node {
             e.slice.is_none(),
             is_default(&self.bbox_angle),
             e.perspective.is_none(),
+            e.sketch.is_none(),
         ];
         let mut st = s.serialize_struct("Node", skips.iter().filter(|s| !**s).count())?;
         let mut skip = skips.into_iter();
@@ -733,6 +738,7 @@ impl Serialize for Node {
         field!("slice", &e.slice);
         field!("bbox_angle", &self.bbox_angle);
         field!("perspective", &e.perspective);
+        field!("sketch", &e.sketch);
         st.end()
     }
 }
@@ -784,6 +790,8 @@ struct NodeWire {
     bbox_angle: f64,
     #[serde(default)]
     perspective: Option<Box<crate::PerspectiveAttachment>>,
+    #[serde(default)]
+    sketch: Option<Box<crate::sketch::Sketch>>,
 }
 
 impl From<NodeWire> for Node {
@@ -799,6 +807,7 @@ impl From<NodeWire> for Node {
             attrs: w.attrs,
             slice: w.slice,
             perspective: w.perspective,
+            sketch: w.sketch,
         };
         Node {
             id: w.id,

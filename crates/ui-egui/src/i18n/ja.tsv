@@ -4334,3 +4334,82 @@ lighting	Light	ライト
 	Softness	柔らかさ
 	Ambient Light	環境光
 	Light behind the object	オブジェクトの背後のライト
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	パラメーター
+	Parametric Sketch	パラメトリックスケッチ
+	Favorite	お気に入り
+	No favorites yet. Star a parameter below.	お気に入りはまだありません。下のパラメーターに星を付けてください。
+	follows a formula · edit it below	数式に従います · 下で編集
+	Decrease	減らす
+	Increase	増やす
+	Unit	単位
+	Expression	式
+	Value	値
+	Comment	コメント
+	No unit	単位なし
+	error	エラー
+	New Parameter	新規パラメーター
+	Delete Parameter	パラメーターを削除
+	Copy Parameters as CSV	パラメーターをCSVとしてコピー
+	Selected Sketch	選択中のスケッチ
+	Select a parametric sketch to see what drives it.	パラメトリックスケッチを選択すると、何が形を決めているかが表示されます。
+	Remove Shape	シェイプを削除
+	Add Rectangle	長方形を追加
+	Add Circle	円を追加
+	Add Line	直線を追加
+	New Rectangle	新規長方形
+	New Circle	新規円
+	New Line	新規直線
+	Sample: Mounting plate	サンプル: 取り付けプレート
+	Add Parameter	パラメーターを追加
+	Set Parameter	パラメーターを設定
+	Remove Parameter	パラメーターを取り除く
+	Rename Parameter	パラメーター名を変更
+	List Parameters	パラメーターの一覧
+	Parameters as CSV	パラメーターをCSVで
+	New Parametric Sketch	新規パラメトリックスケッチ
+	Add Sketch Shape	スケッチのシェイプを追加
+	Set Sketch Field	スケッチのフィールドを設定
+	Remove Sketch Shape	スケッチのシェイプを削除
+	Inspect Parametric Sketch	パラメトリックスケッチを検査
+	rect	長方形
+	circle	円
+	line	直線
+	x	x
+	y	y
+	width	幅
+	height	高さ
+	corner radius	角丸の半径
+	centre x	中心 x
+	centre y	中心 y
+	diameter	直径
+	copies	個数
+	pitch	ピッチ
+	length	長さ
+	angle	角度
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: 数値ではありません
+@msg	divide by zero	ゼロ除算
+@msg	empty	空です
+@msg	expected "{c}"	"{c}" が必要です
+@msg	extra input	余分な入力があります
+@msg	n: not a number	n: 数値ではありません
+@msg	no function "{name}"	関数 "{name}" はありません
+@msg	no parameter "{name}"	パラメーター "{name}" はありません
+@msg	not a number	数値ではありません
+@msg	out of range	範囲外です
+@msg	pitch: out of range	pitch: 範囲外です
+@msg	too deeply nested	入れ子が深すぎます
+@msg	too long	長すぎます
+@msg	too many parameters in a chain	連鎖するパラメーターが多すぎます
+@msg	unexpected "{c}"	予期しない "{c}"
+@msg	unfinished	未完成です
+@msg	unknown shape "{kind}"	不明なシェイプ "{kind}"
+@msg	{name} loops back to itself	{name} は自分自身を参照しています
+@msg	{name} needs a value	{name} には値が必要です
+@msg	{name} needs parentheses	{name} には括弧が必要です
+@msg	{name} takes one value	{name} は値を 1 つ取ります
+@msg	{name}: empty	{name}: 空です
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	不正な数値 "{text}"

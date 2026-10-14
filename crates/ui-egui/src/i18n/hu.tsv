@@ -4737,3 +4737,82 @@ imageTrace	Outline	Körvonal
 	Softness	Lágyság
 	Ambient Light	Környezeti fény
 	Light behind the object	Fény az objektum mögött
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Paraméterek
+	Parametric Sketch	Parametrikus vázlat
+	Favorite	Kedvenc
+	No favorites yet. Star a parameter below.	Még nincs kedvenc. Jelöljön meg lent egy paramétert csillaggal.
+	follows a formula · edit it below	képletet követ · szerkessze lent
+	Decrease	Csökkentés
+	Increase	Növelés
+	Unit	Egység
+	Expression	Kifejezés
+	Value	Érték
+	Comment	Megjegyzés
+	No unit	Egység nélkül
+	error	hiba
+	New Parameter	Új paraméter
+	Delete Parameter	Paraméter törlése
+	Copy Parameters as CSV	Paraméterek másolása CSV-ként
+	Selected Sketch	Kijelölt vázlat
+	Select a parametric sketch to see what drives it.	Jelöljön ki egy parametrikus vázlatot, hogy lássa, mi vezérli.
+	Remove Shape	Alakzat eltávolítása
+	Add Rectangle	Téglalap hozzáadása
+	Add Circle	Kör hozzáadása
+	Add Line	Vonal hozzáadása
+	New Rectangle	Új téglalap
+	New Circle	Új kör
+	New Line	Új vonal
+	Sample: Mounting plate	Minta: szerelőlap
+	Add Parameter	Paraméter hozzáadása
+	Set Parameter	Paraméter beállítása
+	Remove Parameter	Paraméter eltávolítása
+	Rename Parameter	Paraméter átnevezése
+	List Parameters	Paraméterek listázása
+	Parameters as CSV	Paraméterek CSV-ként
+	New Parametric Sketch	Új parametrikus vázlat
+	Add Sketch Shape	Vázlatalakzat hozzáadása
+	Set Sketch Field	Vázlatmező beállítása
+	Remove Sketch Shape	Vázlatalakzat eltávolítása
+	Inspect Parametric Sketch	Parametrikus vázlat vizsgálata
+	rect	téglalap
+	circle	kör
+	line	vonal
+	x	x
+	y	y
+	width	szélesség
+	height	magasság
+	corner radius	sarok sugara
+	centre x	középpont x
+	centre y	középpont y
+	diameter	átmérő
+	copies	példányok
+	pitch	osztás
+	length	hossz
+	angle	szög
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: nem szám
+@msg	divide by zero	nullával való osztás
+@msg	empty	üres
+@msg	expected "{c}"	"{c}" várt
+@msg	extra input	felesleges bevitel
+@msg	n: not a number	n: nem szám
+@msg	no function "{name}"	nincs "{name}" függvény
+@msg	no parameter "{name}"	nincs "{name}" paraméter
+@msg	not a number	nem szám
+@msg	out of range	tartományon kívül
+@msg	pitch: out of range	pitch: tartományon kívül
+@msg	too deeply nested	túl mély egymásba ágyazás
+@msg	too long	túl hosszú
+@msg	too many parameters in a chain	túl sok paraméter egy láncban
+@msg	unexpected "{c}"	váratlan: "{c}"
+@msg	unfinished	befejezetlen
+@msg	unknown shape "{kind}"	ismeretlen alakzat: "{kind}"
+@msg	{name} loops back to itself	{name} önmagára hivatkozik
+@msg	{name} needs a value	{name} értéket vár
+@msg	{name} needs parentheses	{name} zárójelet vár
+@msg	{name} takes one value	{name} egy értéket vesz
+@msg	{name}: empty	{name}: üres
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	hibás szám: "{text}"

@@ -4340,3 +4340,82 @@ lighting	Light	Luce
 	Softness	Morbidezza
 	Ambient Light	Luce ambientale
 	Light behind the object	Luce dietro l'oggetto
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parametri
+	Parametric Sketch	Schizzo parametrico
+	Favorite	Preferito
+	No favorites yet. Star a parameter below.	Nessun preferito. Contrassegna un parametro con una stella qui sotto.
+	follows a formula · edit it below	segue una formula · modificala qui sotto
+	Decrease	Diminuisci
+	Increase	Aumenta
+	Unit	Unità
+	Expression	Espressione
+	Value	Valore
+	Comment	Commento
+	No unit	Senza unità
+	error	errore
+	New Parameter	Nuovo parametro
+	Delete Parameter	Elimina parametro
+	Copy Parameters as CSV	Copia parametri come CSV
+	Selected Sketch	Schizzo selezionato
+	Select a parametric sketch to see what drives it.	Seleziona uno schizzo parametrico per vedere cosa lo guida.
+	Remove Shape	Rimuovi forma
+	Add Rectangle	Aggiungi rettangolo
+	Add Circle	Aggiungi cerchio
+	Add Line	Aggiungi linea
+	New Rectangle	Nuovo rettangolo
+	New Circle	Nuovo cerchio
+	New Line	Nuova linea
+	Sample: Mounting plate	Esempio: piastra di montaggio
+	Add Parameter	Aggiungi parametro
+	Set Parameter	Imposta parametro
+	Remove Parameter	Rimuovi parametro
+	Rename Parameter	Rinomina parametro
+	List Parameters	Elenca parametri
+	Parameters as CSV	Parametri come CSV
+	New Parametric Sketch	Nuovo schizzo parametrico
+	Add Sketch Shape	Aggiungi forma allo schizzo
+	Set Sketch Field	Imposta campo dello schizzo
+	Remove Sketch Shape	Rimuovi forma dallo schizzo
+	Inspect Parametric Sketch	Ispeziona schizzo parametrico
+	rect	rettangolo
+	circle	cerchio
+	line	linea
+	x	x
+	y	y
+	width	larghezza
+	height	altezza
+	corner radius	raggio angolo
+	centre x	centro x
+	centre y	centro y
+	diameter	diametro
+	copies	copie
+	pitch	passo
+	length	lunghezza
+	angle	angolo
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: non è un numero
+@msg	divide by zero	divisione per zero
+@msg	empty	vuoto
+@msg	expected "{c}"	atteso "{c}"
+@msg	extra input	input in eccesso
+@msg	n: not a number	n: non è un numero
+@msg	no function "{name}"	nessuna funzione "{name}"
+@msg	no parameter "{name}"	nessun parametro "{name}"
+@msg	not a number	non è un numero
+@msg	out of range	fuori intervallo
+@msg	pitch: out of range	pitch: fuori intervallo
+@msg	too deeply nested	nidificazione troppo profonda
+@msg	too long	troppo lungo
+@msg	too many parameters in a chain	troppi parametri in una catena
+@msg	unexpected "{c}"	inatteso: "{c}"
+@msg	unfinished	incompleto
+@msg	unknown shape "{kind}"	forma sconosciuta "{kind}"
+@msg	{name} loops back to itself	{name} rimanda a se stesso
+@msg	{name} needs a value	{name} richiede un valore
+@msg	{name} needs parentheses	{name} richiede le parentesi
+@msg	{name} takes one value	{name} accetta un valore
+@msg	{name}: empty	{name}: vuoto
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	numero non valido "{text}"

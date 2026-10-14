@@ -4613,3 +4613,82 @@ mark-style	Japanese	Japońskie
 	Softness	Miękkość
 	Ambient Light	Światło otoczenia
 	Light behind the object	Światło za obiektem
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parametry
+	Parametric Sketch	Szkic parametryczny
+	Favorite	Ulubiony
+	No favorites yet. Star a parameter below.	Brak ulubionych. Oznacz parametr gwiazdką poniżej.
+	follows a formula · edit it below	wynika ze wzoru · edytuj go poniżej
+	Decrease	Zmniejsz
+	Increase	Zwiększ
+	Unit	Jednostka
+	Expression	Wyrażenie
+	Value	Wartość
+	Comment	Komentarz
+	No unit	Bez jednostki
+	error	błąd
+	New Parameter	Nowy parametr
+	Delete Parameter	Usuń parametr
+	Copy Parameters as CSV	Kopiuj parametry jako CSV
+	Selected Sketch	Zaznaczony szkic
+	Select a parametric sketch to see what drives it.	Zaznacz szkic parametryczny, aby zobaczyć, co nim steruje.
+	Remove Shape	Usuń kształt
+	Add Rectangle	Dodaj prostokąt
+	Add Circle	Dodaj okrąg
+	Add Line	Dodaj linię
+	New Rectangle	Nowy prostokąt
+	New Circle	Nowy okrąg
+	New Line	Nowa linia
+	Sample: Mounting plate	Przykład: płyta montażowa
+	Add Parameter	Dodaj parametr
+	Set Parameter	Ustaw parametr
+	Remove Parameter	Usuń parametr
+	Rename Parameter	Zmień nazwę parametru
+	List Parameters	Wypisz parametry
+	Parameters as CSV	Parametry jako CSV
+	New Parametric Sketch	Nowy szkic parametryczny
+	Add Sketch Shape	Dodaj kształt szkicu
+	Set Sketch Field	Ustaw pole szkicu
+	Remove Sketch Shape	Usuń kształt szkicu
+	Inspect Parametric Sketch	Sprawdź szkic parametryczny
+	rect	prostokąt
+	circle	okrąg
+	line	linia
+	x	x
+	y	y
+	width	szerokość
+	height	wysokość
+	corner radius	promień narożnika
+	centre x	środek x
+	centre y	środek y
+	diameter	średnica
+	copies	kopie
+	pitch	rozstaw
+	length	długość
+	angle	kąt
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: to nie liczba
+@msg	divide by zero	dzielenie przez zero
+@msg	empty	puste
+@msg	expected "{c}"	oczekiwano "{c}"
+@msg	extra input	nadmiarowe dane
+@msg	n: not a number	n: to nie liczba
+@msg	no function "{name}"	brak funkcji "{name}"
+@msg	no parameter "{name}"	brak parametru "{name}"
+@msg	not a number	to nie liczba
+@msg	out of range	poza zakresem
+@msg	pitch: out of range	pitch: poza zakresem
+@msg	too deeply nested	zbyt głębokie zagnieżdżenie
+@msg	too long	zbyt długie
+@msg	too many parameters in a chain	zbyt wiele parametrów w łańcuchu
+@msg	unexpected "{c}"	nieoczekiwane "{c}"
+@msg	unfinished	niedokończone
+@msg	unknown shape "{kind}"	nieznany kształt "{kind}"
+@msg	{name} loops back to itself	{name} odwołuje się do siebie
+@msg	{name} needs a value	{name} wymaga wartości
+@msg	{name} needs parentheses	{name} wymaga nawiasów
+@msg	{name} takes one value	{name} przyjmuje jedną wartość
+@msg	{name}: empty	{name}: puste
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	błędna liczba "{text}"

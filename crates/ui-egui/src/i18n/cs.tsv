@@ -4770,3 +4770,82 @@ mark-style	Japanese	Japonské
 	Softness	Měkkost
 	Ambient Light	Okolní světlo
 	Light behind the object	Světlo za objektem
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parametry
+	Parametric Sketch	Parametrický náčrt
+	Favorite	Oblíbený
+	No favorites yet. Star a parameter below.	Zatím žádné oblíbené. Označte níže parametr hvězdičkou.
+	follows a formula · edit it below	řídí se vzorcem · upravte ho níže
+	Decrease	Snížit
+	Increase	Zvýšit
+	Unit	Jednotka
+	Expression	Výraz
+	Value	Hodnota
+	Comment	Komentář
+	No unit	Bez jednotky
+	error	chyba
+	New Parameter	Nový parametr
+	Delete Parameter	Odstranit parametr
+	Copy Parameters as CSV	Kopírovat parametry jako CSV
+	Selected Sketch	Vybraný náčrt
+	Select a parametric sketch to see what drives it.	Vyberte parametrický náčrt a uvidíte, co ho řídí.
+	Remove Shape	Odebrat tvar
+	Add Rectangle	Přidat obdélník
+	Add Circle	Přidat kružnici
+	Add Line	Přidat úsečku
+	New Rectangle	Nový obdélník
+	New Circle	Nová kružnice
+	New Line	Nová úsečka
+	Sample: Mounting plate	Ukázka: montážní deska
+	Add Parameter	Přidat parametr
+	Set Parameter	Nastavit parametr
+	Remove Parameter	Odebrat parametr
+	Rename Parameter	Přejmenovat parametr
+	List Parameters	Vypsat parametry
+	Parameters as CSV	Parametry jako CSV
+	New Parametric Sketch	Nový parametrický náčrt
+	Add Sketch Shape	Přidat tvar náčrtu
+	Set Sketch Field	Nastavit pole náčrtu
+	Remove Sketch Shape	Odebrat tvar náčrtu
+	Inspect Parametric Sketch	Prozkoumat parametrický náčrt
+	rect	obdélník
+	circle	kružnice
+	line	úsečka
+	x	x
+	y	y
+	width	šířka
+	height	výška
+	corner radius	poloměr rohu
+	centre x	střed x
+	centre y	střed y
+	diameter	průměr
+	copies	kopie
+	pitch	rozteč
+	length	délka
+	angle	úhel
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: není číslo
+@msg	divide by zero	dělení nulou
+@msg	empty	prázdné
+@msg	expected "{c}"	očekáváno "{c}"
+@msg	extra input	přebytečný vstup
+@msg	n: not a number	n: není číslo
+@msg	no function "{name}"	žádná funkce "{name}"
+@msg	no parameter "{name}"	žádný parametr "{name}"
+@msg	not a number	není číslo
+@msg	out of range	mimo rozsah
+@msg	pitch: out of range	pitch: mimo rozsah
+@msg	too deeply nested	příliš hluboké vnoření
+@msg	too long	příliš dlouhé
+@msg	too many parameters in a chain	příliš mnoho parametrů v řetězci
+@msg	unexpected "{c}"	neočekávané "{c}"
+@msg	unfinished	nedokončeno
+@msg	unknown shape "{kind}"	neznámý tvar "{kind}"
+@msg	{name} loops back to itself	{name} odkazuje sám na sebe
+@msg	{name} needs a value	{name} potřebuje hodnotu
+@msg	{name} needs parentheses	{name} potřebuje závorky
+@msg	{name} takes one value	{name} přijímá jednu hodnotu
+@msg	{name}: empty	{name}: prázdné
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	chybné číslo "{text}"

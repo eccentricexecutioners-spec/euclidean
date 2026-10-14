@@ -4770,3 +4770,82 @@ theme	Appearance	Apparence
 	Softness	Douceur
 	Ambient Light	Lumière ambiante
 	Light behind the object	Lumière derrière l'objet
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Paramètres
+	Parametric Sketch	Esquisse paramétrique
+	Favorite	Favori
+	No favorites yet. Star a parameter below.	Aucun favori pour l’instant. Marquez un paramètre d’une étoile ci-dessous.
+	follows a formula · edit it below	suit une formule · modifiez-la ci-dessous
+	Decrease	Diminuer
+	Increase	Augmenter
+	Unit	Unité
+	Expression	Expression
+	Value	Valeur
+	Comment	Commentaire
+	No unit	Sans unité
+	error	erreur
+	New Parameter	Nouveau paramètre
+	Delete Parameter	Supprimer le paramètre
+	Copy Parameters as CSV	Copier les paramètres en CSV
+	Selected Sketch	Esquisse sélectionnée
+	Select a parametric sketch to see what drives it.	Sélectionnez une esquisse paramétrique pour voir ce qui la pilote.
+	Remove Shape	Supprimer la forme
+	Add Rectangle	Ajouter un rectangle
+	Add Circle	Ajouter un cercle
+	Add Line	Ajouter une ligne
+	New Rectangle	Nouveau rectangle
+	New Circle	Nouveau cercle
+	New Line	Nouvelle ligne
+	Sample: Mounting plate	Exemple : plaque de montage
+	Add Parameter	Ajouter un paramètre
+	Set Parameter	Définir le paramètre
+	Remove Parameter	Retirer le paramètre
+	Rename Parameter	Renommer le paramètre
+	List Parameters	Lister les paramètres
+	Parameters as CSV	Paramètres en CSV
+	New Parametric Sketch	Nouvelle esquisse paramétrique
+	Add Sketch Shape	Ajouter une forme d’esquisse
+	Set Sketch Field	Définir un champ d’esquisse
+	Remove Sketch Shape	Retirer une forme d’esquisse
+	Inspect Parametric Sketch	Inspecter l’esquisse paramétrique
+	rect	rectangle
+	circle	cercle
+	line	ligne
+	x	x
+	y	y
+	width	largeur
+	height	hauteur
+	corner radius	rayon d’angle
+	centre x	centre x
+	centre y	centre y
+	diameter	diamètre
+	copies	copies
+	pitch	pas
+	length	longueur
+	angle	angle
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang : pas un nombre
+@msg	divide by zero	division par zéro
+@msg	empty	vide
+@msg	expected "{c}"	"{c}" attendu
+@msg	extra input	entrée en trop
+@msg	n: not a number	n : pas un nombre
+@msg	no function "{name}"	aucune fonction "{name}"
+@msg	no parameter "{name}"	aucun paramètre "{name}"
+@msg	not a number	pas un nombre
+@msg	out of range	hors limites
+@msg	pitch: out of range	pitch : hors limites
+@msg	too deeply nested	imbrication trop profonde
+@msg	too long	trop long
+@msg	too many parameters in a chain	trop de paramètres en chaîne
+@msg	unexpected "{c}"	inattendu : "{c}"
+@msg	unfinished	incomplet
+@msg	unknown shape "{kind}"	forme inconnue "{kind}"
+@msg	{name} loops back to itself	{name} se réfère à lui-même
+@msg	{name} needs a value	{name} a besoin d’une valeur
+@msg	{name} needs parentheses	{name} a besoin de parenthèses
+@msg	{name} takes one value	{name} prend une valeur
+@msg	{name}: empty	{name} : vide
+@msg	{name}: {e}	{name} : {e}
+@msg	bad number "{text}"	nombre incorrect "{text}"

@@ -4322,3 +4322,82 @@ theme	Appearance	Giao diện
 	Softness	Độ mềm
 	Ambient Light	Ánh sáng môi trường
 	Light behind the object	Ánh sáng phía sau đối tượng
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Thông số
+	Parametric Sketch	Bản phác thảo tham số
+	Favorite	Yêu thích
+	No favorites yet. Star a parameter below.	Chưa có mục yêu thích. Hãy gắn sao cho một thông số bên dưới.
+	follows a formula · edit it below	theo một công thức · chỉnh sửa bên dưới
+	Decrease	Giảm
+	Increase	Tăng
+	Unit	Đơn vị
+	Expression	Biểu thức
+	Value	Giá trị
+	Comment	Ghi chú
+	No unit	Không có đơn vị
+	error	lỗi
+	New Parameter	Thông số mới
+	Delete Parameter	Xóa thông số
+	Copy Parameters as CSV	Chép thông số dạng CSV
+	Selected Sketch	Bản phác thảo đã chọn
+	Select a parametric sketch to see what drives it.	Chọn một bản phác thảo tham số để xem điều gì điều khiển nó.
+	Remove Shape	Bỏ hình
+	Add Rectangle	Thêm hình chữ nhật
+	Add Circle	Thêm hình tròn
+	Add Line	Thêm đường thẳng
+	New Rectangle	Hình chữ nhật mới
+	New Circle	Hình tròn mới
+	New Line	Đường thẳng mới
+	Sample: Mounting plate	Mẫu: tấm lắp
+	Add Parameter	Thêm thông số
+	Set Parameter	Đặt thông số
+	Remove Parameter	Bỏ thông số
+	Rename Parameter	Đổi tên thông số
+	List Parameters	Liệt kê thông số
+	Parameters as CSV	Thông số dạng CSV
+	New Parametric Sketch	Bản phác thảo tham số mới
+	Add Sketch Shape	Thêm hình vào bản phác thảo
+	Set Sketch Field	Đặt trường của bản phác thảo
+	Remove Sketch Shape	Bỏ hình khỏi bản phác thảo
+	Inspect Parametric Sketch	Kiểm tra bản phác thảo tham số
+	rect	hình chữ nhật
+	circle	hình tròn
+	line	đường thẳng
+	x	x
+	y	y
+	width	chiều rộng
+	height	chiều cao
+	corner radius	bán kính góc
+	centre x	tâm x
+	centre y	tâm y
+	diameter	đường kính
+	copies	số bản
+	pitch	bước
+	length	chiều dài
+	angle	góc
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: không phải số
+@msg	divide by zero	chia cho không
+@msg	empty	trống
+@msg	expected "{c}"	cần "{c}"
+@msg	extra input	dư đầu vào
+@msg	n: not a number	n: không phải số
+@msg	no function "{name}"	không có hàm "{name}"
+@msg	no parameter "{name}"	không có thông số "{name}"
+@msg	not a number	không phải số
+@msg	out of range	ngoài phạm vi
+@msg	pitch: out of range	pitch: ngoài phạm vi
+@msg	too deeply nested	lồng nhau quá sâu
+@msg	too long	quá dài
+@msg	too many parameters in a chain	quá nhiều thông số trong một chuỗi
+@msg	unexpected "{c}"	không mong đợi "{c}"
+@msg	unfinished	chưa hoàn tất
+@msg	unknown shape "{kind}"	hình không xác định "{kind}"
+@msg	{name} loops back to itself	{name} tham chiếu đến chính nó
+@msg	{name} needs a value	{name} cần một giá trị
+@msg	{name} needs parentheses	{name} cần dấu ngoặc
+@msg	{name} takes one value	{name} nhận một giá trị
+@msg	{name}: empty	{name}: trống
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	số không hợp lệ "{text}"

@@ -241,6 +241,7 @@ pub fn control_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                     Some(n) if sel.len() == 1 && crate::panels::image_trace::is_trace(n) => {
                         tl!("Image Tracing")
                     }
+                    Some(n) if sel.len() == 1 && crate::panels::parameters::is_sketch(n) => tl!("Parametric Sketch"),
                     _ => tl!(crate::panels::appearance::object_label(app)),
                 };
                 ui.label(egui::RichText::new(label).font(theme::semibold(12.0)).color(t.text));
@@ -252,6 +253,8 @@ pub fn control_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                 let image = crate::place::control_bar_details(app, ui) || crate::panels::image_trace::control_bar(app, ui);
                 crate::toolbar::control_bar_options(app, ui);
                 crate::dialogs::envelope::control_bar(app, ui);
+                // A parametric sketch: its favourite parameters as sliders (Euclidean).
+                crate::sketch_strip::control_bar(app, ui);
                 let opacity = if first.is_some() { crate::panels::current_transparency(app).map_or(1.0, |t| t.0) } else { 1.0 };
                 if !image {
                     let shown_stroke = crate::panels::current_stroke(app);

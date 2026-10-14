@@ -1459,6 +1459,8 @@ impl Session {
             Ok(v) => match cmd::shaper::refresh(&before, Arc::make_mut(&mut st.doc)) {
                 Err(e) => Err(e),
                 Ok(()) => {
+                    // Parametric sketches follow their parameters and recipes (Euclidean).
+                    cmd::sketch::refresh(&before, Arc::make_mut(&mut st.doc));
                     // Inline graphics in text follow their symbols.
                     cmd::inline::refresh(&before, Arc::make_mut(&mut st.doc));
                     // Text Wrap: area type follows its wrap objects; then threads re-flow.

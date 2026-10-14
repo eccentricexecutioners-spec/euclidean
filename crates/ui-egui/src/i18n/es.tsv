@@ -4711,3 +4711,82 @@ mark-style	Japanese	Japonesas
 	Softness	Suavidad
 	Ambient Light	Luz ambiental
 	Light behind the object	Luz detrás del objeto
+# Euclidean (B2, 2026-10-13): the Parameters panel, the control bar's parametric-sketch strip and
+# Object › Parametric Sketch; machine-translated, for a native speaker's check.
+	Parameters	Parámetros
+	Parametric Sketch	Boceto paramétrico
+	Favorite	Favorito
+	No favorites yet. Star a parameter below.	Aún no hay favoritos. Marque un parámetro con una estrella abajo.
+	follows a formula · edit it below	sigue una fórmula · edítela abajo
+	Decrease	Disminuir
+	Increase	Aumentar
+	Unit	Unidad
+	Expression	Expresión
+	Value	Valor
+	Comment	Comentario
+	No unit	Sin unidad
+	error	error
+	New Parameter	Nuevo parámetro
+	Delete Parameter	Eliminar parámetro
+	Copy Parameters as CSV	Copiar parámetros como CSV
+	Selected Sketch	Boceto seleccionado
+	Select a parametric sketch to see what drives it.	Seleccione un boceto paramétrico para ver qué lo controla.
+	Remove Shape	Quitar forma
+	Add Rectangle	Añadir rectángulo
+	Add Circle	Añadir círculo
+	Add Line	Añadir línea
+	New Rectangle	Nuevo rectángulo
+	New Circle	Nuevo círculo
+	New Line	Nueva línea
+	Sample: Mounting plate	Ejemplo: placa de montaje
+	Add Parameter	Añadir parámetro
+	Set Parameter	Establecer parámetro
+	Remove Parameter	Quitar parámetro
+	Rename Parameter	Cambiar nombre del parámetro
+	List Parameters	Listar parámetros
+	Parameters as CSV	Parámetros como CSV
+	New Parametric Sketch	Nuevo boceto paramétrico
+	Add Sketch Shape	Añadir forma al boceto
+	Set Sketch Field	Establecer campo del boceto
+	Remove Sketch Shape	Quitar forma del boceto
+	Inspect Parametric Sketch	Inspeccionar boceto paramétrico
+	rect	rectángulo
+	circle	círculo
+	line	línea
+	x	x
+	y	y
+	width	anchura
+	height	altura
+	corner radius	radio de esquina
+	centre x	centro x
+	centre y	centro y
+	diameter	diámetro
+	copies	copias
+	pitch	paso
+	length	longitud
+	angle	ángulo
+# Euclidean (B2, 2026-10-13): expression and sketch error messages; machine-translated, for a native speaker's check.
+@msg	ang: not a number	ang: no es un número
+@msg	divide by zero	división por cero
+@msg	empty	vacío
+@msg	expected "{c}"	se esperaba "{c}"
+@msg	extra input	entrada sobrante
+@msg	n: not a number	n: no es un número
+@msg	no function "{name}"	no existe la función "{name}"
+@msg	no parameter "{name}"	no existe el parámetro "{name}"
+@msg	not a number	no es un número
+@msg	out of range	fuera de rango
+@msg	pitch: out of range	pitch: fuera de rango
+@msg	too deeply nested	anidado demasiado profundo
+@msg	too long	demasiado largo
+@msg	too many parameters in a chain	demasiados parámetros en una cadena
+@msg	unexpected "{c}"	inesperado: "{c}"
+@msg	unfinished	incompleto
+@msg	unknown shape "{kind}"	forma desconocida "{kind}"
+@msg	{name} loops back to itself	{name} se refiere a sí mismo
+@msg	{name} needs a value	{name} necesita un valor
+@msg	{name} needs parentheses	{name} necesita paréntesis
+@msg	{name} takes one value	{name} toma un valor
+@msg	{name}: empty	{name}: vacío
+@msg	{name}: {e}	{name}: {e}
+@msg	bad number "{text}"	número incorrecto "{text}"
