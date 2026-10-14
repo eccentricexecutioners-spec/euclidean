@@ -122,7 +122,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "Add Sketch Constraint",
             [],
             None,
-            "{id?, constraint: {type: coincident|pointOnLine|pointOnCircle|horizontal|vertical|parallel|perpendicular|tangent|equal|fix|midpoint|concentric, …refs: a, b, p, line, e}} fix without x/y pins the point where it is; refused when redundant or contradictory → {id, index}",
+            "{id?, constraint: {type: coincident|pointOnLine|pointOnCircle|horizontal|vertical|parallel|perpendicular|tangent|equal|fix|midpoint|concentric|symmetric, …refs: a, b, p, line, e}} fix without x/y pins the point where it is; refused when redundant or contradictory → {id, index}",
             has_doc,
             add_constraint
         ),
@@ -131,7 +131,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "Add Sketch Dimension",
             [],
             None,
-            "{id?, constraint: {type: distance|length|angle|angleBetween|radius|diameter, …refs: a, b, line, e}, expression?} without expression the current measured value is used; creates a model parameter dN → {id, index, name, value}",
+            "{id?, constraint: {type: distance|length|angle|angleBetween|radius|diameter|distancePointLine, …refs: a, b, p, line, e}, expression?} without expression the current measured value is used; creates a model parameter dN → {id, index, name, value}",
             has_doc,
             add_dimension
         ),
@@ -161,6 +161,33 @@ pub fn specs() -> Vec<CommandSpec> {
             "{id?, entities: [entity ids]} deletes lines, circles and arcs with their constraints, dimensions and unused points → {id}",
             has_doc,
             delete_entities
+        ),
+        cmd!(
+            "sketch.trim",
+            "Sketch Trim",
+            [],
+            None,
+            "{id?, entity: line id, at: [x, y]} removes the piece of the line between the two crossings that bracket `at` (to the line's end where there is none); the pieces left share the line's end points, new points at the cuts lie on what cut them; a line with no crossing is deleted; arcs and circles are refused → {id, kept: [line ids], removed: [[x, y], [x, y]]}",
+            has_doc,
+            trim
+        ),
+        cmd!(
+            "sketch.offset",
+            "Sketch Offset",
+            [],
+            None,
+            "{id?, entities: [line ids forming a chain or loop], distance (expression, mm), side?: 1|-1 (1 = left of the first line as drawn, as seen on screen)} copies the lines offset by the distance, joined at their intersections, each parallel to its source; the distance becomes a dimension (model parameter dN) from the first line → {id, lines, points, dimensions}",
+            has_doc,
+            offset
+        ),
+        cmd!(
+            "sketch.mirror",
+            "Sketch Mirror",
+            [],
+            None,
+            "{id?, entities: [shape ids], line: line id} copies the shapes mirrored about the line, with a symmetric constraint for each mirrored point pair → {id, entities, points}",
+            has_doc,
+            mirror
         ),
         cmd!(
             "sketch.setConstruction",
@@ -915,6 +942,8 @@ fn check_refs(sketch: &Sketch, c: &Constraint) -> std::result::Result<(), String
         Constraint::Concentric { a, b } => a != b && round(a) && round(b),
         Constraint::Fix { p, .. } => pt(p),
         Constraint::Radius { e, .. } | Constraint::Diameter { e, .. } => round(e),
+        Constraint::DistancePointLine { p, line: l, .. } => pt(p) && line(l),
+        Constraint::Symmetric { a, b, line: l } => pt(a) && pt(b) && a != b && line(l),
     };
     if ok {
         Ok(())
@@ -924,7 +953,7 @@ fn check_refs(sketch: &Sketch, c: &Constraint) -> std::result::Result<(), String
     }
 }
 
-const GEOMETRIC: [&str; 12] = [
+const GEOMETRIC: [&str; 13] = [
     "coincident",
     "pointOnLine",
     "pointOnCircle",
@@ -937,8 +966,9 @@ const GEOMETRIC: [&str; 12] = [
     "fix",
     "midpoint",
     "concentric",
+    "symmetric",
 ];
-const DIMENSIONS: [&str; 6] = ["distance", "length", "angle", "angleBetween", "radius", "diameter"];
+const DIMENSIONS: [&str; 7] = ["distance", "length", "angle", "angleBetween", "radius", "diameter", "distancePointLine"];
 
 /// The `constraint` object of `p`, its `type` among `allowed`.
 fn constraint_object(p: &Value, allowed: &[&str], cmd: &str) -> Result<serde_json::Map<String, Value>> {
@@ -1144,6 +1174,155 @@ fn set_construction(s: &mut Session, p: &Value) -> Result<Value> {
     let id = w.id;
     save(s, w, "Toggle Construction")?;
     Ok(json!({"id": id.0}))
+}
+
+/// A pair of numbers `[x, y]` under `key`, required.
+fn required_xy(p: &Value, key: &str, cmd: &str) -> Result<(f64, f64)> {
+    xy(p, key, cmd)?.ok_or_else(|| bad(cmd, format!("missing `{key}`")))
+}
+
+/// One line id under `key`.
+fn line_ref(w: &Work, p: &Value, key: &str, cmd: &str) -> Result<u32> {
+    let id = p.get(key).and_then(index_value).ok_or_else(|| bad(cmd, format!("`{key}` must be a line id")))?;
+    match w.sketch.entity(id) {
+        Some(Entity::Line { .. }) => Ok(id),
+        Some(_) => Err(bad(cmd, format!("`{key}` must be a line"))),
+        None => Err(bad(cmd, format!("no shape {id} in this sketch"))),
+    }
+}
+
+fn trim(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.trim";
+    let mut w = work(s, p, C)?;
+    let at = required_xy(p, "at", C)?;
+    let entity = p.get("entity").and_then(index_value).ok_or_else(|| bad(C, "`entity` must be a shape id"))?;
+    if w.sketch.entity(entity).is_none() {
+        return Err(bad(C, format!("no shape {entity} in this sketch")));
+    }
+    let before = w.sketch.clone();
+    let plan = w.sketch.trim_plan(entity, at).map_err(|e| bad(C, e))?;
+    let kept = w.sketch.trim_line(entity, at).map_err(|e| bad(C, e))?;
+    prune_params(&s.doc()?.doc, &mut w, &before);
+    let id = w.id;
+    commit(s, w, "Sketch Trim", C)?;
+    Ok(json!({"id": id.0, "kept": kept, "removed": [[plan.from.0, plan.from.1], [plan.to.0, plan.to.1]]}))
+}
+
+fn offset(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.offset";
+    let mut w = work(s, p, C)?;
+    let ids = entity_ids(&w, p, C)?;
+    let distance = typed(&w, p, "distance", Kind::Length, C)?.ok_or_else(|| bad(C, "missing `distance`"))?;
+    let side = match p.get("side") {
+        None | Some(Value::Null) => 1.0,
+        Some(v) => match v.as_f64() {
+            Some(n) if n == 1.0 || n == -1.0 => n,
+            _ => return Err(bad(C, "`side` must be 1 or -1")),
+        },
+    };
+    let chain = w.sketch.chain_of(&ids).map_err(|e| bad(C, e))?;
+    let places = w.sketch.offset_positions(&chain, distance.value, side).map_err(|e| bad(C, e))?;
+    let points: Vec<u32> = places.iter().map(|q| w.sketch.add_point(q.0, q.1)).collect();
+    let mut lines = Vec::new();
+    for (i, (source, ..)) in chain.lines.iter().enumerate() {
+        let a = points.get(i).copied().ok_or_else(|| bad(C, "the offset lost a point"))?;
+        let b =
+            points.get(if chain.closed { (i + 1) % chain.lines.len() } else { i + 1 }).copied().ok_or_else(|| bad(C, "the offset lost a point"))?;
+        let copy = w.sketch.add_line(a, b, false);
+        w.sketch.constraints.push(Constraint::Parallel { a: *source, b: copy });
+        lines.push(copy);
+    }
+    // The distance is a dimension from the first line given to its copy.
+    let first = ids.first().copied().unwrap_or(0);
+    let k = chain.lines.iter().position(|(l, ..)| *l == first).ok_or_else(|| bad(C, "the first line is not in the chain"))?;
+    let from = points.get(k).copied().ok_or_else(|| bad(C, "the offset lost a point"))?;
+    let dimension = add_dim(&mut w, Kind::Length, &distance, |param| Constraint::DistancePointLine { p: from, line: first, param });
+    let id = w.id;
+    commit(s, w, "Sketch Offset", C)?;
+    Ok(json!({"id": id.0, "lines": lines, "points": points, "dimensions": [dimension]}))
+}
+
+fn mirror(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.mirror";
+    let mut w = work(s, p, C)?;
+    let ids = entity_ids(&w, p, C)?;
+    let axis = line_ref(&w, p, "line", C)?;
+    if ids.contains(&axis) {
+        return Err(bad(C, "the mirror line cannot be one of the shapes to mirror"));
+    }
+    let Some(Entity::Line { a: la, b: lb, .. }) = w.sketch.entity(axis).cloned() else { return Err(bad(C, "`line` must be a line")) };
+    let (p0, p1) = (position(&w, la), position(&w, lb));
+    let (d, len) = ((p1.0 - p0.0, p1.1 - p0.1), (p1.0 - p0.0).hypot(p1.1 - p0.1));
+    if len < 1e-9 {
+        return Err(bad(C, "the mirror line has no length"));
+    }
+    let u = (d.0 / len, d.1 / len);
+    let reflect = |q: (f64, f64)| {
+        let v = (q.0 - p0.0, q.1 - p0.1);
+        let along = v.0 * u.0 + v.1 * u.1;
+        (p0.0 + 2.0 * along * u.0 - v.0, p0.1 + 2.0 * along * u.1 - v.1)
+    };
+    let mut map: std::collections::BTreeMap<u32, u32> = Default::default();
+    let mut points = Vec::new();
+    let mut mirrored = |w: &mut Work, point: u32| -> u32 {
+        if let Some(m) = map.get(&point) {
+            return *m;
+        }
+        let q = position(w, point);
+        let r = reflect(q);
+        // On the line, a point is its own image.
+        let made = if (r.0 - q.0).hypot(r.1 - q.1) < 1e-6 {
+            point
+        } else {
+            let n = w.sketch.add_point(r.0, r.1);
+            w.sketch.constraints.push(Constraint::Symmetric { a: point, b: n, line: axis });
+            points.push(n);
+            n
+        };
+        map.insert(point, made);
+        made
+    };
+    let mut made = Vec::new();
+    for id in &ids {
+        let Some(e) = w.sketch.entity(*id).cloned() else { continue };
+        let new = match e {
+            Entity::Line { a, b, construction, .. } => {
+                let (a, b) = (mirrored(&mut w, a), mirrored(&mut w, b));
+                if a == b {
+                    return Err(bad(C, "a line that lies on the mirror line cannot be mirrored"));
+                }
+                w.sketch.add_line(a, b, construction)
+            }
+            Entity::Circle { id: src, c, r, construction } => {
+                let c = mirrored(&mut w, c);
+                let n = w.sketch.add_circle(c, r);
+                set_construction_of(&mut w, n, construction);
+                w.sketch.constraints.push(Constraint::Equal { a: src, b: n });
+                n
+            }
+            Entity::Arc { c, a, b, construction, .. } => {
+                let (c, a, b) = (mirrored(&mut w, c), mirrored(&mut w, a), mirrored(&mut w, b));
+                // A mirror image runs the other way round.
+                let n = w.sketch.add_arc(c, b, a);
+                set_construction_of(&mut w, n, construction);
+                n
+            }
+        };
+        made.push(new);
+    }
+    let id = w.id;
+    commit(s, w, "Sketch Mirror", C)?;
+    Ok(json!({"id": id.0, "entities": made, "points": points}))
+}
+
+fn set_construction_of(w: &mut Work, entity: u32, on: bool) {
+    for e in &mut w.sketch.entities {
+        if e.id() == entity {
+            match e {
+                Entity::Line { construction, .. } | Entity::Circle { construction, .. } | Entity::Arc { construction, .. } => *construction = on,
+            }
+        }
+    }
 }
 
 /// The extra fields `sketch.inspect` reports for a drawn sketch.

@@ -118,6 +118,12 @@ pub fn dimension_geoms(cache: &Cache, xf: &Xf) -> Vec<DimGeom> {
                 g.arc = arc_points(at, ARC_RADIUS, from, theta);
                 g.label = on_circle(at, ARC_RADIUS + 16.0, from + theta / 2.0);
             }),
+            Constraint::DistancePointLine { p, line, .. } => pt(*p).zip(line_ends(*line)).map(|(q, (a, b))| {
+                let d = b - a;
+                let len2 = d.length_sq();
+                let foot = if len2 > 1e-6 { a + d * ((q - a).dot(d) / len2) } else { a };
+                linear(&mut g, foot, q);
+            }),
             Constraint::Radius { e, .. } => round(*e).map(|(centre, r)| {
                 let tip = on_circle(centre, r, 45.0);
                 g.segments.push([centre, tip]);
@@ -175,6 +181,7 @@ pub enum Sym {
     Fix,
     Midpoint,
     Concentric,
+    Symmetric,
     Dot,
 }
 
@@ -197,10 +204,17 @@ pub fn glyph_geoms(cache: &Cache, xf: &Xf) -> Vec<Glyph> {
     let sk = &cache.sketch;
     let pt = |id: u32| sk.point(id).map(|p| to_screen(xf, sk, [p.x, p.y]));
     let mut stacked: std::collections::BTreeMap<(bool, u32), usize> = Default::default();
+    let mut mirrored = std::collections::BTreeSet::new();
     let mut out = vec![];
     for (index, c) in sk.constraints.iter().enumerate() {
         // The origin's own pin is the sketch's, not the user's.
         if c.is_dimension() || matches!(c, Constraint::Fix { p: 0, .. }) {
+            continue;
+        }
+        // A mirror makes many symmetric pairs about one line: one glyph shows them.
+        if let Constraint::Symmetric { line, .. } = c
+            && !mirrored.insert(*line)
+        {
             continue;
         }
         let refs = c.refs();
@@ -235,6 +249,7 @@ pub fn glyph_geoms(cache: &Cache, xf: &Xf) -> Vec<Glyph> {
             Constraint::Fix { .. } => (Sym::Fix, tl!("Fixed")),
             Constraint::Midpoint { .. } => (Sym::Midpoint, tl!("Midpoint")),
             Constraint::Concentric { .. } => (Sym::Concentric, tl!("Concentric")),
+            Constraint::Symmetric { .. } => (Sym::Symmetric, tl!("Symmetric")),
             Constraint::PointOnLine { .. } => (Sym::Dot, tl!("Point on line")),
             Constraint::PointOnCircle { .. } => (Sym::Dot, tl!("Point on circle")),
             _ => (Sym::Dot, tl!("Coincident")),
@@ -281,6 +296,11 @@ fn paint_sym(painter: &Painter, rect: Rect, sym: Sym, color: Color32) {
         Sym::Fix => {
             painter.rect_filled(Rect::from_center_size(c + vec2(0.0, 2.0), vec2(7.0, 5.0)), 1.0, color);
             painter.add(PathShape::line(vec![c + vec2(-2.0, 0.0), c + vec2(-2.0, -2.5), c + vec2(2.0, -2.5), c + vec2(2.0, 0.0)], s));
+        }
+        Sym::Symmetric => {
+            painter.line_segment([c + vec2(0.0, -h), c + vec2(0.0, h)], s);
+            painter.circle_filled(c - vec2(3.5, 0.0), 1.5, color);
+            painter.circle_filled(c + vec2(3.5, 0.0), 1.5, color);
         }
         Sym::Dot => {
             painter.circle_filled(c, 2.2, color);
@@ -442,6 +462,9 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         painter.text(r.center(), Align2::CENTER_CENTER, name, FontId::proportional(11.0), CHIP_TEXT);
     }
 
+    // What the modify tools would do.
+    modify_preview(painter, xf, cache, t, m);
+
     // A new dimension's box.
     if let Some((c, hud)) = &m.new_dim {
         let at = refs_centre(cache, xf, c) + vec2(0.0, -34.0);
@@ -463,6 +486,48 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         && let Some(g) = geoms.iter().find(|g| g.index == *index)
     {
         paint_hud(painter, t, hud, &[g.label], cache);
+    }
+}
+
+/// The Trim, Offset and Mirror previews: the piece Trim would remove (red, dashed), the copy
+/// Offset would make (blue, dashed) with its box, the lines chosen for Offset and Mirror.
+fn modify_preview(painter: &Painter, xf: &Xf, cache: &Cache, t: &Tokens, m: &SketchMode) {
+    let sk = &cache.sketch;
+    let sc = |p: (f64, f64)| to_screen(xf, sk, [p.0, p.1]);
+    match m.tool {
+        SketchTool::Trim => {
+            if let (Some(Pick::Entity(e)), Some(at)) = (m.hover, m.rubber)
+                && let Ok(plan) = sk.trim_plan(e, (at[0], at[1]))
+            {
+                dashed(painter, &[sc(plan.from), sc(plan.to)], Stroke::new(3.0, t.error));
+            }
+        }
+        SketchTool::Offset | SketchTool::Mirror => {
+            for line in &m.modify {
+                if let Some(Entity::Line { a, b, .. }) = sk.entity(*line)
+                    && let (Some(p), Some(q)) = (sk.point(*a), sk.point(*b))
+                {
+                    painter.line_segment([sc((p.x, p.y)), sc((q.x, q.y))], Stroke::new(3.0, t.accent_strong));
+                }
+            }
+            if m.tool != SketchTool::Offset || m.modify.is_empty() {
+                return;
+            }
+            let Some(distance) = super::tools::offset_distance(m, &cache.params).filter(|d| *d > 1e-9) else { return };
+            let Ok(chain) = sk.chain_of(&m.modify) else { return };
+            let Ok(places) = sk.offset_positions(&chain, distance, m.side) else { return };
+            let mut pts: Vec<Pos2> = places.iter().map(|p| sc(*p)).collect();
+            if chain.closed
+                && let Some(first) = pts.first().copied()
+            {
+                pts.push(first);
+            }
+            dashed(painter, &pts, Stroke::new(1.5, BLUE));
+            if let (Some(hud), Some(mouse)) = (&m.hud, m.rubber) {
+                paint_hud(painter, t, hud, &[to_screen(xf, sk, mouse) + vec2(56.0, -22.0)], cache);
+            }
+        }
+        _ => {}
     }
 }
 
@@ -539,7 +604,7 @@ fn shape_rubber(painter: &Painter, xf: &Xf, cache: &Cache, t: &Tokens, m: &Sketc
     };
     let from = start_pos(sk, start);
     match m.tool {
-        SketchTool::Line | SketchTool::None | SketchTool::Dimension => {
+        SketchTool::Line | SketchTool::None | SketchTool::Dimension | SketchTool::Trim | SketchTool::Offset | SketchTool::Mirror => {
             if m.tool == SketchTool::Line {
                 line_rubber(painter, xf, cache, t, m, from, rubber);
             }

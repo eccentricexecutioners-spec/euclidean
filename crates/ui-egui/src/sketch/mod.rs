@@ -50,6 +50,9 @@ pub enum SketchTool {
     Arc3,
     Fillet,
     Dimension,
+    Trim,
+    Offset,
+    Mirror,
 }
 
 /// Something in the sketch the pointer can name.
@@ -113,6 +116,10 @@ pub struct SketchMode {
     /// name is empty until the engine makes it) and the box, prefilled with the measured value.
     pub new_dim: Option<(Constraint, Hud)>,
     pub snap: Snap,
+    /// The lines (or shapes, for Mirror) Offset and Mirror work on.
+    pub modify: Vec<u32>,
+    /// Offset's side: 1 is left of the first line as drawn, -1 right.
+    pub side: f64,
     /// The press that began this gesture came with a start already set (a release commits).
     pub armed: bool,
     cache: Option<Arc<Cache>>,
@@ -135,6 +142,8 @@ impl SketchMode {
             edit_dim: None,
             new_dim: None,
             snap: Snap::None,
+            modify: vec![],
+            side: 1.0,
             armed: false,
             cache: None,
         }
@@ -285,8 +294,11 @@ pub fn set_tool(app: &mut VectorcraftApp, tool: SketchTool) {
     if tool == SketchTool::Dimension || was == SketchTool::Dimension {
         m.selected.clear();
     }
-    if tool == SketchTool::Fillet {
-        tools::fillet_from_selection(app);
+    match tool {
+        SketchTool::Fillet => tools::fillet_from_selection(app),
+        SketchTool::Offset => tools::offset_from_selection(app),
+        SketchTool::Mirror => tools::mirror_from_selection(app),
+        _ => {}
     }
 }
 
@@ -311,6 +323,10 @@ pub fn hint(app: &VectorcraftApp) -> Option<&'static str> {
         }
         (SketchTool::Dimension, ..) if m.selected.is_empty() => tl!("Click a line, circle or arc, or a point · Esc leaves the tool"),
         (SketchTool::Dimension, ..) => tl!("Click a second point for the distance · Esc leaves the tool"),
+        (SketchTool::Trim, ..) => tl!("Click the part of a line to remove · Esc leaves the tool"),
+        (SketchTool::Offset, ..) if m.modify.is_empty() => tl!("Click a line to offset its whole chain · Esc leaves the tool"),
+        (SketchTool::Offset, ..) => tl!("Move the mouse to the side you want, or type a distance, Enter · Esc cancels"),
+        (SketchTool::Mirror, ..) => tl!("Click the mirror line · Esc leaves the tool"),
     })
 }
 
@@ -385,7 +401,8 @@ fn character(app: &mut VectorcraftApp, c: char) {
         'r' => set_tool(app, SketchTool::Rect2),
         'c' => set_tool(app, SketchTool::Circle),
         'd' => set_tool(app, SketchTool::Dimension),
-        't' | 'o' => app.status(tl!("Coming next")),
+        't' => set_tool(app, SketchTool::Trim),
+        'o' => set_tool(app, SketchTool::Offset),
         'x' => toggle_construction(app),
         _ => {}
     }
@@ -423,7 +440,7 @@ fn escape(app: &mut VectorcraftApp) {
         m.hud = Some(tools::new_hud(m.tool));
         return;
     }
-    if m.start.is_some() || m.chain.is_some() {
+    if m.start.is_some() || m.chain.is_some() || !m.modify.is_empty() {
         tools::end_chain(m);
         return;
     }
@@ -862,6 +879,9 @@ pub fn handle_pointer(app: &mut VectorcraftApp, xf: &Xf, input: PointerInput) {
         SketchTool::Rect2 | SketchTool::RectCenter | SketchTool::Circle | SketchTool::Arc3 => tools::shape_pointer(app, &cache, xf, pos, input),
         SketchTool::Fillet => tools::fillet_pointer(app, &cache, xf, pos, input),
         SketchTool::Dimension => dim_pointer(app, &cache, xf, pos, input),
+        SketchTool::Trim => tools::trim_pointer(app, &cache, xf, pos, input),
+        SketchTool::Offset => tools::offset_pointer(app, &cache, xf, pos, input),
+        SketchTool::Mirror => tools::mirror_pointer(app, &cache, xf, pos, input),
     }
 }
 

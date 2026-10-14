@@ -151,6 +151,8 @@ fn convert(b: &Built, sketch: &Sketch, c: &Constraint, value: Option<f64>, horiz
         Constraint::Midpoint { p: pt, line } => ss::Constraint::Midpoint { point: p(pt)?, line: e(line)? },
         Constraint::Concentric { a, b } => ss::Constraint::Coincident(p(&centre_of(sketch, *a)?)?, p(&centre_of(sketch, *b)?)?),
         Constraint::Distance { a, b, .. } => ss::Constraint::Distance { a: p(a)?, b: p(b)?, value: v, along: ss::Along::Direct },
+        Constraint::DistancePointLine { p: pt, line, .. } => ss::Constraint::Distance { a: p(pt)?, b: e(line)?, value: v, along: ss::Along::Direct },
+        Constraint::Symmetric { a, b, line } => ss::Constraint::Symmetric { a: p(a)?, b: p(b)?, about: e(line)? },
         Constraint::Length { line, .. } => ss::Constraint::Length { line: e(line)?, value: v },
         Constraint::Angle { line, .. } => ss::Constraint::Angle { from: horizontal?, to: e(line)?, degrees: v },
         Constraint::AngleBetween { a, b, .. } => ss::Constraint::Angle { from: e(a)?, to: e(b)?, degrees: v },

@@ -127,6 +127,10 @@ pub enum Constraint {
     Radius { e: u32, param: String },
     /// The diameter of a circle/arc, mm.
     Diameter { e: u32, param: String },
+    /// The distance from point `p` to the infinite line `line`, mm (on the side it was drawn).
+    DistancePointLine { p: u32, line: u32, param: String },
+    /// Points `a` and `b` are mirror images about the line `line`.
+    Symmetric { a: u32, b: u32, line: u32 },
 }
 
 /// The points and entities a constraint refers to.
@@ -145,7 +149,8 @@ impl Constraint {
             | Constraint::Angle { param, .. }
             | Constraint::AngleBetween { param, .. }
             | Constraint::Radius { param, .. }
-            | Constraint::Diameter { param, .. } => Some(param),
+            | Constraint::Diameter { param, .. }
+            | Constraint::DistancePointLine { param, .. } => Some(param),
             _ => None,
         }
     }
@@ -178,6 +183,8 @@ impl Constraint {
             | Constraint::AngleBetween { a, b, .. } => r(&[], &[*a, *b]),
             Constraint::Fix { p, .. } => r(&[*p], &[]),
             Constraint::Radius { e, .. } | Constraint::Diameter { e, .. } => r(&[], &[*e]),
+            Constraint::DistancePointLine { p, line, .. } => r(&[*p], &[*line]),
+            Constraint::Symmetric { a, b, line } => r(&[*a, *b], &[*line]),
         }
     }
 
@@ -190,6 +197,7 @@ impl Constraint {
             | Constraint::AngleBetween { param, .. }
             | Constraint::Radius { param, .. }
             | Constraint::Diameter { param, .. }
+            | Constraint::DistancePointLine { param, .. }
                 if param == from =>
             {
                 *param = to.to_string();
@@ -228,6 +236,15 @@ pub fn measure(sketch: &Sketch, c: &Constraint) -> Option<f64> {
         Constraint::AngleBetween { a, b, .. } => wrap(angle(line(*b)?) - angle(line(*a)?)),
         Constraint::Radius { e, .. } => radius(*e)?,
         Constraint::Diameter { e, .. } => 2.0 * radius(*e)?,
+        Constraint::DistancePointLine { p, line: l, .. } => {
+            let (a, b) = line(*l)?;
+            let x = pos(*p)?;
+            let len = dist(a, b);
+            if len < 1e-12 {
+                return None;
+            }
+            ((b.0 - a.0) * (x.1 - a.1) - (b.1 - a.1) * (x.0 - a.0)).abs() / len
+        }
         _ => return None,
     };
     v.is_finite().then_some(v)
@@ -462,6 +479,349 @@ impl Sketch {
     }
 }
 
+// ---- the modify tools: trim, offset, mirror ----
+
+/// A place where a line is cut by another shape.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Cut {
+    /// How far along the line, 0 at its first point to 1 at its second.
+    pub t: f64,
+    /// The place, millimetres.
+    pub at: (f64, f64),
+    /// The entity it was cut against.
+    pub against: u32,
+}
+
+/// What Trim would do for a click: the piece that goes (from `from` to `to`) and the cuts that
+/// bound it. With neither cut the whole line goes.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TrimPlan {
+    pub from: (f64, f64),
+    pub to: (f64, f64),
+    pub lo: Option<Cut>,
+    pub hi: Option<Cut>,
+}
+
+/// A chain or loop of lines in traversal order.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Chain {
+    /// `(line, from point, to point)`, each line oriented along the traversal.
+    pub lines: Vec<(u32, u32, u32)>,
+    /// The last line ends where the first begins.
+    pub closed: bool,
+}
+
+/// Nearer than this (mm) counts as the same place.
+const NEAR: f64 = 1e-6;
+
+const TRIM_LINES_ONLY: &str = "trim works on lines for now; arcs and circles cannot be trimmed yet";
+
+/// Where the line from `p0` along `r` crosses the circle around `c` of radius `rad`, as
+/// parameters along the line.
+fn circle_hits(p0: (f64, f64), r: (f64, f64), c: (f64, f64), rad: f64) -> Vec<f64> {
+    let f = (p0.0 - c.0, p0.1 - c.1);
+    let qa = r.0 * r.0 + r.1 * r.1;
+    let qb = 2.0 * (r.0 * f.0 + r.1 * f.1);
+    let qc = f.0 * f.0 + f.1 * f.1 - rad * rad;
+    let disc = qb * qb - 4.0 * qa * qc;
+    if disc < 0.0 || qa < 1e-18 {
+        return vec![];
+    }
+    let root = disc.sqrt();
+    vec![(-qb - root) / (2.0 * qa), (-qb + root) / (2.0 * qa)]
+}
+
+impl Sketch {
+    fn xy(&self, id: u32) -> Option<(f64, f64)> {
+        self.point(id).map(|p| (p.x, p.y))
+    }
+
+    /// The cuts of `line` by the other non-construction shapes, sorted along the line, strictly
+    /// inside it.
+    fn crossings(&self, line: u32) -> Result<Vec<Cut>, String> {
+        let Some(Entity::Line { a, b, .. }) = self.entity(line) else { return Err(TRIM_LINES_ONLY.into()) };
+        let (p0, p1) = self.xy(*a).zip(self.xy(*b)).ok_or("the line has no end points")?;
+        let r = (p1.0 - p0.0, p1.1 - p0.1);
+        let len = r.0.hypot(r.1);
+        if len < NEAR {
+            return Err("the line has no length".into());
+        }
+        let margin = NEAR / len;
+        let mut cuts = Vec::new();
+        for e in self.entities.iter().filter(|e| e.id() != line && !e.construction()) {
+            let ts: Vec<f64> = match e {
+                Entity::Line { a, b, .. } => {
+                    let Some((o0, o1)) = self.xy(*a).zip(self.xy(*b)) else { continue };
+                    let s = (o1.0 - o0.0, o1.1 - o0.1);
+                    let slen = s.0.hypot(s.1);
+                    let det = r.0 * s.1 - r.1 * s.0;
+                    if slen < NEAR || det.abs() < 1e-9 * len * slen {
+                        continue;
+                    }
+                    let d = (o0.0 - p0.0, o0.1 - p0.1);
+                    let t = (d.0 * s.1 - d.1 * s.0) / det;
+                    let u = (d.0 * r.1 - d.1 * r.0) / det;
+                    let um = NEAR / slen;
+                    if u >= -um && u <= 1.0 + um { vec![t] } else { vec![] }
+                }
+                Entity::Circle { c, r: rad, .. } => match self.xy(*c) {
+                    Some(c) => circle_hits(p0, r, c, *rad),
+                    None => continue,
+                },
+                Entity::Arc { c, a, b, .. } => {
+                    let Some(((c, a), b)) = self.xy(*c).zip(self.xy(*a)).zip(self.xy(*b)) else { continue };
+                    let ang = |q: (f64, f64)| (-(q.1 - c.1)).atan2(q.0 - c.0);
+                    let tau = std::f64::consts::TAU;
+                    let sweep = (ang(b) - ang(a)).rem_euclid(tau);
+                    circle_hits(p0, r, c, (a.0 - c.0).hypot(a.1 - c.1))
+                        .into_iter()
+                        .filter(|t| {
+                            let along = (ang((p0.0 + t * r.0, p0.1 + t * r.1)) - ang(a)).rem_euclid(tau);
+                            along <= sweep + 1e-9 || tau - along < 1e-9
+                        })
+                        .collect()
+                }
+            };
+            for t in ts {
+                if t.is_finite() && t > margin && t < 1.0 - margin {
+                    cuts.push(Cut { t, at: (p0.0 + t * r.0, p0.1 + t * r.1), against: e.id() });
+                }
+            }
+        }
+        cuts.sort_by(|x, y| x.t.total_cmp(&y.t));
+        cuts.dedup_by(|x, y| (x.t - y.t).abs() < margin);
+        Ok(cuts)
+    }
+
+    /// What Trim does to `line` for a click at `at`: the piece between the two cuts that bracket
+    /// the click goes (to the line's end where there is no cut on a side).
+    pub fn trim_plan(&self, line: u32, at: (f64, f64)) -> Result<TrimPlan, String> {
+        let Some(Entity::Line { a, b, .. }) = self.entity(line) else { return Err(TRIM_LINES_ONLY.into()) };
+        let (p0, p1) = self.xy(*a).zip(self.xy(*b)).ok_or("the line has no end points")?;
+        let cuts = self.crossings(line)?;
+        let r = (p1.0 - p0.0, p1.1 - p0.1);
+        let t_click = (((at.0 - p0.0) * r.0 + (at.1 - p0.1) * r.1) / (r.0 * r.0 + r.1 * r.1)).clamp(0.0, 1.0);
+        let lo = cuts.iter().rev().find(|c| c.t <= t_click).copied();
+        let hi = cuts.iter().find(|c| c.t > t_click).copied();
+        Ok(TrimPlan { from: lo.map_or(p0, |c| c.at), to: hi.map_or(p1, |c| c.at), lo, hi })
+    }
+
+    /// Trim `line` for a click at `at` (see [`Sketch::trim_plan`]). The pieces left share the
+    /// line's end points; new points at the cuts lie on what cut them. Horizontal, vertical,
+    /// parallel and perpendicular constraints stay on each piece; other constraints of the line are
+    /// dropped. Returns the ids of the remaining pieces (none when the whole line went).
+    pub fn trim_line(&mut self, line: u32, at: (f64, f64)) -> Result<Vec<u32>, String> {
+        let plan = self.trim_plan(line, at)?;
+        let Some(Entity::Line { a, b, construction, .. }) = self.entity(line).cloned() else { return Err("no such line".into()) };
+        if plan.lo.is_none() && plan.hi.is_none() {
+            self.remove_entities(&[line]);
+            return Ok(vec![]);
+        }
+        let (p0, p1) = self.xy(a).zip(self.xy(b)).ok_or("the line has no end points")?;
+        let along = |q: (f64, f64)| {
+            let r = (p1.0 - p0.0, p1.1 - p0.1);
+            ((q.0 - p0.0) * r.0 + (q.1 - p0.1) * r.1) / (r.0 * r.0 + r.1 * r.1)
+        };
+        let lo_point = plan.lo.map(|c| self.add_point(c.at.0, c.at.1));
+        let hi_point = plan.hi.map(|c| self.add_point(c.at.0, c.at.1));
+        // The pieces: (line id, its range along the original).
+        let mut pieces: Vec<(u32, f64, f64)> = Vec::new();
+        let mut reuse = Some(line);
+        if let (Some(cut), Some(pl)) = (plan.lo, lo_point) {
+            self.set_line_points(line, a, pl);
+            pieces.push((line, 0.0, cut.t));
+            reuse = None;
+        }
+        if let (Some(cut), Some(ph)) = (plan.hi, hi_point) {
+            match reuse {
+                Some(id) => {
+                    self.set_line_points(id, ph, b);
+                    pieces.push((id, cut.t, 1.0));
+                }
+                None => {
+                    let id = self.add_line(ph, b, construction);
+                    pieces.push((id, cut.t, 1.0));
+                }
+            }
+        }
+        // Constraints of the original line: carry some to the pieces.
+        let old = std::mem::take(&mut self.constraints);
+        let mut next = Vec::with_capacity(old.len() + 4);
+        for c in old {
+            if !c.refs().entities.contains(&line) {
+                next.push(c);
+                continue;
+            }
+            match &c {
+                Constraint::Horizontal { .. } => next.extend(pieces.iter().map(|(id, ..)| Constraint::Horizontal { line: *id })),
+                Constraint::Vertical { .. } => next.extend(pieces.iter().map(|(id, ..)| Constraint::Vertical { line: *id })),
+                Constraint::Parallel { a, b } => {
+                    let other = if *a == line { *b } else { *a };
+                    next.extend(pieces.iter().map(|(id, ..)| Constraint::Parallel { a: *id, b: other }));
+                }
+                Constraint::Perpendicular { a, b } => {
+                    let other = if *a == line { *b } else { *a };
+                    next.extend(pieces.iter().map(|(id, ..)| Constraint::Perpendicular { a: *id, b: other }));
+                }
+                Constraint::PointOnLine { p, line: l } if *l == line => {
+                    let t = self.xy(*p).map(along);
+                    if let Some((id, ..)) = t.and_then(|t| pieces.iter().find(|(_, from, to)| t >= *from - 1e-9 && t <= *to + 1e-9)) {
+                        next.push(Constraint::PointOnLine { p: *p, line: *id });
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.constraints = next;
+        // The cut points lie on what cut them.
+        for (cut, point) in [(plan.lo, lo_point), (plan.hi, hi_point)] {
+            let (Some(cut), Some(p)) = (cut, point) else { continue };
+            let on = match self.entity(cut.against) {
+                Some(Entity::Line { .. }) => Constraint::PointOnLine { p, line: cut.against },
+                _ => Constraint::PointOnCircle { p, e: cut.against },
+            };
+            self.constraints.push(on);
+        }
+        // An end that went with the piece may be left with nothing.
+        let used: BTreeSet<u32> = self.entities.iter().flat_map(Entity::points).collect();
+        let orphans: BTreeSet<u32> =
+            [plan.lo.is_none().then_some(a), plan.hi.is_none().then_some(b)].into_iter().flatten().filter(|p| *p != 0 && !used.contains(p)).collect();
+        if !orphans.is_empty() {
+            self.points.retain(|p| !orphans.contains(&p.id));
+            self.constraints.retain(|c| !c.refs().points.iter().any(|p| orphans.contains(p)));
+        }
+        Ok(pieces.into_iter().map(|(id, ..)| id).collect())
+    }
+
+    fn set_line_points(&mut self, line: u32, from: u32, to: u32) {
+        for e in &mut self.entities {
+            if let Entity::Line { id, a, b, .. } = e
+                && *id == line
+            {
+                (*a, *b) = (from, to);
+            }
+        }
+    }
+
+    /// The non-construction lines connected to `line` through points where exactly two lines
+    /// meet: its whole chain or loop, `line` first.
+    pub fn connected_chain(&self, line: u32) -> Vec<u32> {
+        let at = |p: u32| -> Vec<u32> {
+            self.entities
+                .iter()
+                .filter_map(|e| match e {
+                    Entity::Line { id, a, b, construction: false } if *a == p || *b == p => Some(*id),
+                    _ => None,
+                })
+                .collect()
+        };
+        let mut out = vec![line];
+        let mut i = 0;
+        while let Some(&cur) = out.get(i) {
+            i += 1;
+            if let Some(Entity::Line { a, b, .. }) = self.entity(cur) {
+                for p in [*a, *b] {
+                    if let [x, y] = at(p)[..]
+                        && (x == cur || y == cur)
+                    {
+                        let other = if x == cur { y } else { x };
+                        if !out.contains(&other) {
+                            out.push(other);
+                        }
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    /// Put the lines `ids` in order as one chain or loop, the first line running from its first
+    /// point to its second.
+    pub fn chain_of(&self, ids: &[u32]) -> Result<Chain, String> {
+        const MSG: &str = "the lines must form one chain or loop";
+        let mut seen = BTreeSet::new();
+        let mut ends: Vec<(u32, u32, u32)> = Vec::new();
+        for id in ids {
+            let Some(Entity::Line { a, b, .. }) = self.entity(*id) else { return Err("only lines can be offset for now".into()) };
+            if seen.insert(*id) {
+                ends.push((*id, *a, *b));
+            }
+        }
+        let Some(&(first, a0, b0)) = ends.first() else { return Err("no lines to offset".into()) };
+        let mut lines = vec![(first, a0, b0)];
+        let mut used = BTreeSet::from([first]);
+        let next = |used: &BTreeSet<u32>, p: u32| -> Result<Option<(u32, u32)>, String> {
+            let found: Vec<&(u32, u32, u32)> = ends.iter().filter(|(id, a, b)| !used.contains(id) && (*a == p || *b == p)).collect();
+            match found[..] {
+                [] => Ok(None),
+                [&(id, a, b)] => Ok(Some((id, if a == p { b } else { a }))),
+                _ => Err(MSG.into()),
+            }
+        };
+        let mut cur = b0;
+        while cur != a0 {
+            let Some((id, far)) = next(&used, cur)? else { break };
+            used.insert(id);
+            lines.push((id, cur, far));
+            cur = far;
+        }
+        let closed = cur == a0;
+        if !closed {
+            let mut cur = a0;
+            while let Some((id, far)) = next(&used, cur)? {
+                used.insert(id);
+                lines.insert(0, (id, far, cur));
+                cur = far;
+            }
+        }
+        if used.len() != ends.len() {
+            return Err(MSG.into());
+        }
+        Ok(Chain { lines, closed })
+    }
+
+    /// Where the points of the copy of `chain` offset by `distance` mm go: one per vertex (a closed
+    /// loop has no repeated first vertex). `side` 1 is the left of the traversal as seen on screen,
+    /// -1 the right.
+    pub fn offset_positions(&self, chain: &Chain, distance: f64, side: f64) -> Result<Vec<(f64, f64)>, String> {
+        type Seg = ((f64, f64), (f64, f64), (f64, f64));
+        let k = if side < 0.0 { -distance } else { distance };
+        // Each line: a point on its offset, the offset's far end and the direction.
+        let mut segs: Vec<Seg> = Vec::new();
+        for (_, from, to) in &chain.lines {
+            let (p, q) = self.xy(*from).zip(self.xy(*to)).ok_or("a line has no end points")?;
+            let d = (q.0 - p.0, q.1 - p.1);
+            let len = d.0.hypot(d.1);
+            if len < NEAR {
+                return Err("a line has no length".into());
+            }
+            let u = (d.0 / len, d.1 / len);
+            let n = (u.1 * k, -u.0 * k);
+            segs.push(((p.0 + n.0, p.1 + n.1), (q.0 + n.0, q.1 + n.1), u));
+        }
+        let join = |s: &Seg, t: &Seg| {
+            let det = s.2.0 * t.2.1 - s.2.1 * t.2.0;
+            if det.abs() < 1e-9 {
+                return t.0;
+            }
+            let k = ((t.0.0 - s.0.0) * t.2.1 - (t.0.1 - s.0.1) * t.2.0) / det;
+            (s.0.0 + s.2.0 * k, s.0.1 + s.2.1 * k)
+        };
+        let n = segs.len();
+        let mut out = Vec::with_capacity(n + 1);
+        for i in 0..n {
+            let (Some(cur), Some(prev)) = (segs.get(i), segs.get(if i == 0 { n - 1 } else { i - 1 })) else { continue };
+            out.push(if i > 0 || chain.closed { join(prev, cur) } else { cur.0 });
+        }
+        if !chain.closed
+            && let Some(last) = segs.last()
+        {
+            out.push(last.1);
+        }
+        Ok(out)
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -560,5 +920,32 @@ pub(crate) mod tests {
         assert!((m(Constraint::Angle { line: l, param: String::new() }) - 45.0).abs() < 1e-9);
         assert_eq!(m(Constraint::Diameter { e: c, param: String::new() }), 6.0);
         assert!(s.measure(&Constraint::Horizontal { line: l }).is_none());
+    }
+
+    #[test]
+    fn modify_variants_serde_measure_and_one_sided_trim() {
+        let mut s = rectangle();
+        s.constraints.push(Constraint::DistancePointLine { p: 2, line: 0, param: "d3".into() });
+        s.constraints.push(Constraint::Symmetric { a: 1, b: 3, line: 0 });
+        let json = serde_json::to_value(&s).unwrap();
+        assert_eq!(json["constraints"][7]["type"], "distancePointLine");
+        assert_eq!(json["constraints"][8]["type"], "symmetric");
+        assert_eq!(serde_json::from_value::<Sketch>(json).unwrap(), s);
+        assert_eq!(s.measure(&Constraint::DistancePointLine { p: 2, line: 0, param: String::new() }), Some(30.0));
+        s.rename_references("d3", "gap");
+        assert_eq!(s.constraints[7].param(), Some("gap"));
+        assert_eq!(s.constraints[8].refs(), Refs { points: vec![1, 3], entities: vec![0] });
+        // A line crossing only the right side of the rectangle: clicking outside it trims to the end.
+        let mut s = rectangle();
+        let (p, q) = (s.add_point(20.0, 15.0), s.add_point(80.0, 15.0));
+        let l = s.add_line(p, q, false);
+        let plan = s.trim_plan(l, (70.0, 15.0)).unwrap();
+        assert_eq!((plan.from, plan.to), ((50.0, 15.0), (80.0, 15.0)));
+        let kept = s.trim_line(l, (70.0, 15.0)).unwrap();
+        assert_eq!(kept, vec![l]);
+        assert!(s.points.iter().all(|pt| pt.id != q), "the far end is gone with its piece");
+        // Arcs and circles are refused.
+        let c = s.add_circle(p, 3.0);
+        assert!(s.trim_line(c, (0.0, 0.0)).is_err());
     }
 }

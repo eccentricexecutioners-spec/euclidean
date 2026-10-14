@@ -322,3 +322,130 @@ fn b2_sketches_still_build() {
     let list = s.execute("parameters.list", &json!({})).unwrap();
     assert!(list["rows"].as_array().unwrap().iter().all(|r| r["sketch"].is_null()));
 }
+
+fn constraints_of(v: &Value, kind: &str) -> usize {
+    v["constraints"].as_array().unwrap().iter().filter(|c| c["type"] == kind).count()
+}
+
+#[test]
+fn trim_removes_the_clicked_piece_between_two_crossings() {
+    let mut s = session();
+    let (_, r) = rectangle(&mut s);
+    // A horizontal 70 mm line through the rectangle's middle, from x = -10 to 60.
+    let l = s.execute("sketch.addLine", &json!({"from": [-10, 15], "to": [60, 15], "length": 70, "horizontal": true})).unwrap();
+    let line = l["line"].as_u64().unwrap();
+    assert_eq!(params::rows(&s.doc().unwrap().doc).iter().filter(|p| p.name == "d3").count(), 1);
+    let n = undo_len(&s);
+    let t = s.execute("sketch.trim", &json!({"entity": line, "at": [25, 15]})).unwrap();
+    assert_eq!(undo_len(&s), n + 1);
+    assert_eq!(t["removed"], json!([[0.0, 15.0], [50.0, 15.0]]));
+    assert_eq!(t["kept"].as_array().unwrap().len(), 2);
+    let v = inspect(&mut s);
+    // Two pieces: one from the old start to the left side, one from the right side to the old end.
+    let lines: Vec<&Value> = v["entities"].as_array().unwrap().iter().filter(|e| t["kept"].as_array().unwrap().contains(&e["id"])).collect();
+    let mut spans: Vec<(f64, f64)> = lines
+        .iter()
+        .map(|e| {
+            let (a, b) = (point(&v, e["a"].as_u64().unwrap()), point(&v, e["b"].as_u64().unwrap()));
+            (a.0.min(b.0), a.0.max(b.0))
+        })
+        .collect();
+    spans.sort_by(|a, b| a.0.total_cmp(&b.0));
+    assert!((spans[0].0 + 10.0).abs() < 1e-6 && spans[0].1.abs() < 1e-6, "{spans:?}");
+    assert!((spans[1].0 - 50.0).abs() < 1e-6 && (spans[1].1 - 60.0).abs() < 1e-6, "{spans:?}");
+    // The new cut points lie on the rectangle's left and right sides; both pieces stay horizontal.
+    let on: Vec<u64> =
+        v["constraints"].as_array().unwrap().iter().filter(|c| c["type"] == "pointOnLine").map(|c| c["line"].as_u64().unwrap()).collect();
+    assert_eq!(on.len(), 2, "{on:?}");
+    assert!(on.contains(&r["lines"][1].as_u64().unwrap()) && on.contains(&r["lines"][3].as_u64().unwrap()), "{on:?}");
+    assert_eq!(constraints_of(&v, "horizontal"), 2 + 2);
+    // The length dimension went with its parameter.
+    let names: Vec<String> = params::rows(&s.doc().unwrap().doc).into_iter().map(|p| p.name).collect();
+    assert_eq!(names, ["d1", "d2"]);
+    // Undo is one step.
+    s.execute("edit.undo", &json!({})).unwrap();
+    assert_eq!(inspect(&mut s)["entities"].as_array().unwrap().len(), 5);
+
+    // A line nothing crosses goes whole; an arc or circle is refused with no change.
+    let far = s.execute("sketch.addLine", &json!({"from": [0, 100], "to": [30, 100]})).unwrap()["line"].as_u64().unwrap();
+    let circle = s.execute("sketch.addCircle", &json!({"center": [200, 200], "diameter": 20})).unwrap()["circle"].as_u64().unwrap();
+    let n = undo_len(&s);
+    let err = s.execute("sketch.trim", &json!({"entity": circle, "at": [210, 200]})).unwrap_err().to_string();
+    assert!(err.contains("lines"), "{err}");
+    assert_eq!(undo_len(&s), n);
+    s.execute("sketch.trim", &json!({"entity": far, "at": [10, 100]})).unwrap();
+    assert!(!inspect(&mut s)["entities"].as_array().unwrap().iter().any(|e| e["id"] == far));
+}
+
+#[test]
+fn offset_a_rectangle_makes_a_parallel_loop_with_a_distance_parameter() {
+    let mut s = session();
+    let (_, r) = rectangle(&mut s);
+    let lines = r["lines"].clone();
+    let n = undo_len(&s);
+    // Side -1 is to the right of the first line's direction: into the rectangle.
+    let o = s.execute("sketch.offset", &json!({"entities": lines, "distance": 5, "side": -1})).unwrap();
+    assert_eq!(undo_len(&s), n + 1);
+    assert_eq!(o["lines"].as_array().unwrap().len(), 4);
+    assert_eq!(o["dimensions"], json!([{"name": "d3", "index": o["dimensions"][0]["index"]}]));
+    let v = inspect(&mut s);
+    let pts: Vec<(f64, f64)> = o["points"].as_array().unwrap().iter().map(|p| point(&v, p.as_u64().unwrap())).collect();
+    let want = [(5.0, 5.0), (45.0, 5.0), (45.0, 25.0), (5.0, 25.0)];
+    for (p, w) in pts.iter().zip(want) {
+        assert!((p.0 - w.0).abs() < 1e-6 && (p.1 - w.1).abs() < 1e-6, "{pts:?}");
+    }
+    assert_eq!(constraints_of(&v, "parallel"), 4);
+    let dim = v["constraints"].as_array().unwrap().iter().find(|c| c["type"] == "distancePointLine").unwrap().clone();
+    assert_eq!((dim["param"].as_str(), dim["line"].as_u64()), (Some("d3"), lines[0].as_u64()));
+    let row = params::rows(&s.doc().unwrap().doc).into_iter().find(|p| p.name == "d3").unwrap();
+    assert_eq!((row.unit.as_str(), row.expression.as_str()), ("mm", "5 mm"));
+    // Changing the parameter moves the whole copy.
+    s.execute("sketch.setDimension", &json!({"name": "d3", "expression": "8"})).unwrap();
+    let v = inspect(&mut s);
+    let p0 = point(&v, o["points"][0].as_u64().unwrap());
+    assert!((p0.1 - 8.0).abs() < 1e-6, "{p0:?}");
+    // Refused with no change: not a chain, no distance, a circle.
+    let n = undo_len(&s);
+    assert!(s.execute("sketch.offset", &json!({"entities": [lines[0], lines[2]], "distance": 5})).is_err());
+    assert!(s.execute("sketch.offset", &json!({"entities": [lines[0]]})).is_err());
+    assert!(s.execute("sketch.offset", &json!({"entities": [lines[0]], "distance": 0})).is_err());
+    assert_eq!(undo_len(&s), n);
+    // An open chain: one line gives one copy, joined to nothing.
+    let o = s.execute("sketch.offset", &json!({"entities": [lines[0]], "distance": 3})).unwrap();
+    assert_eq!(o["lines"].as_array().unwrap().len(), 1);
+    assert_eq!(o["points"].as_array().unwrap().len(), 2);
+}
+
+#[test]
+fn mirror_copies_with_symmetric_constraints() {
+    let mut s = session();
+    let (_, r) = rectangle(&mut s);
+    // A vertical mirror line at x = 100.
+    let axis =
+        s.execute("sketch.addLine", &json!({"from": [100, -10], "to": [100, 60], "vertical": true, "construction": true})).unwrap()["line"].clone();
+    let circle = s.execute("sketch.addCircle", &json!({"center": [20, 10], "diameter": 8})).unwrap()["circle"].clone();
+    let mut shapes = r["lines"].as_array().unwrap().clone();
+    shapes.push(circle);
+    let n = undo_len(&s);
+    let m = s.execute("sketch.mirror", &json!({"entities": shapes, "line": axis})).unwrap();
+    assert_eq!(undo_len(&s), n + 1);
+    assert_eq!(m["entities"].as_array().unwrap().len(), 5);
+    let v = inspect(&mut s);
+    // Four corners and one centre, each mirrored about x = 100.
+    assert_eq!(constraints_of(&v, "symmetric"), 5);
+    assert_eq!(m["points"].as_array().unwrap().len(), 5);
+    let xs: Vec<f64> = m["points"].as_array().unwrap().iter().map(|p| point(&v, p.as_u64().unwrap()).0).collect();
+    for want in [150.0, 200.0, 180.0] {
+        assert!(xs.iter().any(|x| (x - want).abs() < 1e-6), "{want} in {xs:?}");
+    }
+    assert_eq!(constraints_of(&v, "equal"), 1);
+    // The mirror line itself cannot be mirrored; nothing changes on a refusal.
+    let n = undo_len(&s);
+    assert!(s.execute("sketch.mirror", &json!({"entities": [axis], "line": axis})).is_err());
+    assert!(s.execute("sketch.mirror", &json!({"entities": [circle_id(&v)], "line": 999})).is_err());
+    assert_eq!(undo_len(&s), n);
+}
+
+fn circle_id(v: &Value) -> u64 {
+    v["entities"].as_array().unwrap().iter().find(|e| e["kind"] == "circle").unwrap()["id"].as_u64().unwrap()
+}

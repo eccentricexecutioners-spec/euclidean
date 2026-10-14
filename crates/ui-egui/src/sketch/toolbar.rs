@@ -13,8 +13,6 @@ use crate::theme::{self, Tokens};
 enum Act {
     Tool(SketchTool),
     Constrain(&'static str),
-    /// Not built yet: says so in the status line.
-    Soon,
     Params,
     Construction,
 }
@@ -43,11 +41,12 @@ fn create() -> [Entry; 7] {
     ]
 }
 
-fn modify() -> [Entry; 4] {
+fn modify() -> [Entry; 5] {
     [
         e("sketch-fillet", tl!("Fillet"), "", Act::Tool(SketchTool::Fillet)),
-        e("sketch-trim", tl!("Trim"), "T", Act::Soon),
-        e("sketch-offset", tl!("Offset"), "O", Act::Soon),
+        e("sketch-trim", tl!("Trim"), "T", Act::Tool(SketchTool::Trim)),
+        e("sketch-offset", tl!("Offset"), "O", Act::Tool(SketchTool::Offset)),
+        e("flip-horizontal-2", tl!("Mirror"), "", Act::Tool(SketchTool::Mirror)),
         e("sketch-params", tl!("Change Parameters"), "fx", Act::Params),
     ]
 }
@@ -70,7 +69,6 @@ fn run(app: &mut VectorcraftApp, act: Act) {
     match act {
         Act::Tool(tool) => super::set_tool(app, tool),
         Act::Constrain(kind) => super::constrain(app, kind),
-        Act::Soon => app.status(tl!("Coming next")),
         Act::Construction => super::toggle_construction(app),
         Act::Params => {
             app.ui.change_parameters = true;

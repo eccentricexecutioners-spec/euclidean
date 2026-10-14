@@ -18,7 +18,7 @@ plate sample) still load and work. They are not converted.
 - **While editing,** the sketch toolbar replaces the control bar at the top, in every workspace:
   - **CREATE**: Line, 2-Point Rectangle, Center Rectangle, Center Diameter Circle, 3-Point Arc,
     Fillet.
-  - **MODIFY**: Fillet, Change Parameters (`fx`).
+  - **MODIFY**: Fillet, Trim, Offset, Mirror, Change Parameters (`fx`).
   - **CONSTRAINTS**: Coincident, Horizontal/Vertical, Perpendicular, Parallel, Tangent, Equal,
     Fix/Unfix, Midpoint, Concentric.
   - **SKETCH DIMENSION**.
@@ -35,6 +35,8 @@ plate sample) still load and work. They are not converted.
   | `R` | 2-Point Rectangle |
   | `C` | Center Diameter Circle |
   | `D` | Sketch Dimension |
+| `T` | Trim (click the piece of a line to remove) |
+| `O` | Offset (click a line: its whole chain; type a distance) |
   | `X` | Toggle construction on the selection |
   | Delete | Delete the selection, or the selected constraint glyph |
   | Escape | Back one step: clear the typed text, end the chain, put the tool down, finish the sketch |
@@ -130,11 +132,14 @@ sketch origin). Typed values (`length`, `angle`, `width`, `height`, `diameter`, 
 | `sketch.removeConstraint` | `{id?, index}` | `{id, removed}` |
 | `sketch.deleteEntities` | `{id?, entities}` | `{id}` |
 | `sketch.setConstruction` | `{id?, entities, construction?}` | `{id}` |
+| `sketch.trim` | `{id?, entity, at: [x, y]}` (lines) | `{id}`: the piece of the line between the crossings around `at` is removed |
+| `sketch.offset` | `{id?, entities, distance, side?: 1|-1}` (a chain or loop of lines) | `{id, …}`: parallel copies joined at their corners, the distance a dimension |
+| `sketch.mirror` | `{id?, entities, line}` | `{id, …}`: mirrored copies with symmetric constraints |
 | `sketch.inspect` (query) | `{id?}` | points, entities, constraints (expression, value and error per dimension), `dof`, `fullyConstrained` |
 
 Constraint `type`s: `coincident`, `pointOnLine`, `pointOnCircle`, `horizontal`, `vertical`,
-`parallel`, `perpendicular`, `tangent`, `equal`, `fix`, `midpoint`, `concentric`. Dimension
-types: `distance`, `length`, `angle`, `angleBetween`, `radius`, `diameter`. The CLI reads a saved
+`parallel`, `perpendicular`, `tangent`, `equal`, `fix`, `midpoint`, `concentric`, `symmetric`.
+Dimension types: `distance`, `distancePointLine`, `length`, `angle`, `angleBetween`, `radius`, `diameter`. The CLI reads a saved
 drawing's parameters with
 `vectorcraft-cli run --in FILE --cmd parameters.csv`; model parameters are the rows a sketch owns.
 

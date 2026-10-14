@@ -36,6 +36,7 @@ fn drives(sketch: &Sketch, param: &str) -> Option<String> {
         Constraint::Angle { line, .. } => format!("{} {}", tl!("Angle of line"), line + 1),
         Constraint::AngleBetween { a, b, .. } => format!("{} {} {} {}", tl!("Angle between lines"), a + 1, tl!("and"), b + 1),
         Constraint::Distance { a, b, .. } => format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1),
+        Constraint::DistancePointLine { line, .. } => format!("{} {}", tl!("Offset from line"), line + 1),
         Constraint::Radius { e, .. } => radius_of(*e, tl!("Radius of")),
         Constraint::Diameter { e, .. } => radius_of(*e, tl!("Diameter of")),
         _ => return None,

@@ -647,3 +647,84 @@ fn x_toggles_construction_on_the_selected_entities() {
     rig.type_text("x");
     assert_eq!(rig.inspect(id)["entities"][0]["construction"], false);
 }
+
+#[test]
+fn trim_tool_click_trims() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addRect", json!({"id": id.0, "from": [20.0, 20.0], "to": [80.0, 60.0]})).unwrap();
+    let (cross, ..) = rig.line(id, [0.0, 40.0], [100.0, 40.0]);
+    rig.frame(vec![]);
+    rig.type_text("t");
+    assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::Trim);
+    // Hovering the middle of the crossing line previews the piece between the two sides.
+    rig.mv([50.0, 40.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert_eq!(m.hover, Some(Pick::Entity(cross)));
+    let cache = rig.cache();
+    let plan = cache.sketch.trim_plan(cross, (50.0, 40.0)).unwrap();
+    assert_eq!((plan.from, plan.to), ((20.0, 40.0), (80.0, 40.0)));
+    let before = rig.app.session.active().unwrap().history.undo.len();
+    rig.click([50.0, 40.0]);
+    assert_eq!(rig.app.session.active().unwrap().history.undo.len(), before + 1);
+    let r = rig.inspect(id);
+    let lines = r["entities"].as_array().unwrap().iter().filter(|e| e["kind"] == "line").count();
+    assert_eq!(lines, 6, "the rectangle and two pieces: {r}");
+    assert!(rig.app.sketch.as_ref().unwrap().tool == SketchTool::Trim, "the tool stays");
+    // A circle is refused with the engine's message.
+    let circle = rig.app.run("sketch.addCircle", json!({"id": id.0, "center": [50.0, 100.0], "diameter": 20})).unwrap();
+    assert!(circle["circle"].is_u64());
+    rig.frame(vec![]);
+    rig.mv([60.0, 100.0]);
+    rig.click([60.0, 100.0]);
+    assert!(rig.app.ui.status.contains("lines"), "{}", rig.app.ui.status);
+}
+
+#[test]
+fn offset_tool_typed_distance() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.app.run("sketch.addRect", json!({"id": id.0, "from": [20.0, 20.0], "to": [80.0, 60.0]})).unwrap();
+    rig.frame(vec![]);
+    rig.type_text("o");
+    assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::Offset);
+    // A click on one line takes the whole loop and opens the distance box.
+    rig.mv([50.0, 20.0]);
+    rig.click([50.0, 20.0]);
+    assert_eq!(rig.app.sketch.as_ref().unwrap().modify.len(), 4);
+    // The mouse inside the rectangle picks the inside; the box shows its distance.
+    let text = rig.mv([50.0, 40.0]);
+    assert!(text.contains("distance"), "{text}");
+    assert_eq!(rig.app.sketch.as_ref().unwrap().side, -1.0);
+    rig.type_text("5");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    let lines = r["entities"].as_array().unwrap().iter().filter(|e| e["kind"] == "line").count();
+    assert_eq!(lines, 8, "{r}");
+    let cs = r["constraints"].as_array().unwrap();
+    assert_eq!(cs.iter().filter(|c| c["type"] == "parallel").count(), 4);
+    let dim = cs.iter().find(|c| c["type"] == "distancePointLine").expect("a distance dimension");
+    assert!(near(dim["value"].as_f64().unwrap(), 5.0), "{dim}");
+    // The inner rectangle's corner is 5 mm in.
+    assert!(r["points"].as_array().unwrap().iter().any(|p| near(p["x"].as_f64().unwrap(), 25.0) && near(p["y"].as_f64().unwrap(), 25.0)), "{r}");
+    assert!(rig.app.sketch.as_ref().unwrap().modify.is_empty(), "ready for the next offset");
+}
+
+#[test]
+fn mirror_tool_mirrors_the_selection_about_a_clicked_line() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (a, ..) = rig.line(id, [20.0, 20.0], [40.0, 30.0]);
+    let (axis, ..) = rig.line(id, [60.0, 0.0], [60.0, 80.0]);
+    rig.frame(vec![]);
+    // Nothing selected: the tool does not start.
+    set_tool(&mut rig.app, SketchTool::Mirror);
+    assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::None);
+    rig.app.sketch.as_mut().unwrap().selected = vec![Pick::Entity(a)];
+    set_tool(&mut rig.app, SketchTool::Mirror);
+    rig.mv([60.0, 50.0]);
+    rig.click([60.0, 50.0]);
+    let r = rig.inspect(id);
+    assert_eq!(r["entities"].as_array().unwrap().iter().filter(|e| e["kind"] == "line").count(), 3, "{r}");
+    assert_eq!(r["constraints"].as_array().unwrap().iter().filter(|c| c["type"] == "symmetric" && c["line"] == axis).count(), 2);
+}

@@ -24,7 +24,8 @@ pub fn new_hud(tool: SketchTool) -> Hud {
         SketchTool::Rect2 | SketchTool::RectCenter => Hud::new(&[("width", BoxUnit::Mm), ("height", BoxUnit::Mm)]),
         SketchTool::Circle => Hud::new(&[("diameter", BoxUnit::Mm)]),
         SketchTool::Arc3 | SketchTool::Fillet => Hud::new(&[("radius", BoxUnit::Mm)]),
-        SketchTool::None | SketchTool::Dimension => Hud::new(&[]),
+        SketchTool::Offset => Hud::new(&[("distance", BoxUnit::Mm)]),
+        SketchTool::None | SketchTool::Dimension | SketchTool::Trim | SketchTool::Mirror => Hud::new(&[]),
     }
 }
 
@@ -48,6 +49,7 @@ pub fn end_chain(m: &mut SketchMode) {
     m.hud = None;
     m.rubber = None;
     m.snap = Snap::None;
+    m.modify.clear();
     m.armed = false;
 }
 
@@ -380,7 +382,8 @@ pub fn commit(app: &mut VectorcraftApp, texts: Vec<Option<String>>) {
         SketchTool::Circle => commit_circle(app, texts),
         SketchTool::Arc3 => commit_arc(app, texts),
         SketchTool::Fillet => commit_fillet(app, texts),
-        SketchTool::None | SketchTool::Dimension => {}
+        SketchTool::Offset => commit_offset(app, texts),
+        SketchTool::None | SketchTool::Dimension | SketchTool::Trim | SketchTool::Mirror => {}
     }
 }
 
@@ -514,4 +517,159 @@ fn commit_fillet(app: &mut VectorcraftApp, texts: Vec<Option<String>>) {
         return;
     };
     run_shape(app, "sketch.fillet", json!({"id": id, "point": corner, "radius": radius}));
+}
+
+// ---- the modify tools: trim, offset, mirror ----
+
+/// The line `e` as its two ends, when it is one.
+fn line_ends(sk: &Sketch, e: u32) -> Option<(Mm, Mm)> {
+    match sk.entity(e)? {
+        Entity::Line { a, b, .. } => Some((sk.point(*a).map(|p| [p.x, p.y])?, sk.point(*b).map(|p| [p.x, p.y])?)),
+        _ => None,
+    }
+}
+
+/// The Trim tool's pointer: hovering a shape names it (a line shows the piece that would go); a
+/// click trims at the pointer.
+pub fn trim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
+    let Some(m) = app.sketch.as_mut() else { return };
+    let hit = hit::entity_at(cache, xf, pos, hit::ENTITY_PICK);
+    let at = to_mm(xf, &cache.sketch, pos);
+    m.hover = hit.map(Pick::Entity);
+    m.rubber = Some(at);
+    let id = m.id.0;
+    if input.clicked
+        && let Some(entity) = hit
+        && let Err(e) = app.run("sketch.trim", json!({"id": id, "entity": entity, "at": at}))
+    {
+        app.status(e);
+    }
+}
+
+/// Choosing Offset with lines selected: one line takes its whole chain, several are used as they are.
+pub fn offset_from_selection(app: &mut VectorcraftApp) {
+    let Some(cache) = snapshot(app) else { return };
+    let Some(m) = app.sketch.as_mut() else { return };
+    let lines: Vec<u32> = m
+        .selected
+        .iter()
+        .filter_map(|p| match p {
+            Pick::Entity(i) if matches!(cache.sketch.entity(*i), Some(Entity::Line { .. })) => Some(*i),
+            _ => None,
+        })
+        .collect();
+    let chosen = match lines[..] {
+        [] => return,
+        [one] => cache.sketch.connected_chain(one),
+        _ => lines,
+    };
+    m.modify = chosen;
+    m.hud = Some(new_hud(SketchTool::Offset));
+}
+
+/// The Offset tool's pointer: before a chain is chosen, a press on a line takes its whole chain;
+/// then the mouse picks the side and the distance (a typed distance wins), and a click commits.
+pub fn offset_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
+    let Some(m) = app.sketch.as_mut() else { return };
+    let mouse = to_mm(xf, &cache.sketch, pos);
+    m.rubber = Some(mouse);
+    let Some(first) = m.modify.first().copied() else {
+        let hit = hit::entity_at(cache, xf, pos, hit::ENTITY_PICK).filter(|e| matches!(cache.sketch.entity(*e), Some(Entity::Line { .. })));
+        m.hover = hit.map(Pick::Entity);
+        if input.pressed
+            && let Some(line) = hit
+        {
+            m.modify = cache.sketch.connected_chain(line);
+            m.hud = Some(new_hud(SketchTool::Offset));
+            m.armed = false;
+        }
+        return;
+    };
+    m.hover = None;
+    let Some((p, q)) = line_ends(&cache.sketch, first) else { return };
+    let (dx, dy) = (q[0] - p[0], q[1] - p[1]);
+    let len = dx.hypot(dy).max(1e-9);
+    // How far the mouse is to the left of the first line as drawn (y is down: left is up).
+    let left = ((mouse[0] - p[0]) * dy - (mouse[1] - p[1]) * dx) / len;
+    m.side = if left >= 0.0 { 1.0 } else { -1.0 };
+    if let Some(hud) = m.hud.as_mut() {
+        hud.follow_mouse(&[left.abs()]);
+    }
+    if input.pressed {
+        m.armed = true;
+    }
+    if input.released && m.armed {
+        m.armed = false;
+        super::feed(app, HudEvent::Enter);
+    }
+}
+
+/// The distance (mm) the Offset preview uses: the typed one, else the mouse's.
+pub fn offset_distance(m: &SketchMode, solved: &Solved) -> Option<f64> {
+    let hud = m.hud.as_ref()?;
+    typed(hud, 0, solved).or_else(|| hud.boxes.first().and_then(|b| b.text.trim().parse().ok()))
+}
+
+fn commit_offset(app: &mut VectorcraftApp, texts: Vec<Option<String>>) {
+    let Some(m) = app.sketch.as_ref() else { return };
+    if m.modify.is_empty() {
+        return;
+    }
+    let (id, lines, side) = (m.id.0, m.modify.clone(), m.side);
+    let text = texts.first().cloned().flatten().or_else(|| m.hud.as_ref().and_then(|h| h.boxes.first()).map(|b| b.text.clone()));
+    let Some(text) = text.filter(|t| t.trim().parse::<f64>().map_or(true, |v| v > 1e-6)) else {
+        app.status(tl!("Move the mouse off the line or type a distance"));
+        return;
+    };
+    run_shape(app, "sketch.offset", json!({"id": id, "entities": lines, "distance": text, "side": side}));
+}
+
+/// Choosing Mirror: the selected shapes are the ones to mirror; with none selected the tool does
+/// not start.
+pub fn mirror_from_selection(app: &mut VectorcraftApp) {
+    let Some(m) = app.sketch.as_mut() else { return };
+    let shapes: Vec<u32> = m
+        .selected
+        .iter()
+        .filter_map(|p| match p {
+            Pick::Entity(i) => Some(*i),
+            _ => None,
+        })
+        .collect();
+    if shapes.is_empty() {
+        m.tool = SketchTool::None;
+        app.status(tl!("Select the shapes to mirror first"));
+        return;
+    }
+    m.modify = shapes;
+}
+
+/// The Mirror tool's pointer: hovering a line (not one being mirrored) marks it; a click mirrors
+/// the chosen shapes about it.
+pub fn mirror_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
+    let Some(m) = app.sketch.as_mut() else { return };
+    let hit = hit::entity_at(cache, xf, pos, hit::ENTITY_PICK)
+        .filter(|e| matches!(cache.sketch.entity(*e), Some(Entity::Line { .. })) && !m.modify.contains(e));
+    m.hover = hit.map(Pick::Entity);
+    let (id, shapes) = (m.id.0, m.modify.clone());
+    if input.clicked
+        && let Some(line) = hit
+    {
+        match app.run("sketch.mirror", json!({"id": id, "entities": shapes, "line": line})) {
+            Ok(_) => {
+                if let Some(m) = app.sketch.as_mut() {
+                    tools_done(m);
+                }
+            }
+            Err(e) => app.status(e),
+        }
+    }
+}
+
+/// A modify tool finished: back to selecting, with nothing selected.
+fn tools_done(m: &mut SketchMode) {
+    end_chain(m);
+    m.tool = SketchTool::None;
+    m.selected.clear();
+    m.hover = None;
 }
