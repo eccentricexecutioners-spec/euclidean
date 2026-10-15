@@ -318,7 +318,7 @@ fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayo
                 for tab in &lay.tabs {
                     let selected = active.is_some_and(|a| a.id == tab.id);
                     let hue = t.tab_color(tab.color.as_deref());
-                    let galley = ui.painter().layout_no_wrap(tab.label.to_uppercase(), crate::theme::semibold(12.0), t.text_dim);
+                    let galley = ui.painter().layout_no_wrap(tab.label.to_uppercase(), crate::theme::semibold(12.0), Color32::PLACEHOLDER);
                     let w = galley.size().x + 9.0 + 8.0 + 12.0 + 14.0;
                     let (rect, resp) = ui.allocate_exact_size(vec2(w, TAB_PILL_HEIGHT), Sense::click());
                     let fill = if selected {
@@ -373,7 +373,7 @@ fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&Res
                             }
                             let first = g.items.iter().find(|i| !matches!(i, Item::Sep));
                             let caption = format!("{} ▾", g.label);
-                            let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), t.text_dim);
+                            let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), Color32::PLACEHOLDER);
                             let w = galley.size().x.max(GROUP_BUTTON) + 14.0;
                             let (rect, _) = ui.allocate_exact_size(vec2(w, GROUP_CELL_HEIGHT), Sense::hover());
                             let button = Rect::from_center_size(
