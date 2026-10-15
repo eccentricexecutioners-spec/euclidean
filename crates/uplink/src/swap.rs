@@ -222,8 +222,18 @@ pub fn mark_shown(state: &StateDir) {
     }
 }
 
-/// Open the new app again (macOS). Sets the `EUCLIDEAN_*`, `VECTORCRAFT_CONFIG_DIR` and
-/// `VECTORCRAFT_LOG*` variables that are set here, so an isolated run stays isolated.
+/// The environment variables a relaunch passes on.
+pub(crate) fn relaunch_keeps(name: &str) -> bool {
+    name.starts_with("EUCLIDEAN_")
+        || name.starts_with("VECTORCRAFT_LOG")
+        || name.starts_with("VECTORCRAFT_AUTOMATION_")
+        || name == "VECTORCRAFT_CONFIG_DIR"
+        || name == "VECTORCRAFT_CONTROL_PORT"
+}
+
+/// Open the new app again (macOS). Passes on the `EUCLIDEAN_*`, `VECTORCRAFT_CONFIG_DIR`,
+/// `VECTORCRAFT_LOG*`, `VECTORCRAFT_CONTROL_PORT` and `VECTORCRAFT_AUTOMATION_*` variables that
+/// are set here, so an isolated or automated run stays isolated, reachable and confined.
 /// Does not exit; the caller does.
 pub fn relaunch(bundle: &Path) -> io::Result<()> {
     #[cfg(target_os = "macos")]
@@ -231,7 +241,7 @@ pub fn relaunch(bundle: &Path) -> io::Result<()> {
         let mut cmd = std::process::Command::new("open");
         cmd.arg("-n");
         for (k, v) in std::env::vars() {
-            if k.starts_with("EUCLIDEAN_") || k == "VECTORCRAFT_CONFIG_DIR" || k.starts_with("VECTORCRAFT_LOG") {
+            if relaunch_keeps(&k) {
                 cmd.arg("--env").arg(format!("{k}={v}"));
             }
         }

@@ -99,4 +99,6 @@ run; elsewhere, a path through a `target` folder).
   copy at a local server with `EUCLIDEAN_CARGO_BAY_URL=http://127.0.0.1:<port>`, keep its state
   out of the real folder with `EUCLIDEAN_CARGO_BAY_STATE_DIR=<scratch>` and its preferences with
   `VECTORCRAFT_CONFIG_DIR=<scratch>`, and serve a zip whose manifest is signed with the test key.
-  The relaunch passes those variables on (`open --env`).
+  The relaunch passes those variables on (`open --env`), and `VECTORCRAFT_CONTROL_PORT` and
+  `VECTORCRAFT_AUTOMATION_*` too, so a run driven through the control channel stays reachable and
+  confined after Restart to update.

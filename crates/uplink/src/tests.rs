@@ -603,3 +603,20 @@ fn from_env_is_none_with_no_prefs_and_makes_no_request() {
     std::thread::sleep(std::time::Duration::from_millis(100));
     assert!(matches!(listener.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock), "the server heard from the crate");
 }
+
+#[test]
+fn relaunch_passes_on_isolation_and_control_variables() {
+    use crate::swap::relaunch_keeps;
+    for k in [
+        "EUCLIDEAN_CARGO_BAY_URL",
+        "EUCLIDEAN_CARGO_BAY_STATE_DIR",
+        "VECTORCRAFT_CONFIG_DIR",
+        "VECTORCRAFT_CONTROL_PORT",
+        "VECTORCRAFT_AUTOMATION_WRITE_ROOT",
+    ] {
+        assert!(relaunch_keeps(k), "{k}");
+    }
+    for k in ["HOME", "PATH", "VECTORCRAFT_NO_PREFS_X", "DYLD_INSERT_LIBRARIES"] {
+        assert!(!relaunch_keeps(k), "{k}");
+    }
+}
