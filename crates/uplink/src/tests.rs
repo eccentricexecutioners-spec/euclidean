@@ -620,3 +620,182 @@ fn relaunch_passes_on_isolation_and_control_variables() {
         assert!(!relaunch_keeps(k), "{k}");
     }
 }
+
+// ---- progress for the update window ----
+
+fn wait_idle(updater: &crate::Updater) {
+    let t = Instant::now();
+    while updater.view().busy {
+        assert!(t.elapsed() < std::time::Duration::from_secs(10));
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+}
+
+#[test]
+fn progress_counts_up_to_the_manifest_size() {
+    use crate::{OfferInfo, Progress, run_check_watched};
+    let tmp = tempfile::TempDir::new().unwrap();
+    let zip = app_zip("new build");
+    let server = update_server("2.0.0", zip.clone());
+    let cfg = config(tmp.path(), &server.url, "mac");
+    link_key(tmp.path());
+    let progress = Progress::default();
+    let heard: std::cell::RefCell<Vec<(OfferInfo, u64, bool)>> = Default::default();
+    let out = run_check_watched(&cfg, &progress, &|info| {
+        heard.borrow_mut().push((info.clone(), progress.received(), progress.verifying()));
+    });
+    assert_eq!(out, Outcome::Staged { version: "2.0.0".into(), already: false });
+    let heard = heard.into_inner();
+    assert_eq!(heard.len(), 1);
+    let (info, received_then, verifying_then) = &heard[0];
+    assert_eq!((info.version.as_str(), info.size, info.will_download), ("2.0.0", zip.len() as u64, true));
+    assert_eq!(info.notes, "test release");
+    assert!(*received_then == 0 && !*verifying_then, "the offer is heard before the download");
+    assert_eq!(progress.received(), zip.len() as u64);
+    assert_eq!(progress.total(), zip.len() as u64);
+    assert!(progress.verifying());
+}
+
+#[test]
+fn progress_is_reported_while_downloading() {
+    use crate::{Progress, run_check_watched};
+    let tmp = tempfile::TempDir::new().unwrap();
+    let zip = app_zip("new build");
+    let (manifest, signature) = release("2.0.0", &zip);
+    let z = zip.clone();
+    // Six pieces, 120 ms apart: far wider than the 2 ms polling below.
+    let server = TestServer::start(move |req, base| {
+        if req.method == "POST" {
+            Resp::Json(
+                200,
+                json!({"status": "update", "release": {"version": "2.0.0", "channel": "stable",
+                "manifest": manifest, "signature": signature, "download_url": format!("{base}/dl")}}),
+            )
+        } else {
+            Resp::Slow(z.clone(), 6, 120)
+        }
+    });
+    let cfg = config(tmp.path(), &server.url, "mac");
+    link_key(tmp.path());
+    let progress = Progress::default();
+    let done = std::sync::atomic::AtomicBool::new(false);
+    let total = zip.len() as u64;
+    let seen_middle = std::thread::scope(|s| {
+        let watcher = s.spawn(|| {
+            let mut middle = false;
+            while !done.load(std::sync::atomic::Ordering::Relaxed) {
+                let r = progress.received();
+                assert!(r <= total, "never more than the size");
+                middle |= r > 0 && r < total;
+                std::thread::sleep(std::time::Duration::from_millis(2));
+            }
+            middle
+        });
+        let out = run_check_watched(&cfg, &progress, &|_| {});
+        done.store(true, std::sync::atomic::Ordering::Relaxed);
+        assert!(matches!(out, Outcome::Staged { .. }), "{out:?}");
+        watcher.join().unwrap()
+    });
+    assert!(seen_middle, "saw a count between 0 and the total");
+    assert_eq!(progress.received(), total);
+}
+
+#[test]
+fn verification_is_unchanged_with_progress() {
+    use crate::{Progress, run_check_watched};
+    let tmp = tempfile::TempDir::new().unwrap();
+    let zip = app_zip("new build");
+    // Signed correctly, but the bytes served are not the ones the manifest names.
+    let (manifest, signature) = release("2.0.0", &zip);
+    let other = app_zip("tampered!!");
+    let server = TestServer::start(move |req, base| {
+        if req.method == "POST" {
+            Resp::Json(
+                200,
+                json!({"status": "update", "release": {"version": "2.0.0", "channel": "stable",
+                "manifest": manifest, "signature": signature, "download_url": format!("{base}/dl")}}),
+            )
+        } else {
+            Resp::Bytes(200, other.clone())
+        }
+    });
+    let cfg = config(tmp.path(), &server.url, "mac");
+    link_key(tmp.path());
+    let progress = Progress::default();
+    assert!(matches!(run_check_watched(&cfg, &progress, &|_| {}), Outcome::VerifyFailed(_)));
+    assert!(!cfg.state.pending_file().exists());
+    assert!(progress.verifying());
+
+    // And a bad signature, as in the D3 test.
+    let manifest = manifest_for("2.0.0", &zip);
+    let signature = sign_manifest(&signing_key(55), &manifest);
+    let z = zip.clone();
+    let server = TestServer::start(move |req, base| {
+        if req.method == "POST" {
+            Resp::Json(
+                200,
+                json!({"status": "update", "release": {"version": "2.0.0", "channel": "stable",
+                "manifest": manifest, "signature": signature, "download_url": format!("{base}/dl")}}),
+            )
+        } else {
+            Resp::Bytes(200, z.clone())
+        }
+    });
+    let tmp2 = tempfile::TempDir::new().unwrap();
+    let cfg = config(tmp2.path(), &server.url, "mac");
+    link_key(tmp2.path());
+    assert!(matches!(run_check_watched(&cfg, &Progress::default(), &|_| {}), Outcome::VerifyFailed(_)));
+    assert!(!cfg.state.pending_file().exists());
+}
+
+#[test]
+fn updater_view_carries_offer_progress_and_errors() {
+    use crate::messages;
+    // An update: offered, total, received == total, ready.
+    let tmp = tempfile::TempDir::new().unwrap();
+    let zip = app_zip("new build");
+    let server = update_server("2.0.0", zip.clone());
+    link_key(tmp.path());
+    let updater = crate::Updater::new(config(tmp.path(), &server.url, "mac"));
+    assert_eq!(updater.view().installed, "1.0.0");
+    updater.check();
+    wait_idle(&updater);
+    let v = updater.view();
+    assert_eq!(v.offered.as_deref(), Some("2.0.0"));
+    assert_eq!(v.notes.as_deref(), Some("test release"));
+    assert_eq!((v.total, v.received), (zip.len() as u64, zip.len() as u64));
+    assert_eq!(v.ready.as_deref(), Some("2.0.0"));
+    assert!(!v.verifying && !v.up_to_date && v.error.is_none());
+
+    // Offline.
+    let tmp = tempfile::TempDir::new().unwrap();
+    link_key(tmp.path());
+    let updater = crate::Updater::new(config(tmp.path(), "http://127.0.0.1:1", "mac"));
+    updater.check();
+    wait_idle(&updater);
+    let v = updater.view();
+    assert_eq!(v.error.as_deref(), Some(messages::OFFLINE));
+    assert!(v.offered.is_none() && !v.up_to_date);
+
+    // Up to date; a later check clears an earlier error.
+    let tmp = tempfile::TempDir::new().unwrap();
+    link_key(tmp.path());
+    let server = TestServer::start(|_, _| Resp::Json(200, json!({"status": "up_to_date"})));
+    let updater = crate::Updater::new(config(tmp.path(), &server.url, "mac"));
+    updater.check();
+    wait_idle(&updater);
+    let v = updater.view();
+    assert!(v.up_to_date && v.error.is_none());
+    assert_eq!(v.message.as_deref(), Some("Euclidean 1.0.0 is up to date"));
+
+    // Elsewhere: offered and total, nothing downloaded.
+    let tmp = tempfile::TempDir::new().unwrap();
+    link_key(tmp.path());
+    let server = update_server("2.0.0", zip.clone());
+    let updater = crate::Updater::new(config(tmp.path(), &server.url, "windows"));
+    updater.check();
+    wait_idle(&updater);
+    let v = updater.view();
+    assert_eq!((v.offered.as_deref(), v.elsewhere.as_deref()), (Some("2.0.0"), Some("2.0.0")));
+    assert_eq!((v.received, v.ready), (0, None));
+}

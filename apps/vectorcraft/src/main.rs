@@ -97,6 +97,15 @@ impl vectorcraft_ui_egui::UpdateHost for UpdaterHost {
             message_seq: v.seq,
             ready: v.ready,
             link_error: v.link_error,
+            installed: v.installed,
+            offered: v.offered,
+            notes: v.notes,
+            received: v.received,
+            total: v.total,
+            verifying: v.verifying,
+            up_to_date: v.up_to_date,
+            error: v.error,
+            elsewhere: v.elsewhere,
         }
     }
     fn link(&mut self, code: &str) {

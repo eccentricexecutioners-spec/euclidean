@@ -46,6 +46,24 @@ pub struct UpdateView {
     pub ready: Option<String>,
     /// The last link attempt's English error, for the dialog.
     pub link_error: Option<String>,
+    /// The version running now.
+    pub installed: String,
+    /// The new version, once a check has heard of one.
+    pub offered: Option<String>,
+    /// Release notes of `offered`, if any.
+    pub notes: Option<String>,
+    /// Bytes downloaded so far.
+    pub received: u64,
+    /// The download's size (the manifest `size`); 0 before an offer is heard.
+    pub total: u64,
+    /// The download is done and is being checked ("Checking the download…").
+    pub verifying: bool,
+    /// The last check found nothing newer.
+    pub up_to_date: bool,
+    /// The English line for the last check's error.
+    pub error: Option<String>,
+    /// A newer version this platform cannot install by itself (Windows/Linux).
+    pub elsewhere: Option<String>,
 }
 
 pub(super) const SPEC: DialogSpec = DialogSpec {

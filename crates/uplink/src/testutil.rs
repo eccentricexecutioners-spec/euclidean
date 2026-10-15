@@ -117,6 +117,8 @@ impl Req {
 pub enum Resp {
     Json(u16, Value),
     Bytes(u16, Vec<u8>),
+    /// Send the bytes in `pieces` parts, `delay_ms` apart.
+    Slow(Vec<u8>, usize, u64),
     /// Read the request, then never answer.
     Hang,
 }
@@ -181,6 +183,20 @@ impl TestServer {
                             let (status, ctype, body) = match handler(&req, &url) {
                                 Resp::Json(s, v) => (s, "application/json", v.to_string().into_bytes()),
                                 Resp::Bytes(s, b) => (s, "application/zip", b),
+                                Resp::Slow(b, pieces, delay_ms) => {
+                                    stream.set_nodelay(true).ok();
+                                    let head = format!(
+                                        "HTTP/1.1 200 X\r\ncontent-type: application/zip\r\ncontent-length: {}\r\nconnection: close\r\n\r\n",
+                                        b.len()
+                                    );
+                                    let _ = stream.write_all(head.as_bytes());
+                                    for part in b.chunks(b.len().div_ceil(pieces)) {
+                                        let _ = stream.write_all(part);
+                                        let _ = stream.flush();
+                                        std::thread::sleep(Duration::from_millis(delay_ms));
+                                    }
+                                    return;
+                                }
                                 Resp::Hang => {
                                     let t = Instant::now();
                                     while !stop.load(Ordering::Relaxed) && t.elapsed() < Duration::from_secs(8) {

@@ -27,7 +27,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub use client::{CheckResult, Client, LinkError, Offer};
-pub use stage::{StageError, Staged};
+pub use stage::{Progress, StageError, Staged, stage_watched};
 pub use state::{Link, StateDir};
 pub use swap::{StartOutcome, current_bundle, finish_pending, relaunch, unshown_update};
 pub use trust::Trust;
@@ -121,9 +121,32 @@ pub enum Outcome {
     StageFailed(String),
 }
 
+/// What a check heard about the release on offer, before any download.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OfferInfo {
+    pub version: String,
+    /// Release notes; empty when there are none.
+    pub notes: String,
+    /// The manifest `size` (0 when the manifest has none).
+    pub size: u64,
+    /// True when this platform will now download it (a Mac); false for "elsewhere".
+    pub will_download: bool,
+}
+
 /// Check for an update and, on a Mac, stage it. Blocking. `on_offer` hears the new version
 /// before the download starts.
 pub fn run_check(cfg: &Config, on_offer: &dyn Fn(&str)) -> Outcome {
+    run_check_watched(cfg, &Progress::default(), &|info| {
+        if info.will_download {
+            on_offer(&info.version);
+        }
+    })
+}
+
+/// [`run_check`] with a view into it: `on_offer` hears every offer (also the ones this
+/// platform will not download) before the download; `progress` counts the download and says
+/// when it is being verified.
+pub fn run_check_watched(cfg: &Config, progress: &Progress, on_offer: &dyn Fn(&OfferInfo)) -> Outcome {
     let Some(key) = cfg.state.read_key() else {
         return Outcome::NotLinked;
     };
@@ -149,14 +172,15 @@ pub fn run_check(cfg: &Config, on_offer: &dyn Fn(&str)) -> Outcome {
             Outcome::LinkRemoved
         }
         CheckResult::Update(offer) => {
-            if cfg.platform != "mac" {
+            let will_download = cfg.platform == "mac";
+            on_offer(&OfferInfo { version: offer.version.clone(), notes: offer.notes.clone(), size: stage::offered_size(&offer), will_download });
+            if !will_download {
                 return Outcome::Elsewhere(offer.version);
             }
-            on_offer(&offer.version);
             // A key list that just arrived may name the key this release is signed with.
             let mut trust = cfg.trust.clone();
             trust.release = keyring::load(&cfg.state, &masters).map(|k| k.keys).unwrap_or_default();
-            match stage::stage(&cfg.state, &trust, &client, &offer, &cfg.installed_version) {
+            match stage::stage_watched(&cfg.state, &trust, &client, &offer, &cfg.installed_version, progress) {
                 Ok(s) => Outcome::Staged { version: s.version, already: s.already },
                 Err(StageError::Offline) => Outcome::Offline,
                 Err(StageError::TlsFailed) => Outcome::TlsFailed,
@@ -216,6 +240,22 @@ pub struct View {
     pub seq: u64,
     /// The last link attempt's English error, cleared when the next attempt starts or works.
     pub link_error: Option<String>,
+    /// The version running now.
+    pub installed: String,
+    /// The new version, once a check has heard of one (also when this platform cannot install it).
+    pub offered: Option<String>,
+    /// Release notes of `offered`, when it has any.
+    pub notes: Option<String>,
+    /// Bytes downloaded so far (read live while a download runs).
+    pub received: u64,
+    /// The download's size from the manifest (0 until an offer is heard).
+    pub total: u64,
+    /// The download is done and is being checked.
+    pub verifying: bool,
+    /// The last check found nothing newer.
+    pub up_to_date: bool,
+    /// The English line for the last check's error, if it failed.
+    pub error: Option<String>,
 }
 
 impl View {
@@ -229,6 +269,7 @@ type OnChange = Arc<dyn Fn() + Send + Sync>;
 
 struct Inner {
     cfg: Config,
+    progress: Progress,
     view: Mutex<View>,
     on_change: Mutex<Option<OnChange>>,
 }
@@ -252,8 +293,13 @@ fn pending_version(cfg: &Config) -> Option<String> {
 
 impl Updater {
     pub fn new(cfg: Config) -> Updater {
-        let view = View { linked: cfg.state.read_key().is_some(), ready: pending_version(&cfg), ..View::default() };
-        Updater { inner: Arc::new(Inner { cfg, view: Mutex::new(view), on_change: Mutex::new(None) }) }
+        let view = View {
+            linked: cfg.state.read_key().is_some(),
+            ready: pending_version(&cfg),
+            installed: cfg.installed_version.clone(),
+            ..View::default()
+        };
+        Updater { inner: Arc::new(Inner { cfg, progress: Progress::default(), view: Mutex::new(view), on_change: Mutex::new(None) }) }
     }
 
     /// Ask to be told (to repaint) whenever the view changes.
@@ -268,7 +314,10 @@ impl Updater {
     }
 
     pub fn view(&self) -> View {
-        self.inner.view.lock().map(|v| v.clone()).unwrap_or_default()
+        let mut view = self.inner.view.lock().map(|v| v.clone()).unwrap_or_default();
+        view.received = self.inner.progress.received();
+        view.verifying = view.busy && self.inner.progress.verifying();
+        view
     }
 
     fn update(&self, f: impl FnOnce(&mut View)) {
@@ -328,16 +377,46 @@ impl Updater {
         if !self.begin() {
             return;
         }
+        self.inner.progress.reset();
+        self.update(|v| {
+            v.offered = None;
+            v.notes = None;
+            v.received = 0;
+            v.total = 0;
+            v.verifying = false;
+            v.up_to_date = false;
+            v.error = None;
+        });
         let me = self.clone();
         std::thread::spawn(move || {
             let cfg = &me.inner.cfg;
-            let outcome = run_check(cfg, &|new| {
-                me.update(|v| v.say(messages::fill(messages::STAGING, &[("new", new)])));
+            // No repaint request per chunk: the app repaints itself while `busy`, and `view()`
+            // reads the byte count live.
+            let outcome = run_check_watched(cfg, &me.inner.progress, &|info| {
+                me.update(|v| {
+                    v.offered = Some(info.version.clone());
+                    v.notes = (!info.notes.trim().is_empty()).then(|| info.notes.clone());
+                    v.total = info.size;
+                    if info.will_download {
+                        v.say(messages::fill(messages::STAGING, &[("new", &info.version)]));
+                    }
+                });
             });
             let message = outcome_message(&outcome, &cfg.installed_version);
             me.update(|v| {
                 v.busy = false;
-                v.say(message);
+                v.say(message.clone());
+                match &outcome {
+                    Outcome::UpToDate => v.up_to_date = true,
+                    Outcome::NoAccess
+                    | Outcome::Offline
+                    | Outcome::TlsFailed
+                    | Outcome::ServerError(_)
+                    | Outcome::VerifyFailed(_)
+                    | Outcome::StageFailed(_)
+                    | Outcome::LinkRemoved => v.error = Some(message),
+                    _ => {}
+                }
                 match &outcome {
                     Outcome::Staged { version, .. } => v.ready = Some(version.clone()),
                     Outcome::Elsewhere(version) => v.elsewhere = Some(version.clone()),

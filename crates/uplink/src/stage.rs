@@ -4,6 +4,7 @@
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use serde_json::{Value, json};
 
@@ -77,10 +78,57 @@ fn write_pending(state: &StateDir, record: &Value) -> Result<(), StageError> {
     write_atomic(&state.pending_dir(), &state.pending_file(), &bytes, false).map_err(fail("cannot write the pending file"))
 }
 
+/// The size the offer's manifest declares, or 0 when it has none (no validation here).
+pub fn offered_size(offer: &Offer) -> u64 {
+    offer.manifest.get("size").and_then(Value::as_u64).unwrap_or(0)
+}
+
+/// How far a staging has got, shared with whoever watches it from another thread.
+#[derive(Debug, Default)]
+pub struct Progress {
+    received: AtomicU64,
+    total: AtomicU64,
+    verifying: AtomicBool,
+}
+
+impl Progress {
+    /// Bytes written so far. Never more than the manifest size plus one.
+    pub fn received(&self) -> u64 {
+        self.received.load(Ordering::Relaxed)
+    }
+    /// The manifest size, once staging has read the offer (else 0).
+    pub fn total(&self) -> u64 {
+        self.total.load(Ordering::Relaxed)
+    }
+    /// True once the download has returned and the checks are running.
+    pub fn verifying(&self) -> bool {
+        self.verifying.load(Ordering::Relaxed)
+    }
+    /// Back to the start, for the next check.
+    pub fn reset(&self) {
+        self.received.store(0, Ordering::Relaxed);
+        self.total.store(0, Ordering::Relaxed);
+        self.verifying.store(false, Ordering::Relaxed);
+    }
+}
+
 /// Download, verify, unzip and mark pending. Re-staging a version that still checks out
 /// returns at once with `already: true`.
 pub fn stage(state: &StateDir, trust: &Trust, client: &Client, offer: &Offer, from_version: &str) -> Result<Staged, StageError> {
+    stage_watched(state, trust, client, offer, from_version, &Progress::default())
+}
+
+/// [`stage`], counting the download into `progress`.
+pub fn stage_watched(
+    state: &StateDir,
+    trust: &Trust,
+    client: &Client,
+    offer: &Offer,
+    from_version: &str,
+    progress: &Progress,
+) -> Result<Staged, StageError> {
     let (file, size) = check_offer(offer)?;
+    progress.total.store(size, Ordering::Relaxed);
     let manifest = &offer.manifest;
     let base = format!("{TOOL_ID}-{}", offer.version);
     let staging = state.staging_dir();
@@ -116,11 +164,18 @@ pub fn stage(state: &StateDir, trust: &Trust, client: &Client, offer: &Offer, fr
     let zip_path = dir.join(&file);
 
     let mut out = File::create(&zip_path).map_err(fail("cannot create the download file"))?;
-    let got = client.download(&offer.download_url, size, &mut |chunk| out.write_all(chunk)).map_err(|e| match e {
-        DownloadError::Transport(Transport::Tls) => StageError::TlsFailed,
-        DownloadError::Transport(Transport::Offline) => StageError::Offline,
-        DownloadError::Write(e) => StageError::Failed(format!("cannot write the download: {e}")),
-    })?;
+    let got = client
+        .download(&offer.download_url, size, &mut |chunk| {
+            out.write_all(chunk)?;
+            progress.received.fetch_add(chunk.len() as u64, Ordering::Relaxed);
+            Ok(())
+        })
+        .map_err(|e| match e {
+            DownloadError::Transport(Transport::Tls) => StageError::TlsFailed,
+            DownloadError::Transport(Transport::Offline) => StageError::Offline,
+            DownloadError::Write(e) => StageError::Failed(format!("cannot write the download: {e}")),
+        })?;
+    progress.verifying.store(true, Ordering::Relaxed);
     out.sync_all().map_err(fail("cannot write the download"))?;
     drop(out);
     if got > size {
