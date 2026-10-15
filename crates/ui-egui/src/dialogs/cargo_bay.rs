@@ -124,10 +124,13 @@ pub(crate) fn frame(app: &mut VectorcraftApp) {
     if view.message_seq > app.updates_seen {
         app.updates_seen = view.message_seq;
         // The staged message ("{new} ready — Restart to update") repeats the status line's own
-        // "Euclidean {new} ready" and button, so it is not pushed there.
+        // "Euclidean {new} ready" and button, so it is not pushed there; it clears the "Getting
+        // {new} ready…" line it ends.
         let staged = |m: &str| view.ready.as_deref().is_some_and(|r| m.starts_with(r) && m.ends_with("Restart to update"));
-        if let Some(m) = view.message.clone().filter(|m| !staged(m)) {
-            app.status(m);
+        match view.message.clone() {
+            Some(m) if staged(&m) => app.ui.status.clear(),
+            Some(m) => app.status(m),
+            None => {}
         }
     }
     let open = app.ui.dialog.as_ref().is_some_and(|d| d.kind == KIND);

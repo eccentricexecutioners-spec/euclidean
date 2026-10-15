@@ -339,11 +339,15 @@ mod tests {
     fn the_staged_message_is_not_doubled() {
         let mut rig = Rig::new(true);
         rig.app.updates_window = false;
+        *rig.host.view.borrow_mut() = UpdateView { busy: true, message: Some("Getting 0.1.2 ready…".into()), message_seq: 1, ..linked() };
+        rig.settle();
+        assert_eq!(rig.app.ui.status, "Getting 0.1.2 ready…");
         {
             let mut v = rig.host.view.borrow_mut();
-            *v = UpdateView { ready: Some("0.1.2".into()), message: Some("0.1.2 ready — Restart to update".into()), message_seq: 1, ..linked() };
+            *v = UpdateView { ready: Some("0.1.2".into()), message: Some("0.1.2 ready — Restart to update".into()), message_seq: 2, ..linked() };
         }
         let text = rig.settle();
+        assert!(!text.contains("Getting 0.1.2 ready"), "{text}");
         assert!(!text.contains("ready — Restart to update"), "{text}");
         assert_eq!(text.matches("Restart to update").count(), 1, "{text}");
         assert!(!rig.app.ui.status.contains("Restart to update"), "{}", rig.app.ui.status);
