@@ -80,6 +80,7 @@ mod textedit;
 pub mod textstyles;
 pub(crate) mod textwrap;
 pub(crate) mod threads;
+pub(crate) mod timeline;
 pub(crate) mod typecmd;
 mod typemenu;
 mod variablecmds;
@@ -243,6 +244,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
         v.extend(docmenu::specs());
         v.extend(variablecmds::specs());
         v.extend(parameters::specs());
+        v.extend(timeline::specs());
         v.extend(sketch::specs());
         v.extend(docinfo::specs());
         v.extend(panelcmds::specs());

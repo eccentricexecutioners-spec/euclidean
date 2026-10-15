@@ -766,6 +766,8 @@ fn discard_empty(s: &mut Session, p: &Value) -> Result<Value> {
         let mut now = (*st.doc).clone();
         let mut before = (*created.doc).clone();
         before.alloc_id();
+        // The timeline's step for the text goes with it (Euclidean).
+        crate::timeline::align(&mut now, &before);
         if now.remove(id).is_ok() && now == before {
             st.doc = created.doc.clone();
             st.history.undo.truncate(k);

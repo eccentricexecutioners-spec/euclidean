@@ -13,6 +13,7 @@ pub mod inspect;
 pub mod journal;
 pub mod link_watch;
 pub mod steps;
+pub mod timeline;
 mod tooling;
 pub mod units;
 
@@ -1088,6 +1089,12 @@ pub struct Session {
     pub(crate) liquify_stroke: Option<Box<cmd::distortcmds::LiquifyStroke>>,
     /// A press on the Plane Switching Widget is under way: its drag and release are the widget's.
     pub(crate) plane_widget_press: bool,
+    /// The timeline is replaying its steps ([`timeline`]): they are neither journaled nor
+    /// recorded again.
+    pub(crate) timeline_replay: bool,
+    /// Record timeline steps ([`timeline`]): the app turns it on; headless sessions (the CLI, MCP,
+    /// tests) with `timeline.setRecording`.
+    pub timeline_recording: bool,
     /// A guide being dragged out of a ruler ([`Session::ruler_guide`]).
     pub(crate) ruler_guide: Option<vectorcraft_tools::rulerguide::NewGuide>,
     /// The last search for the files of missing fonts (`text.findFontFiles`), until another
@@ -1158,6 +1165,8 @@ impl Session {
             envelope_defaults: None,
             liquify_stroke: None,
             plane_widget_press: false,
+            timeline_replay: false,
+            timeline_recording: false,
             ruler_guide: None,
             font_search: None,
             link_search: None,
@@ -1345,6 +1354,8 @@ impl Session {
             self.note_depth = 1;
             self.batch_stash = None;
         }
+        // The state a timeline step starts from (Euclidean, [`timeline`]).
+        let step = if spec.journal && self.depth == 0 { self.timeline_before(id) } else { None };
         let r = if self.depth == 0 { self.run_guarded(id, |s| (spec.run)(s, params)) } else { self.run_nested(|s| (spec.run)(s, params)) };
         let r = r?;
         if self.depth == 0 {
@@ -1352,7 +1363,12 @@ impl Session {
         }
         if spec.journal && self.depth == 0 && self.active().is_none_or(|d| d.interaction.is_none()) {
             let p = self.noted(params);
-            self.journal.push((id.to_string(), p));
+            if let Some(before) = step {
+                self.timeline_record(before, id, &p, None);
+            }
+            if !self.timeline_replay {
+                self.journal.push((id.to_string(), p));
+            }
         }
         if self.depth == 0 {
             self.after_command();
@@ -1613,6 +1629,10 @@ impl Session {
             ("Copy", false) if preview.0 == "object.transform" => it.label = "Move".into(),
             _ => {}
         }
+        let label = it.label.clone();
+        let uid = st.uid;
+        let step = self.timeline_before_interaction(&it);
+        let st = self.doc_mut()?;
         st.keep_interaction(it);
         if preview.0 == "object.transform" {
             let m = cmd::matrix_param(&preview.1, "matrix");
@@ -1631,7 +1651,12 @@ impl Session {
         if perspective_again.is_some() {
             st.last_perspective = perspective_again;
         }
-        self.journal.push(preview);
+        if let Some(before) = step.filter(|b| b.uid() == uid) {
+            self.timeline_record(before, &preview.0, &preview.1, Some(&label));
+        }
+        if !self.timeline_replay {
+            self.journal.push(preview);
+        }
         Ok(())
     }
 
