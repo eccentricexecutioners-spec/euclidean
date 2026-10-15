@@ -4955,3 +4955,12 @@ mark-style	Japanese	Japonské
 	Step {n} failed: {error}	Krok {n} selhal: {error}
 	Double-click to edit	Dvojitým kliknutím upravíte
 	Roll Timeline	Posunout časovou osu
+	Failed	Selhalo
+	Suppressed	Potlačeno
+	Rolled back	Vráceno zpět
+	Pending	Čeká
+	Suppress	Potlačit
+	Unsuppress	Zrušit potlačení
+	Roll to here	Vrátit sem
+	Delete Timeline Step	Smazat krok časové osy
+	Suppress Timeline Step	Potlačit krok časové osy

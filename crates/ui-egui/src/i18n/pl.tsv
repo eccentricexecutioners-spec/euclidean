@@ -4798,3 +4798,12 @@ mark-style	Japanese	Japońskie
 	Step {n} failed: {error}	Krok {n} nie powiódł się: {error}
 	Double-click to edit	Kliknij dwukrotnie, aby edytować
 	Roll Timeline	Przewiń oś czasu
+	Failed	Niepowodzenie
+	Suppressed	Pominięty
+	Rolled back	Cofnięty
+	Pending	Oczekuje
+	Suppress	Pomiń
+	Unsuppress	Przestań pomijać
+	Roll to here	Cofnij do tego miejsca
+	Delete Timeline Step	Usuń krok osi czasu
+	Suppress Timeline Step	Pomiń krok osi czasu

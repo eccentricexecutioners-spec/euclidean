@@ -4922,3 +4922,12 @@ imageTrace	Outline	Körvonal
 	Step {n} failed: {error}	A(z) {n}. lépés sikertelen: {error}
 	Double-click to edit	Kattintson duplán a szerkesztéshez
 	Roll Timeline	Idővonal visszagörgetése
+	Failed	Sikertelen
+	Suppressed	Elnyomva
+	Rolled back	Visszagörgetve
+	Pending	Függőben
+	Suppress	Elnyomás
+	Unsuppress	Elnyomás feloldása
+	Roll to here	Visszagörgetés ide
+	Delete Timeline Step	Idővonal-lépés törlése
+	Suppress Timeline Step	Idővonal-lépés elnyomása

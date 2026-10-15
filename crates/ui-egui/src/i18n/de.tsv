@@ -4480,3 +4480,12 @@ theme	Appearance	Erscheinungsbild
 	Step {n} failed: {error}	Schritt {n} fehlgeschlagen: {error}
 	Double-click to edit	Doppelklick zum Bearbeiten
 	Roll Timeline	Zeitleiste zurücksetzen
+	Failed	Fehlgeschlagen
+	Suppressed	Unterdrückt
+	Rolled back	Zurückgesetzt
+	Pending	Ausstehend
+	Suppress	Unterdrücken
+	Unsuppress	Unterdrückung aufheben
+	Roll to here	Hierher zurücksetzen
+	Delete Timeline Step	Zeitleistenschritt löschen
+	Suppress Timeline Step	Zeitleistenschritt unterdrücken

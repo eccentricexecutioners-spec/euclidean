@@ -4507,3 +4507,12 @@ theme	Appearance	Giao diện
 	Step {n} failed: {error}	Bước {n} thất bại: {error}
 	Double-click to edit	Nhấp đúp để chỉnh sửa
 	Roll Timeline	Tua lại dòng thời gian
+	Failed	Thất bại
+	Suppressed	Đã tắt
+	Rolled back	Đã hoàn lại
+	Pending	Đang chờ
+	Suppress	Tắt
+	Unsuppress	Bật lại
+	Roll to here	Hoàn lại đến đây
+	Delete Timeline Step	Xóa bước dòng thời gian
+	Suppress Timeline Step	Tắt bước dòng thời gian

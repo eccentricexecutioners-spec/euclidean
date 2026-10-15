@@ -143,7 +143,7 @@ fn follow_sketch_mode(app: &mut VectorcraftApp) {
 }
 
 /// The active tab: the one named by `id`, else the first.
-fn active_tab<'a>(lay: &'a ResolvedLayout, id: &str) -> Option<&'a ResolvedTab> {
+pub(super) fn active_tab<'a>(lay: &'a ResolvedLayout, id: &str) -> Option<&'a ResolvedTab> {
     lay.tabs.iter().find(|t| t.id == id).or_else(|| lay.tabs.first())
 }
 

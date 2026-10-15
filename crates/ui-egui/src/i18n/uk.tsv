@@ -4505,3 +4505,12 @@ lighting	Light	Світло
 	Step {n} failed: {error}	Крок {n} не виконано: {error}
 	Double-click to edit	Двічі клацніть, щоб редагувати
 	Roll Timeline	Відкотити часову шкалу
+	Failed	Помилка
+	Suppressed	Пригнічено
+	Rolled back	Відкочено
+	Pending	Очікує
+	Suppress	Пригнітити
+	Unsuppress	Зняти пригнічення
+	Roll to here	Відкотити сюди
+	Delete Timeline Step	Видалити крок часової шкали
+	Suppress Timeline Step	Пригнітити крок часової шкали

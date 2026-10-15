@@ -4525,3 +4525,12 @@ lighting	Light	Luce
 	Step {n} failed: {error}	Passo {n} non riuscito: {error}
 	Double-click to edit	Doppio clic per modificare
 	Roll Timeline	Sposta la fine della timeline
+	Failed	Non riuscito
+	Suppressed	Soppresso
+	Rolled back	Annullato
+	Pending	In attesa
+	Suppress	Sopprimi
+	Unsuppress	Annulla soppressione
+	Roll to here	Torna qui
+	Delete Timeline Step	Elimina passaggio della sequenza temporale
+	Suppress Timeline Step	Sopprimi passaggio della sequenza temporale

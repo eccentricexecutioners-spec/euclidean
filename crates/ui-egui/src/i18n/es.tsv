@@ -4896,3 +4896,12 @@ mark-style	Japanese	Japonesas
 	Step {n} failed: {error}	El paso {n} falló: {error}
 	Double-click to edit	Doble clic para editar
 	Roll Timeline	Retroceder línea de tiempo
+	Failed	Error
+	Suppressed	Suprimido
+	Rolled back	Revertido
+	Pending	Pendiente
+	Suppress	Suprimir
+	Unsuppress	Dejar de suprimir
+	Roll to here	Retroceder hasta aquí
+	Delete Timeline Step	Eliminar paso de la línea de tiempo
+	Suppress Timeline Step	Suprimir paso de la línea de tiempo

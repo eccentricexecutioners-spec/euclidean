@@ -6,6 +6,7 @@
 mod draw;
 mod layout;
 mod step_form;
+mod step_map;
 mod timeline_strip;
 
 pub use draw::{round_canvas, show};
@@ -79,6 +80,12 @@ pub struct WorkbenchState {
     /// The fill colour each timeline chip was drawn with last frame (what the tests read).
     #[serde(skip)]
     pub chip_colors: Vec<egui::Color32>,
+    /// Each timeline step's hue (its tab's colour) last frame.
+    #[serde(skip)]
+    pub chip_hues: Vec<egui::Color32>,
+    /// Which timeline steps were drawn suppressed last frame.
+    #[serde(skip)]
+    pub chip_suppressed: Vec<bool>,
     /// How many steps the strip showed last frame (it scrolls to the end when this grows).
     #[serde(skip)]
     pub strip_steps: usize,
@@ -106,6 +113,8 @@ impl Default for WorkbenchState {
             in_sketch: false,
             step_form: None,
             chip_colors: vec![],
+            chip_hues: vec![],
+            chip_suppressed: vec![],
             strip_steps: 0,
         }
     }

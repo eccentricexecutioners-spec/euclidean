@@ -2,39 +2,27 @@
 //! and the buttons that move the marker. Double-clicking a chip opens its parameters form
 //! (`step_form.rs`); dragging the marker between chips rolls the document back to there.
 
-use egui::{Align, Color32, FontId, Rect, Sense, Stroke, Ui, vec2};
+use egui::{Align, Color32, Rect, Sense, Stroke, Ui, vec2};
 use serde_json::{Value, json};
 use vectorcraft_engine::timeline::DOC_KEY;
 
 use super::StepForm;
+use super::step_map::{step_color, step_icon};
 use crate::VectorcraftApp;
 use crate::theme::Tokens;
 
-const STRIP_HEIGHT: f32 = 30.0;
+const STRIP_HEIGHT: f32 = 38.0;
 const CHIP_HEIGHT: f32 = 20.0;
-const LABEL_CHARS: usize = 18;
-const ICON_SIZE: f32 = 12.0;
-const ICON_SLOT: f32 = ICON_SIZE + 3.0;
+/// A step's square.
+const STEP_SIZE: f32 = 28.0;
+const ICON_SIZE: f32 = 16.0;
+/// How much of a suppressed step's colour is left.
+const SUPPRESSED_FADE: f32 = 0.35;
 
-/// The icon a chip wears, by the command it records: a tool's icon for what a tool makes, the
-/// Color panel's for paint, else the generic command icon.
-fn chip_icon(cmd: &str) -> &'static str {
-    let name = match cmd {
-        "shape.rectangle" => crate::icons::tool_icon("tool-rect"),
-        "shape.roundedRectangle" => crate::icons::tool_icon("tool-rounded-rect"),
-        "shape.ellipse" => crate::icons::tool_icon("tool-ellipse"),
-        "shape.polygon" => crate::icons::tool_icon("tool-polygon"),
-        "shape.star" => crate::icons::tool_icon("tool-star"),
-        "shape.line" | "shape.lineSegment" => crate::icons::tool_icon("tool-line"),
-        "object.move" | "object.transform" => crate::icons::tool_icon("tool-selection"),
-        "object.rotate" => crate::icons::tool_icon("tool-rotate"),
-        "object.scale" => crate::icons::tool_icon("tool-scale"),
-        c if c.starts_with("paint.") => "palette",
-        c if c.starts_with("object.path.") => crate::icons::tool_icon("tool-pen"),
-        c if c.starts_with("sketch.") => "wb-sketch",
-        _ => "wb-command",
-    };
-    if crate::icons::exists(name) { name } else { "wb-command" }
+/// A change the hover card asks for, applied once the strip is drawn.
+enum Action {
+    Suppress(usize, bool),
+    Delete(usize),
 }
 
 /// What a chip needs to be drawn.
@@ -45,6 +33,7 @@ struct Chip {
     status: String,
     error: Option<String>,
     rolled_back: bool,
+    suppressed: bool,
 }
 
 /// The document's steps and the end marker (how many steps are applied), read from the stored
@@ -62,6 +51,7 @@ fn read_chips(app: &VectorcraftApp) -> (Vec<Chip>, usize) {
             status: s.get("status").and_then(Value::as_str).unwrap_or("ok").to_string(),
             error: s.get("error").and_then(Value::as_str).map(str::to_string),
             rolled_back: flag(s),
+            suppressed: s.get("suppressed").and_then(Value::as_bool) == Some(true),
         })
         .collect();
     let marker = tl
@@ -71,22 +61,6 @@ fn read_chips(app: &VectorcraftApp) -> (Vec<Chip>, usize) {
         .unwrap_or_else(|| chips.iter().take_while(|c| !c.rolled_back).count())
         .min(chips.len());
     (chips, marker)
-}
-
-/// A step's params as compact JSON.
-fn params_text(app: &VectorcraftApp, index: usize) -> String {
-    let p =
-        app.session.doc().ok().and_then(|st| st.doc.unknown.get(DOC_KEY)?.get("steps")?.get(index)?.get("params").cloned()).unwrap_or(Value::Null);
-    p.to_string()
-}
-
-fn truncate(s: &str) -> String {
-    if s.chars().count() <= LABEL_CHARS {
-        return s.to_string();
-    }
-    let mut out: String = s.chars().take(LABEL_CHARS - 1).collect();
-    out.push('…');
-    out
 }
 
 fn roll_to(app: &mut VectorcraftApp, index: usize) {
@@ -110,9 +84,20 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
     let n = chips.len();
     let grew = n > app.ui.workbench.strip_steps;
     app.ui.workbench.strip_steps = n;
+    let (hues, active_hue) = {
+        let wb = &mut app.ui.workbench;
+        let tab = wb.tab.clone();
+        let lay = wb.layout();
+        let hues: Vec<Color32> = chips.iter().map(|c| step_color(t, lay, &c.cmd)).collect();
+        let active = super::draw::active_tab(lay, &tab).and_then(|tab| tab.color.clone());
+        (hues, t.tab_color(active.as_deref()))
+    };
     let mut colors = Vec::with_capacity(n);
+    let mut suppressed = Vec::with_capacity(n);
+    let mut card_hits: Vec<(String, Rect)> = vec![];
     let mut roll: Option<usize> = None;
     let mut edit: Option<usize> = None;
+    let mut action: Option<Action> = None;
     egui::Panel::bottom("wb_timeline")
         .exact_size(STRIP_HEIGHT)
         .frame(egui::Frame::NONE.fill(t.panel_darker).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
@@ -142,28 +127,33 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                         ui.spacing_mut().item_spacing.x = 4.0;
                         for (i, c) in chips.iter().enumerate() {
                             if i == marker {
-                                marker_resp = Some(marker_bar(ui, t));
+                                marker_resp = Some(marker_bar(ui, t, active_hue));
                             }
-                            let text = truncate(&c.label);
-                            let galley = ui.painter().layout_no_wrap(text, FontId::proportional(11.5), t.text);
-                            let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 14.0 + ICON_SLOT, CHIP_HEIGHT), Sense::click());
+                            let (rect, resp) = ui.allocate_exact_size(vec2(STEP_SIZE, STEP_SIZE), Sense::click());
+                            let hue = hues.get(i).copied().unwrap_or(t.tab_draw);
                             let failed = c.status == "failed";
                             let grey = c.rolled_back || c.status == "pending";
-                            let (fill, ink) = if failed {
-                                (t.error, Color32::WHITE)
+                            let (mut fill, mut ink, mut border) = if failed {
+                                (t.error, t.on_accent, t.error)
                             } else if grey {
-                                (t.panel_darker, t.text_dim)
+                                (t.panel_darker, t.text_dim, t.border)
                             } else {
-                                (if resp.hovered() { t.hover } else { t.button }, t.text)
+                                (t.wash(hue, if resp.hovered() { 0.20 } else { 0.10 }), hue, t.wash(hue, 0.30))
                             };
-                            ui.painter().rect_filled(rect, 4.0, fill);
-                            ui.painter().rect_stroke(rect, 4.0, Stroke::new(1.0, t.button_border), egui::StrokeKind::Inside);
-                            let icon_rect =
-                                Rect::from_center_size(egui::pos2(rect.left() + 7.0 + ICON_SIZE / 2.0, rect.center().y), vec2(ICON_SIZE, ICON_SIZE));
-                            crate::icons::paint(ui, chip_icon(&c.cmd), icon_rect, ink);
-                            let text_pos = egui::pos2(rect.left() + 7.0 + ICON_SLOT, rect.center().y - galley.size().y / 2.0);
-                            ui.painter().galley(text_pos, galley.clone(), ink);
+                            if c.suppressed {
+                                let fade = |x: Color32| x.gamma_multiply(SUPPRESSED_FADE);
+                                (fill, ink, border) = (fade(fill), fade(ink), fade(border));
+                            }
+                            ui.painter().rect_filled(rect, 8.0, fill);
+                            ui.painter().rect_stroke(rect, 8.0, Stroke::new(1.0, border), egui::StrokeKind::Inside);
+                            let icon_rect = Rect::from_center_size(rect.center(), vec2(ICON_SIZE, ICON_SIZE));
+                            crate::icons::paint(ui, step_icon(&c.cmd), icon_rect, ink);
+                            if c.suppressed {
+                                let r = rect.shrink(6.0);
+                                ui.painter().line_segment([r.left_bottom(), r.right_top()], Stroke::new(1.5, t.text_dim));
+                            }
                             colors.push(fill);
+                            suppressed.push(c.suppressed);
                             rects.push(rect);
                             app.ui.workbench.hits.push((format!("chip:{i}"), rect));
                             if grew && i + 1 == n {
@@ -172,18 +162,10 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                             if resp.double_clicked() {
                                 edit = Some(i);
                             }
-                            let params = if resp.hovered() { params_text(app, i) } else { String::new() };
-                            resp.on_hover_ui(|ui| {
-                                ui.label(egui::RichText::new(&c.label).strong());
-                                ui.label(egui::RichText::new(params).monospace());
-                                if let Some(e) = &c.error {
-                                    ui.colored_label(t.error, e);
-                                }
-                                ui.weak(tl!("Double-click to edit"));
-                            });
+                            resp.on_hover_ui(|ui| hover_card(ui, t, i, c, &mut card_hits, &mut edit, &mut roll, &mut action));
                         }
                         if marker == n {
-                            marker_resp = Some(marker_bar(ui, t));
+                            marker_resp = Some(marker_bar(ui, t, active_hue));
                         }
                     });
                 });
@@ -195,7 +177,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                         let k = rects.iter().filter(|r| r.center().x < p.x).count();
                         if let Some(r) = rects.get(k).or(rects.last()) {
                             let x = if k < rects.len() { r.left() - 2.0 } else { r.right() + 2.0 };
-                            ui.painter().vline(x, m.rect.y_range(), Stroke::new(2.0, t.selection));
+                            ui.painter().vline(x, m.rect.y_range(), Stroke::new(2.0, active_hue));
                         }
                     }
                     if m.drag_stopped()
@@ -210,19 +192,82 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
             });
         });
     app.ui.workbench.chip_colors = colors;
+    app.ui.workbench.chip_hues = hues;
+    app.ui.workbench.chip_suppressed = suppressed;
+    app.ui.workbench.hits.extend(card_hits);
     if let Some(i) = edit {
         let label = chips.get(i).map(|c| c.label.clone()).unwrap_or_default();
         open_form(app, i, &label);
+    }
+    match action {
+        Some(Action::Suppress(index, on)) => run(app, "timeline.suppressStep", json!({"index": index, "on": on})),
+        Some(Action::Delete(index)) => run(app, "timeline.deleteStep", json!({"index": index})),
+        None => {}
     }
     if let Some(k) = roll {
         roll_to(app, k);
     }
 }
 
+/// The card shown over a hovered step: its number and label, its status, and four buttons.
+#[allow(clippy::too_many_arguments)]
+fn hover_card(
+    ui: &mut Ui,
+    t: &Tokens,
+    i: usize,
+    c: &Chip,
+    hits: &mut Vec<(String, Rect)>,
+    edit: &mut Option<usize>,
+    roll: &mut Option<usize>,
+    action: &mut Option<Action>,
+) {
+    ui.label(egui::RichText::new(format!("{} {} · {}", tl!("Step"), i + 1, c.label)).strong());
+    if c.rolled_back {
+        ui.label(tl!("Rolled back"));
+    } else if c.status == "pending" {
+        ui.label(tl!("Pending"));
+    } else if c.status == "failed" {
+        ui.colored_label(t.error, format!("{}: {}", tl!("Failed"), c.error.as_deref().unwrap_or_default()));
+    } else {
+        ui.label(tl!("OK"));
+    }
+    if c.suppressed {
+        ui.label(tl!("Suppressed"));
+    }
+    ui.horizontal(|ui| {
+        let r = ui.small_button(tl!("Edit…"));
+        hits.push(("card:edit".into(), r.rect));
+        if r.clicked() {
+            *edit = Some(i);
+        }
+        let r = ui.small_button(if c.suppressed { tl!("Unsuppress") } else { tl!("Suppress") });
+        hits.push(("card:suppress".into(), r.rect));
+        if r.clicked() {
+            *action = Some(Action::Suppress(i, !c.suppressed));
+        }
+        let r = ui.small_button(tl!("Roll to here"));
+        hits.push(("card:roll".into(), r.rect));
+        if r.clicked() {
+            *roll = Some(i + 1);
+        }
+        let r = ui.small_button(tl!("Delete"));
+        hits.push(("card:delete".into(), r.rect));
+        if r.clicked() {
+            *action = Some(Action::Delete(i));
+        }
+    });
+}
+
+fn run(app: &mut VectorcraftApp, cmd: &str, params: Value) {
+    if let Err(e) = app.run(cmd, params) {
+        app.status(e);
+    }
+}
+
 /// The end marker: a vertical bar, draggable.
-fn marker_bar(ui: &mut Ui, t: &Tokens) -> egui::Response {
+fn marker_bar(ui: &mut Ui, t: &Tokens, hue: Color32) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(8.0, CHIP_HEIGHT + 4.0), Sense::drag());
-    let colour = if resp.hovered() || resp.dragged() { t.text_strong } else { t.selection };
+    let colour = if resp.hovered() || resp.dragged() { t.text_strong } else { hue };
     ui.painter().rect_filled(Rect::from_center_size(rect.center(), vec2(3.0, rect.height())), 1.5, colour);
     resp.on_hover_cursor(egui::CursorIcon::ResizeHorizontal)
 }

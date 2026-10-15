@@ -3896,5 +3896,14 @@ axis	Both	Ambos
 	Next step	Próxima etapa
 	Last step	Última etapa
 	Step {n} failed: {error}	A etapa {n} falhou: {error}
-	Double-click to edit	Clique duas vezes para editar
 	Roll Timeline	Recuar linha do tempo
+	Step	Etapa
+	Failed	Falhou
+	Suppressed	Suprimido
+	Rolled back	Revertido
+	Pending	Pendente
+	Suppress	Suprimir
+	Unsuppress	Deixar de suprimir
+	Roll to here	Voltar até aqui
+	Delete Timeline Step	Excluir etapa da linha do tempo
+	Suppress Timeline Step	Suprimir etapa da linha do tempo

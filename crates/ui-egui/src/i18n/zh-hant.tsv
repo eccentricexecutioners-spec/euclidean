@@ -3845,3 +3845,12 @@ lighting	Light	光源
 	Step {n} failed: {error}	第 {n} 步失敗：{error}
 	Double-click to edit	按兩下以編輯
 	Roll Timeline	回溯時間軸
+	Failed	失敗
+	Suppressed	已抑制
+	Rolled back	已回復
+	Pending	待處理
+	Suppress	抑制
+	Unsuppress	取消抑制
+	Roll to here	回復到此處
+	Delete Timeline Step	刪除時間軸步驟
+	Suppress Timeline Step	抑制時間軸步驟

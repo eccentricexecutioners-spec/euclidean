@@ -4521,3 +4521,12 @@ lighting	Light	Свет
 	Step {n} failed: {error}	Шаг {n} не выполнен: {error}
 	Double-click to edit	Дважды щёлкните для редактирования
 	Roll Timeline	Откатить временную шкалу
+	Failed	Ошибка
+	Suppressed	Подавлен
+	Rolled back	Откатан
+	Pending	Ожидает
+	Suppress	Подавить
+	Unsuppress	Снять подавление
+	Roll to here	Откатить до сюда
+	Delete Timeline Step	Удалить шаг временной шкалы
+	Suppress Timeline Step	Подавить шаг временной шкалы

@@ -4489,3 +4489,12 @@ lighting	Light	광원
 	Step {n} failed: {error}	{n}단계 실패: {error}
 	Double-click to edit	두 번 클릭하여 편집
 	Roll Timeline	타임라인 되감기
+	Failed	실패
+	Suppressed	비활성화됨
+	Rolled back	롤백됨
+	Pending	대기 중
+	Suppress	비활성화
+	Unsuppress	비활성화 해제
+	Roll to here	여기로 롤백
+	Delete Timeline Step	타임라인 단계 삭제
+	Suppress Timeline Step	타임라인 단계 비활성화

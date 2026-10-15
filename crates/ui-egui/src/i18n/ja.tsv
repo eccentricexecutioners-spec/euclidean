@@ -4519,3 +4519,12 @@ lighting	Light	ライト
 	Step {n} failed: {error}	ステップ {n} が失敗しました: {error}
 	Double-click to edit	ダブルクリックで編集
 	Roll Timeline	タイムラインを巻き戻す
+	Failed	失敗
+	Suppressed	抑制済み
+	Rolled back	ロールバック済み
+	Pending	保留中
+	Suppress	抑制
+	Unsuppress	抑制を解除
+	Roll to here	ここまでロール
+	Delete Timeline Step	タイムラインのステップを削除
+	Suppress Timeline Step	タイムラインのステップを抑制

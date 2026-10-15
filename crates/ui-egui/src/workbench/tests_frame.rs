@@ -324,18 +324,16 @@ impl Rig {
 }
 
 #[test]
-fn the_strip_draws_one_chip_per_step() {
+fn the_strip_draws_one_square_per_step() {
     let (mut rig, _) = timeline_rig();
-    let text = rig.settle();
-    for want in ["Rectangle", "Ellipse", "Offset Path 5"] {
-        assert!(text.contains(want), "missing {want}:\n{text}");
-    }
+    rig.settle();
     let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
     for i in 0..4 {
         assert!(names.contains(&format!("chip:{i}")), "{names:?}");
     }
     assert!(!names.contains(&"chip:4".to_string()));
     assert_eq!(rig.app.ui.workbench.chip_colors.len(), 4);
+    assert_eq!(rig.app.ui.workbench.chip_hues.len(), 4);
 }
 
 #[test]
@@ -405,6 +403,91 @@ fn the_four_buttons_move_the_end_marker() {
     assert_eq!(marker(&mut rig), 4);
     rig.click("tl:prev");
     assert_eq!(marker(&mut rig), 3);
+}
+
+impl Rig {
+    /// Hover `name` with a zero tooltip delay, then let the frames run.
+    fn hover(&mut self, name: &str) -> String {
+        self.ctx.global_style_mut(|s| s.interaction.tooltip_delay = 0.0);
+        let p = self.hit(name);
+        let mut text = self.frame(vec![Event::PointerMoved(p)]);
+        for _ in 0..3 {
+            text = self.frame(vec![]);
+        }
+        text
+    }
+}
+
+fn timeline_list(rig: &mut Rig) -> serde_json::Value {
+    rig.app.session.execute("timeline.list", &json!({})).unwrap()
+}
+
+#[test]
+fn strip_draws_one_icon_per_step_and_no_label() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let s = &mut rig.app.session;
+    s.execute("timeline.setRecording", &json!({"on": true})).unwrap();
+    s.execute("shape.rectangle", &json!({"x": 10, "y": 10, "width": 200, "height": 40})).unwrap();
+    s.execute("shape.ellipse", &json!({"x": 100, "y": 50, "width": 60, "height": 30})).unwrap();
+    let text = rig.settle();
+    let chips: Vec<_> = (0..2).map(|i| hit_rect(&rig, &format!("chip:{i}"))).collect();
+    assert!(rig.app.ui.workbench.hits.iter().filter(|h| h.0.starts_with("chip:")).count() == 2);
+    for r in chips {
+        assert!((r.width() - r.height()).abs() < 1.0, "{r:?}");
+        assert!((r.width() - 28.0).abs() < 1.0, "{r:?}");
+    }
+    let labels: Vec<String> = timeline_list(&mut rig)["steps"].as_array().unwrap().iter().map(|s| s["label"].as_str().unwrap().to_string()).collect();
+    assert_eq!(labels.len(), 2);
+    for l in labels {
+        assert!(!text.contains(&l), "label {l} drawn:\n{text}");
+    }
+}
+
+#[test]
+fn a_sketch_step_takes_sketch_colour_and_a_step_in_no_tab_takes_draw() {
+    let t = crate::theme::Tokens::get(&egui::Context::default());
+    let lay = super::resolve(&super::default_layout()).0;
+    use super::step_map::{step_color, step_tab};
+    assert_eq!(step_tab(&lay, "sketch.edit.new").map(|x| x.id.as_str()), Some("sketch"));
+    assert_eq!(step_color(&t, &lay, "sketch.edit.new"), t.tab_sketch);
+    assert!(step_tab(&lay, "document.setup").is_none(), "pick another command if a tab gains it");
+    assert_eq!(step_color(&t, &lay, "document.setup"), t.tab_draw);
+    assert_eq!(step_color(&t, &lay, "shape.rectangle"), t.tab_draw);
+    assert_eq!(step_color(&t, &lay, "text.create"), t.tab_type);
+}
+
+#[test]
+fn hovering_a_step_shows_its_label_and_status() {
+    let (mut rig, _) = timeline_rig();
+    let before = rig.settle();
+    assert!(!before.contains("Step 1"), "{before}");
+    let text = rig.hover("chip:0");
+    assert!(text.contains("Step 1"), "{text}");
+    assert!(text.contains("Rectangle"), "{text}");
+    assert!(text.contains("OK"), "{text}");
+    for b in ["card:edit", "card:suppress", "card:roll", "card:delete"] {
+        assert!(rig.app.ui.workbench.hits.iter().any(|h| h.0 == b), "no {b}");
+    }
+}
+
+#[test]
+fn suppress_from_the_card_fades_the_step_and_runs_suppress_step() {
+    let (mut rig, _) = timeline_rig();
+    rig.hover("chip:0");
+    let normal = rig.app.ui.workbench.chip_colors[0];
+    // Straight from the chip onto the card button, so the card stays open.
+    let p = rig.hit("card:suppress");
+    rig.frame(vec![Event::PointerMoved(p)]);
+    let p = rig.hit("card:suppress");
+    let button = |pressed| Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
+    rig.frame(vec![button(true)]);
+    rig.frame(vec![button(false)]);
+    rig.settle();
+    let steps = timeline_list(&mut rig);
+    assert_eq!(steps["steps"][0]["suppressed"], json!(true), "{steps}");
+    assert!(rig.app.ui.workbench.chip_suppressed[0]);
+    assert!(!rig.app.ui.workbench.chip_suppressed[1]);
+    assert_ne!(rig.app.ui.workbench.chip_colors[0], normal, "faded");
 }
 
 fn hit_rect(rig: &Rig, name: &str) -> egui::Rect {
