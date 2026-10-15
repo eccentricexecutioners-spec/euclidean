@@ -186,11 +186,31 @@ gate 3 "codesign --verify --deep --strict passes on both unzipped copies"
 # 5. Under Cargo Bay's 50 MB upload limit.
 [ "$BYTES" -lt "$LIMIT" ] || die "GATE 5 FAIL (STOP): the zip is $BYTES bytes, at or over $LIMIT; nothing sent"
 gate 5 "$BYTES bytes < $LIMIT"
-# The real run zips the same tag again: check git archive gives the same bytes, so the checked zip is the one sent.
+# The real run zips the same tag again. git archive stamps a tree's entries with the current time, so that zip differs
+# from the checked one in its time stamps only: check that, here on a second zip and after the release on the one sent.
+same_but_times() {
+  python3 -I - "$1" "$2" <<'PY'
+import os, struct, sys, zipfile
+a, b = sys.argv[1:]
+def untimed(extra):
+    # Zero the payload of the extended-timestamp field (0x5455, "UT"); keep every other byte.
+    out, i = b"", 0
+    while i + 4 <= len(extra):
+        hid, n = struct.unpack("<HH", extra[i:i + 4])
+        body = extra[i + 4:i + 4 + n]
+        out += extra[i:i + 4] + (bytes(len(body)) if hid == 0x5455 else body)
+        i += 4 + n
+    return out + extra[i:]
+key = lambda z: [(e.filename, e.CRC, e.compress_size, e.file_size, e.external_attr, e.compress_type, e.create_system,
+                  e.flag_bits, e.header_offset, untimed(e.extra)) for e in z.infolist()]
+ok = os.path.getsize(a) == os.path.getsize(b) and key(zipfile.ZipFile(a)) == key(zipfile.ZipFile(b))
+sys.exit(0 if ok else 1)
+PY
+}
 release_tool --dry-run "$OUT/signed-again" >/dev/null
-[ "$(shasum -a 256 < "$ZIP")" = "$(shasum -a 256 < "$OUT/signed-again/Euclidean.app-$VERSION.zip")" ] \
-  || die "the release tool's zip is not reproducible; the checked zip might not be the one sent"
-echo "release-mac: the release tool zips this tag to the same bytes again (sha256 $(shasum -a 256 < "$ZIP" | cut -c1-16)…)"
+same_but_times "$ZIP" "$OUT/signed-again/Euclidean.app-$VERSION.zip" \
+  || die "a second zip of this tag differs from the checked one beyond time stamps; nothing sent"
+echo "release-mac: a second zip of this tag matches the checked one in everything but time stamps"
 
 if [ "$DRY" = 1 ]; then
   echo "release-mac: dry run: $ZIP ($BYTES bytes), manifest signed by $KEY_ID. Nothing sent, no tag made."
@@ -199,6 +219,13 @@ fi
 
 # --- 5. Release, then tag ---------------------------------------------------------------------------------------------
 CARGO_BAY_PUBLISH_KEY="$CARGO_BAY_PUBLISH_KEY" release_tool | tee "$OUT/release.txt"
+# The tool leaves the zip it sent in a fresh $TMPDIR/cargo-bay-release-* folder; Cargo Bay finalized it by its sha256.
+sent="$(ls -t "${TMPDIR:-/tmp}"/cargo-bay-release-*/"Euclidean.app-$VERSION.zip" 2>/dev/null | head -1 || true)"
+if [ -n "$sent" ] && same_but_times "$ZIP" "$sent"; then
+  echo "release-mac: the zip sent ($sent, sha256 $(shasum -a 256 < "$sent" | cut -d' ' -f1)) matches the checked one but for time stamps" | tee -a "$OUT/release.txt"
+else
+  echo "release-mac: WARNING: could not match the zip sent (${sent:-not found}) to the checked one; check it by hand" | tee -a "$OUT/release.txt"
+fi
 git tag -a "$FORK_TAG" -m "Euclidean $VERSION, released through Cargo Bay (signed by $KEY_ID)"
 echo "release-mac: tagged $FORK_TAG here (not pushed). Signed by $KEY_ID."
 echo "release-mac: Mothership tool page: $MOTHERSHIP_PAGE"
