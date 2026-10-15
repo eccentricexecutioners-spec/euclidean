@@ -4916,7 +4916,16 @@ mark-style	Japanese	Japonesas
 	Later	Más tarde
 	Linking…	Vinculando…
 	Restart to update	Reiniciar para actualizar
-	{new} ready	{new} está listo
+	Euclidean Updates	Actualizaciones de Euclidean
+	Link…	Vincular…
+	Euclidean {new} is ready.	Euclidean {new} está listo.
+	Restart now	Reiniciar ahora
+	Checking the download…	Comprobando la descarga…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} está disponible (tienes {old}).
+	{received} of {total} MB	{received} de {total} MB
+	Try again	Reintentar
+	Euclidean {version} is up to date.	Euclidean {version} está actualizado.
+	Euclidean {new} ready	Euclidean {new} está listo
 @msg	Getting {new} ready…	Preparando {new}…
 @msg	{new} ready — Restart to update	{new} está listo — reinicia para actualizar
 @msg	Updated to {new} (was {old})	Actualizado a {new} (antes {old})

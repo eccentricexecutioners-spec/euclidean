@@ -4975,7 +4975,16 @@ theme	Appearance	Apparence
 	Later	Plus tard
 	Linking…	Liaison…
 	Restart to update	Redémarrer pour mettre à jour
-	{new} ready	{new} est prête
+	Euclidean Updates	Mises à jour d’Euclidean
+	Link…	Lier…
+	Euclidean {new} is ready.	Euclidean {new} est prêt.
+	Restart now	Redémarrer maintenant
+	Checking the download…	Vérification du téléchargement…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} est disponible (vous avez {old}).
+	{received} of {total} MB	{received} sur {total} Mo
+	Try again	Réessayer
+	Euclidean {version} is up to date.	Euclidean {version} est à jour.
+	Euclidean {new} ready	Euclidean {new} est prêt
 @msg	Getting {new} ready…	Préparation de {new}…
 @msg	{new} ready — Restart to update	{new} est prête — redémarrez pour mettre à jour
 @msg	Updated to {new} (was {old})	Mise à jour vers {new} effectuée (ancienne version : {old})

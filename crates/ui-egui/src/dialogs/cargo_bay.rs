@@ -98,8 +98,11 @@ pub fn check(app: &mut VectorcraftApp) -> Value {
         app.status(OFF);
         return json!({"started": false});
     };
-    host.check();
-    app.status("Checking for updates…");
+    // A version already staged shows its Restart now; asking again would only flash "Checking".
+    if !host.view().ready.is_some_and(|_| !host.view().busy) {
+        host.check();
+    }
+    app.updates_window = true;
     json!({"started": true})
 }
 
@@ -120,7 +123,10 @@ pub(crate) fn frame(app: &mut VectorcraftApp) {
     let Some(view) = view(app) else { return };
     if view.message_seq > app.updates_seen {
         app.updates_seen = view.message_seq;
-        if let Some(m) = view.message.clone() {
+        // The staged message ("{new} ready — Restart to update") repeats the status line's own
+        // "Euclidean {new} ready" and button, so it is not pushed there.
+        let staged = |m: &str| view.ready.as_deref().is_some_and(|r| m.starts_with(r) && m.ends_with("Restart to update"));
+        if let Some(m) = view.message.clone().filter(|m| !staged(m)) {
             app.status(m);
         }
     }
@@ -198,7 +204,7 @@ fn confirm(app: &mut VectorcraftApp, d: &Dialog) -> Result<Value, String> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
@@ -208,16 +214,16 @@ mod tests {
     use super::*;
 
     #[derive(Default)]
-    struct Calls {
-        links: Vec<String>,
-        checks: usize,
-        restarts: usize,
+    pub(crate) struct Calls {
+        pub(crate) links: Vec<String>,
+        pub(crate) checks: usize,
+        pub(crate) restarts: usize,
     }
 
     #[derive(Clone, Default)]
-    struct FakeHost {
-        view: Rc<RefCell<UpdateView>>,
-        calls: Rc<RefCell<Calls>>,
+    pub(crate) struct FakeHost {
+        pub(crate) view: Rc<RefCell<UpdateView>>,
+        pub(crate) calls: Rc<RefCell<Calls>>,
     }
 
     impl UpdateHost for FakeHost {
@@ -235,14 +241,14 @@ mod tests {
         }
     }
 
-    struct Rig {
-        app: VectorcraftApp,
-        ctx: egui::Context,
-        host: FakeHost,
+    pub(crate) struct Rig {
+        pub(crate) app: VectorcraftApp,
+        pub(crate) ctx: egui::Context,
+        pub(crate) host: FakeHost,
     }
 
     impl Rig {
-        fn new(on: bool) -> Rig {
+        pub(crate) fn new(on: bool) -> Rig {
             let host = FakeHost::default();
             let services = crate::Services { updates: on.then(|| Box::new(host.clone()) as Box<dyn UpdateHost>), ..Default::default() };
             let app = VectorcraftApp::new(vectorcraft_engine::Session::new(), services);
@@ -251,7 +257,7 @@ mod tests {
             Rig { app, ctx, host }
         }
 
-        fn frame(&mut self, events: Vec<egui::Event>) -> egui::FullOutput {
+        pub(crate) fn frame(&mut self, events: Vec<egui::Event>) -> egui::FullOutput {
             let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1200.0, 800.0));
             let app = &mut self.app;
             let mut out = self.ctx.run_ui(egui::RawInput { events, screen_rect: Some(screen), ..Default::default() }, |ui| {
@@ -262,7 +268,7 @@ mod tests {
             out
         }
 
-        fn settle(&mut self) -> String {
+        pub(crate) fn settle(&mut self) -> String {
             let mut text = String::new();
             for _ in 0..5 {
                 text = crate::tests_labels::shapes_text(&self.frame(vec![]));
@@ -271,10 +277,10 @@ mod tests {
         }
 
         /// Where `label` is painted, in the last frame.
-        fn find(&mut self, label: &str) -> egui::Pos2 {
+        pub(crate) fn find(&mut self, label: &str) -> egui::Pos2 {
             fn walk(s: &Shape, label: &str, out: &mut Option<egui::Pos2>) {
                 match s {
-                    Shape::Text(t) if t.galley.text() == label => *out = Some(t.pos + t.galley.size() / 2.0),
+                    Shape::Text(t) if t.galley.text() == label => *out = Some(t.pos + t.galley.rect.center().to_vec2()),
                     Shape::Vec(v) => v.iter().for_each(|s| walk(s, label, out)),
                     _ => {}
                 }
@@ -285,7 +291,7 @@ mod tests {
             at.unwrap_or_else(|| panic!("{label} is not on screen"))
         }
 
-        fn click(&mut self, label: &str) {
+        pub(crate) fn click(&mut self, label: &str) {
             let pos = self.find(label);
             let button = |pressed| egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
             self.frame(vec![egui::Event::PointerMoved(pos)]);
@@ -294,7 +300,7 @@ mod tests {
             self.settle();
         }
 
-        fn dialog_kind(&self) -> Option<&str> {
+        pub(crate) fn dialog_kind(&self) -> Option<&str> {
             self.app.ui.dialog.as_ref().map(|d| d.kind.as_str())
         }
     }
@@ -357,7 +363,7 @@ mod tests {
         assert!(!text.contains("Restart to update"), "{text}");
         rig.host.view.borrow_mut().ready = Some("0.1.1".into());
         let text = rig.settle();
-        assert!(text.lines().any(|l| l == "0.1.1 ready"), "{text}");
+        assert!(text.lines().any(|l| l == "Euclidean 0.1.1 ready"), "{text}");
         assert!(text.lines().any(|l| l == "Restart to update"), "{text}");
     }
 
@@ -382,7 +388,7 @@ mod tests {
         rig.settle();
         assert_eq!(rig.app.run("help.checkForUpdates", json!({})).unwrap(), json!({"started": true}));
         assert_eq!(rig.host.calls.borrow().checks, 1);
-        assert_eq!(rig.app.ui.status, "Checking for updates…");
+        assert!(rig.app.updates_window);
         rig.settle();
         assert_eq!(rig.host.calls.borrow().checks, 1, "a frame never checks by itself");
     }

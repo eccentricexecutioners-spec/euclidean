@@ -95,6 +95,7 @@ pub mod tile_edge_color;
 mod tools;
 mod transform;
 pub mod transform_each;
+pub mod updates;
 pub mod variables;
 pub mod width_point;
 
@@ -377,6 +378,7 @@ pub(crate) fn settle(app: &mut VectorcraftApp) {
 
 pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     about::show(app, ctx);
+    updates::show(app, ctx);
     settle(app);
     confirm::show_waiting(app);
     // The kind of dialog shown last frame: a different one (or none) means this one just opened, and

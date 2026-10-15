@@ -4083,7 +4083,16 @@ lighting	Light	光源
 	Later	稍后
 	Linking…	正在链接…
 	Restart to update	重启以更新
-	{new} ready	{new} 已就绪
+	Euclidean Updates	Euclidean 更新
+	Link…	关联…
+	Euclidean {new} is ready.	Euclidean {new} 已就绪。
+	Restart now	立即重启
+	Checking the download…	正在检查下载内容…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} 可用（当前为 {old}）。
+	{received} of {total} MB	{received} / {total} MB
+	Try again	重试
+	Euclidean {version} is up to date.	Euclidean {version} 已是最新版本。
+	Euclidean {new} ready	Euclidean {new} 已就绪
 @msg	Getting {new} ready…	正在准备 {new}…
 @msg	{new} ready — Restart to update	{new} 已就绪 — 重启以更新
 @msg	Updated to {new} (was {old})	已更新到 {new}（之前为 {old}）

@@ -3865,7 +3865,16 @@ lighting	Light	光源
 	Later	稍後
 	Linking…	正在連結…
 	Restart to update	重新啟動以更新
-	{new} ready	{new} 已就緒
+	Euclidean Updates	Euclidean 更新
+	Link…	連結…
+	Euclidean {new} is ready.	Euclidean {new} 已就緒。
+	Restart now	立即重新啟動
+	Checking the download…	正在檢查下載內容…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} 可用（目前為 {old}）。
+	{received} of {total} MB	{received} / {total} MB
+	Try again	重試
+	Euclidean {version} is up to date.	Euclidean {version} 已是最新版本。
+	Euclidean {new} ready	Euclidean {new} 已就緒
 @msg	Getting {new} ready…	正在準備 {new}…
 @msg	{new} ready — Restart to update	{new} 已就緒 — 重新啟動以更新
 @msg	Updated to {new} (was {old})	已更新至 {new}（先前為 {old}）

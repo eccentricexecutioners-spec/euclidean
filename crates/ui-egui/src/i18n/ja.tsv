@@ -4539,7 +4539,16 @@ lighting	Light	ライト
 	Later	あとで
 	Linking…	リンク中…
 	Restart to update	再起動して更新
-	{new} ready	{new} の準備ができました
+	Euclidean Updates	Euclidean のアップデート
+	Link…	リンク…
+	Euclidean {new} is ready.	Euclidean {new} の準備ができました。
+	Restart now	今すぐ再起動
+	Checking the download…	ダウンロードを確認しています…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} が利用できます（現在は {old}）。
+	{received} of {total} MB	{received} / {total} MB
+	Try again	再試行
+	Euclidean {version} is up to date.	Euclidean {version} は最新です。
+	Euclidean {new} ready	Euclidean {new} の準備ができました
 @msg	Getting {new} ready…	{new} を準備しています…
 @msg	{new} ready — Restart to update	{new} の準備ができました — 再起動して更新
 @msg	Updated to {new} (was {old})	{new} に更新しました（以前は {old}）

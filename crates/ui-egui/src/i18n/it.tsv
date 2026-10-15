@@ -4545,7 +4545,16 @@ lighting	Light	Luce
 	Later	Più tardi
 	Linking…	Collegamento in corso…
 	Restart to update	Riavvia per aggiornare
-	{new} ready	{new} pronta
+	Euclidean Updates	Aggiornamenti di Euclidean
+	Link…	Collega…
+	Euclidean {new} is ready.	Euclidean {new} è pronto.
+	Restart now	Riavvia ora
+	Checking the download…	Controllo del download…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} è disponibile (hai {old}).
+	{received} of {total} MB	{received} di {total} MB
+	Try again	Riprova
+	Euclidean {version} is up to date.	Euclidean {version} è aggiornato.
+	Euclidean {new} ready	Euclidean {new} pronto
 @msg	Getting {new} ready…	Preparazione di {new}…
 @msg	{new} ready — Restart to update	{new} pronta — riavvia per aggiornare
 @msg	Updated to {new} (was {old})	Aggiornato a {new} (era {old})

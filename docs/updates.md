@@ -76,9 +76,25 @@ Mothership's Tools page".
 - **Check for Updates…** (`help.checkForUpdates`; macOS app menu, else Help) and **Link to Cargo
   Bay…** (`help.linkCargoBay`, Help). Both are UI commands, so the CLI and control channel reach
   them.
-- A linked copy checks once at start on a background thread. A staged update shows "{new} ready"
-  and **Restart to update** in the status line; the button quits as Quit does (unsaved documents
-  are asked about) and opens the app again, which swaps at start.
+- A linked copy checks once at start on a background thread, quietly: no window opens. A staged
+  update shows "Euclidean {new} ready" and a single **Restart to update** button in the status line
+  (the staged message is not repeated there); the button quits as Quit does (unsaved documents are
+  asked about) and opens the app again, which swaps at start. Clicking the "ready" text opens the
+  window below.
+- **Check for Updates…** opens the **Euclidean Updates** window (non-modal, closable with the x) and
+  starts a check. If a version is already staged it just shows that state. The window shows one
+  state, taken from the updater each frame:
+  - not linked: "Link Euclidean to Cargo Bay to get updates." and **Link…** (opens the link dialog);
+  - checking: a spinner and "Checking for updates…";
+  - update available (a Mac downloads straight away): "Euclidean {new} is available (you have
+    {old}).", the release notes in a small scroll area, and a progress bar with "{received} of
+    {total} MB" (megabytes of 1,000,000 bytes, one decimal), then "Checking the download…";
+  - ready: "Euclidean {new} is ready." with **Restart now** and **Later** (Later closes the window;
+    the status line keeps its one Restart to update button);
+  - available elsewhere (Windows, Linux): the same header and notes, and the line that points to the
+    Mothership's Tools page, with **Close**; nothing is downloaded;
+  - error: the plain-language message with **Try again** and **Close**;
+  - up to date: "Euclidean {version} is up to date." with **Close**.
 
 ## Off switch
 

@@ -455,6 +455,8 @@ pub struct VectorcraftApp {
     updates_offered: bool,
     /// The newest updater message already shown in the status line ([`Services::updates`]).
     updates_seen: u64,
+    /// The Euclidean Updates window is open ([`dialogs::updates`]).
+    pub(crate) updates_window: bool,
 }
 
 /// A window capture asked for through the control channel (`ui.screenshot`), answered once a
@@ -546,6 +548,7 @@ impl VectorcraftApp {
             updates_later: false,
             updates_offered: false,
             updates_seen: 0,
+            updates_window: false,
         }
     }
 

@@ -4541,7 +4541,16 @@ lighting	Light	Свет
 	Later	Позже
 	Linking…	Связывание…
 	Restart to update	Перезапустить для обновления
-	{new} ready	{new} готова
+	Euclidean Updates	Обновления Euclidean
+	Link…	Привязать…
+	Euclidean {new} is ready.	Euclidean {new} готов.
+	Restart now	Перезапустить сейчас
+	Checking the download…	Проверка загруженного файла…
+	Euclidean {new} is available (you have {old}).	Доступен Euclidean {new} (у вас {old}).
+	{received} of {total} MB	{received} из {total} МБ
+	Try again	Повторить
+	Euclidean {version} is up to date.	Euclidean {version} — актуальная версия.
+	Euclidean {new} ready	Euclidean {new} готов
 @msg	Getting {new} ready…	Подготовка {new}…
 @msg	{new} ready — Restart to update	{new} готова — перезапустите для обновления
 @msg	Updated to {new} (was {old})	Обновлено до {new} (было {old})

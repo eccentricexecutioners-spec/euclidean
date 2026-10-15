@@ -4500,7 +4500,16 @@ theme	Appearance	Erscheinungsbild
 	Later	Später
 	Linking…	Wird verknüpft…
 	Restart to update	Zum Aktualisieren neu starten
-	{new} ready	{new} ist bereit
+	Euclidean Updates	Euclidean-Updates
+	Link…	Verknüpfen…
+	Euclidean {new} is ready.	Euclidean {new} ist bereit.
+	Restart now	Jetzt neu starten
+	Checking the download…	Der Download wird geprüft…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} ist verfügbar (Sie haben {old}).
+	{received} of {total} MB	{received} von {total} MB
+	Try again	Erneut versuchen
+	Euclidean {version} is up to date.	Euclidean {version} ist aktuell.
+	Euclidean {new} ready	Euclidean {new} ist bereit
 @msg	Getting {new} ready…	{new} wird vorbereitet…
 @msg	{new} ready — Restart to update	{new} ist bereit — zum Aktualisieren neu starten
 @msg	Updated to {new} (was {old})	Auf {new} aktualisiert (vorher {old})

@@ -4509,7 +4509,16 @@ lighting	Light	광원
 	Later	나중에
 	Linking…	링크하는 중…
 	Restart to update	다시 시작하여 업데이트
-	{new} ready	{new} 준비됨
+	Euclidean Updates	Euclidean 업데이트
+	Link…	연결…
+	Euclidean {new} is ready.	Euclidean {new}을(를) 사용할 준비가 되었습니다.
+	Restart now	지금 다시 시작
+	Checking the download…	다운로드를 확인하는 중…
+	Euclidean {new} is available (you have {old}).	Euclidean {new}을(를) 사용할 수 있습니다(현재 {old}).
+	{received} of {total} MB	{received} / {total} MB
+	Try again	다시 시도
+	Euclidean {version} is up to date.	Euclidean {version}은(는) 최신 버전입니다.
+	Euclidean {new} ready	Euclidean {new} 준비됨
 @msg	Getting {new} ready…	{new} 준비 중…
 @msg	{new} ready — Restart to update	{new} 준비됨 — 다시 시작하여 업데이트
 @msg	Updated to {new} (was {old})	{new}(으)로 업데이트됨(이전 {old})

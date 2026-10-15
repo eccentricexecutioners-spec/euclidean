@@ -4975,7 +4975,16 @@ mark-style	Japanese	Japonské
 	Later	Později
 	Linking…	Propojování…
 	Restart to update	Restartovat a aktualizovat
-	{new} ready	{new} je připraveno
+	Euclidean Updates	Aktualizace Euclideanu
+	Link…	Propojit…
+	Euclidean {new} is ready.	Euclidean {new} je připraven.
+	Restart now	Restartovat nyní
+	Checking the download…	Kontroluje se stažený soubor…
+	Euclidean {new} is available (you have {old}).	Euclidean {new} je k dispozici (máte {old}).
+	{received} of {total} MB	{received} z {total} MB
+	Try again	Zkusit znovu
+	Euclidean {version} is up to date.	Euclidean {version} je aktuální.
+	Euclidean {new} ready	Euclidean {new} je připraven
 @msg	Getting {new} ready…	Připravuje se {new}…
 @msg	{new} ready — Restart to update	{new} je připraveno — restartujte pro aktualizaci
 @msg	Updated to {new} (was {old})	Aktualizováno na {new} (bylo {old})

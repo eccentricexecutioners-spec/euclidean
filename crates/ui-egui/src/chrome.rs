@@ -585,8 +585,12 @@ pub fn status_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                         if ui.add(egui::Button::new(egui::RichText::new(tl!("Restart to update")).size(11.0)).small()).clicked() {
                             crate::dialogs::cargo_bay::restart(app);
                         }
-                        let text = crate::i18n::fmt(tl!("{new} ready"), &[("new", &ready)]);
-                        ui.label(egui::RichText::new(text).size(11.0).color(t.text));
+                        let text = crate::i18n::fmt(tl!("Euclidean {new} ready"), &[("new", &ready)]);
+                        let label = ui
+                            .add(egui::Label::new(egui::RichText::new(text).size(11.0).color(t.text)).selectable(false).sense(egui::Sense::click()));
+                        if label.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
+                            app.updates_window = true;
+                        }
                         ui.separator();
                     }
                     // Background saves, exports and opens in progress, else the last message.

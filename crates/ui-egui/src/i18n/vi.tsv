@@ -4527,7 +4527,16 @@ theme	Appearance	Giao diện
 	Later	Để sau
 	Linking…	Đang liên kết…
 	Restart to update	Khởi động lại để cập nhật
-	{new} ready	{new} đã sẵn sàng
+	Euclidean Updates	Cập nhật Euclidean
+	Link…	Liên kết…
+	Euclidean {new} is ready.	Euclidean {new} đã sẵn sàng.
+	Restart now	Khởi động lại ngay
+	Checking the download…	Đang kiểm tra bản tải xuống…
+	Euclidean {new} is available (you have {old}).	Đã có Euclidean {new} (bạn đang dùng {old}).
+	{received} of {total} MB	{received} / {total} MB
+	Try again	Thử lại
+	Euclidean {version} is up to date.	Euclidean {version} đã là bản mới nhất.
+	Euclidean {new} ready	Euclidean {new} đã sẵn sàng
 @msg	Getting {new} ready…	Đang chuẩn bị {new}…
 @msg	{new} ready — Restart to update	{new} đã sẵn sàng — khởi động lại để cập nhật
 @msg	Updated to {new} (was {old})	Đã cập nhật lên {new} (trước đó là {old})

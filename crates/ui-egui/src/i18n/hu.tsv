@@ -4942,7 +4942,16 @@ imageTrace	Outline	Körvonal
 	Later	Később
 	Linking…	Csatolás…
 	Restart to update	Újraindítás a frissítéshez
-	{new} ready	{new} kész
+	Euclidean Updates	Euclidean-frissítések
+	Link…	Összekapcsolás…
+	Euclidean {new} is ready.	Az Euclidean {new} készen áll.
+	Restart now	Újraindítás most
+	Checking the download…	A letöltés ellenőrzése…
+	Euclidean {new} is available (you have {old}).	Az Euclidean {new} elérhető (jelenleg {old} van meg).
+	{received} of {total} MB	{received} / {total} MB
+	Try again	Újra
+	Euclidean {version} is up to date.	Az Euclidean {version} naprakész.
+	Euclidean {new} ready	Euclidean {new} kész
 @msg	Getting {new} ready…	{new} előkészítése…
 @msg	{new} ready — Restart to update	{new} kész — indítsa újra a frissítéshez
 @msg	Updated to {new} (was {old})	Frissítve erre: {new} (előző: {old})
