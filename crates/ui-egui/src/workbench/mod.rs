@@ -33,6 +33,9 @@ pub struct WorkbenchState {
     pub tab: String,
     /// Left-column section ids (panels or `sections` names) folded shut.
     pub collapsed: BTreeSet<String>,
+    /// The panel each composite section shows in its tab strip, by section id (default = the first).
+    #[serde(default)]
+    pub section_tab: std::collections::BTreeMap<String, String>,
     pub left_width: f32,
     pub right_width: f32,
     pub right_collapsed: bool,
@@ -80,6 +83,7 @@ impl Default for WorkbenchState {
         Self {
             tab: String::new(),
             collapsed: BTreeSet::new(),
+            section_tab: Default::default(),
             left_width: 260.0,
             right_width: 280.0,
             right_collapsed: false,

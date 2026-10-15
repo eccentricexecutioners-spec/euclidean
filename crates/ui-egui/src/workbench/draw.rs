@@ -142,6 +142,14 @@ pub(crate) fn open_panel(app: &mut VectorcraftApp, id: &str) {
     if !keys.is_empty() {
         for (key, default) in keys {
             set_folded(&mut app.ui.workbench.collapsed, &key, default, false);
+            // A panel inside a section: show it (its tab, or the section's "More" row).
+            if let Some((sec, _)) = key.split_once('/') {
+                if default {
+                    set_folded(&mut app.ui.workbench.collapsed, &format!("{sec}/more"), true, false);
+                } else {
+                    app.ui.workbench.section_tab.insert(sec.to_string(), id.to_string());
+                }
+            }
         }
     } else if crate::floating::group_of(&app.ui, id).is_none() && !app.ui.workbench.right_panels.iter().any(|p| p == id) {
         app.ui.workbench.right_panels.push(id.to_string());
@@ -420,7 +428,7 @@ fn header(
 
 /// One panel's body, in a unique id scope.
 fn body(app: &mut VectorcraftApp, ui: &mut Ui, host: &str, id: &str) {
-    let tall = if id == "layers" { 320.0 } else { 400.0 };
+    let tall = if id == "layers" { 200.0 } else { 400.0 };
     ui.push_id((host, id), |ui| dock::panel_body(app, ui, id, ui.available_width(), tall));
 }
 
@@ -461,14 +469,56 @@ fn left_entry(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedL
             set_folded(&mut app.ui.workbench.collapsed, id, false, !folded);
         }
         if !folded {
-            for p in shown {
-                let key = format!("{id}/{p}");
-                let default = sec.collapsed.iter().any(|c| c == p);
-                panel_section(app, ui, t, &key, p, default, 10.0, id);
+            let (more, tabbed): (Vec<&String>, Vec<&String>) = shown.into_iter().partition(|p| sec.collapsed.iter().any(|c| c == *p));
+            if tabbed.is_empty() {
+                for p in more {
+                    panel_section(app, ui, t, &format!("{id}/{p}"), p, true, 10.0, id);
+                }
+                return;
+            }
+            let active = active_section_tab(&app.ui.workbench, id, &tabbed);
+            section_tab_strip(app, ui, t, id, &tabbed, &active);
+            body(app, ui, id, &active);
+            if !more.is_empty() {
+                let key = format!("{id}/more");
+                let folded = is_folded(&app.ui.workbench.collapsed, &key, true);
+                if header(app, ui, t, &key, tl!("More"), Some(folded), None, false, 10.0).toggled {
+                    set_folded(&mut app.ui.workbench.collapsed, &key, true, !folded);
+                }
+                if !folded {
+                    for p in more {
+                        panel_section(app, ui, t, &format!("{id}/{p}"), p, true, 20.0, id);
+                    }
+                }
             }
         }
     } else if crate::floating::group_of(&app.ui, id).is_none() {
         panel_section(app, ui, t, id, id, false, 0.0, "wb-left");
+    }
+}
+
+/// The panel a composite section's tab strip shows: the saved choice if it is still a tab, else the first.
+fn active_section_tab(wb: &super::WorkbenchState, section: &str, tabbed: &[&String]) -> String {
+    let saved = wb.section_tab.get(section);
+    tabbed.iter().find(|p| Some(**p) == saved).or(tabbed.first()).map(|p| (*p).clone()).unwrap_or_default()
+}
+
+/// The row of small tabs of a composite section, one per panel; a click records the choice.
+fn section_tab_strip(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, section: &str, tabbed: &[&String], active: &str) {
+    let mut chosen = None;
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 4.0;
+        ui.add_space(6.0);
+        for p in tabbed {
+            let resp = ui.selectable_label(p.as_str() == active, egui::RichText::new(tr(panel_label(p))).size(11.5).color(t.text_strong));
+            app.ui.workbench.hits.push((format!("sectiontab:{section}/{p}"), resp.rect));
+            if resp.clicked() {
+                chosen = Some((*p).clone());
+            }
+        }
+    });
+    if let Some(p) = chosen {
+        app.ui.workbench.section_tab.insert(section.to_string(), p);
     }
 }
 

@@ -163,13 +163,38 @@ fn collapsing_a_section_persists() {
     assert!(back.workbench.collapsed.contains("layers"));
     // A panel a section folds by default is flipped open by a click, and back.
     assert!(!rig.app.ui.workbench.collapsed.contains("colour/colorGuide"));
-    // Fold the tall ones above it so its header is on screen.
-    rig.app.ui.workbench.collapsed.extend(["colour/color", "colour/swatches", "colour/stroke"].map(String::from));
+    // Unfold "More" so the folded-by-default panels' headers are on screen.
+    rig.app.ui.workbench.collapsed.insert("colour/more".into());
     rig.settle();
     rig.click("section:colour/colorGuide");
     assert!(rig.app.ui.workbench.collapsed.contains("colour/colorGuide"));
     rig.click("section:colour/colorGuide");
     assert!(!rig.app.ui.workbench.collapsed.contains("colour/colorGuide"));
+}
+
+#[test]
+fn the_colour_section_is_a_tab_strip() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let first = rig.settle();
+    let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
+    for want in ["sectiontab:colour/color", "sectiontab:colour/swatches", "sectiontab:colour/stroke", "section:colour/more"] {
+        assert!(names.contains(&want.to_string()), "{want} in {names:?}");
+    }
+    assert!(!names.iter().any(|n| n == "section:colour/colorGuide"), "More starts folded");
+    let after = rig.click("sectiontab:colour/swatches");
+    assert_eq!(rig.app.ui.workbench.section_tab.get("colour").map(String::as_str), Some("swatches"));
+    assert_ne!(first, after, "the body changed");
+    let saved = serde_json::to_string(&rig.app.ui).unwrap();
+    let back: UiState = serde_json::from_str(&saved).unwrap();
+    assert_eq!(back.workbench.section_tab.get("colour").map(String::as_str), Some("swatches"));
+}
+
+#[test]
+fn drawing_tab_shows_properties_without_scrolling() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.settle();
+    let rect = rig.app.ui.workbench.hits.iter().find(|h| h.0 == "section:properties").map(|h| h.1).expect("Properties header drawn");
+    assert!(rect.bottom() < 850.0, "{rect:?}");
 }
 
 #[test]

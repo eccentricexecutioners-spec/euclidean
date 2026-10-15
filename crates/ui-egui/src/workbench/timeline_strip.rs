@@ -13,9 +13,33 @@ use crate::theme::Tokens;
 const STRIP_HEIGHT: f32 = 30.0;
 const CHIP_HEIGHT: f32 = 20.0;
 const LABEL_CHARS: usize = 18;
+const ICON_SIZE: f32 = 12.0;
+const ICON_SLOT: f32 = ICON_SIZE + 3.0;
+
+/// The icon a chip wears, by the command it records: a tool's icon for what a tool makes, the
+/// Color panel's for paint, else the generic command icon.
+fn chip_icon(cmd: &str) -> &'static str {
+    let name = match cmd {
+        "shape.rectangle" => crate::icons::tool_icon("tool-rect"),
+        "shape.roundedRectangle" => crate::icons::tool_icon("tool-rounded-rect"),
+        "shape.ellipse" => crate::icons::tool_icon("tool-ellipse"),
+        "shape.polygon" => crate::icons::tool_icon("tool-polygon"),
+        "shape.star" => crate::icons::tool_icon("tool-star"),
+        "shape.line" | "shape.lineSegment" => crate::icons::tool_icon("tool-line"),
+        "object.move" | "object.transform" => crate::icons::tool_icon("tool-selection"),
+        "object.rotate" => crate::icons::tool_icon("tool-rotate"),
+        "object.scale" => crate::icons::tool_icon("tool-scale"),
+        c if c.starts_with("paint.") => "palette",
+        c if c.starts_with("object.path.") => crate::icons::tool_icon("tool-pen"),
+        c if c.starts_with("sketch.") => "wb-sketch",
+        _ => "wb-command",
+    };
+    if crate::icons::exists(name) { name } else { "wb-command" }
+}
 
 /// What a chip needs to be drawn.
 struct Chip {
+    cmd: String,
     label: String,
     /// `ok`, `failed` or `pending`.
     status: String,
@@ -33,6 +57,7 @@ fn read_chips(app: &VectorcraftApp) -> (Vec<Chip>, usize) {
     let chips: Vec<Chip> = steps
         .iter()
         .map(|s| Chip {
+            cmd: s.get("cmd").and_then(Value::as_str).unwrap_or_default().to_string(),
             label: s.get("label").and_then(Value::as_str).unwrap_or_default().to_string(),
             status: s.get("status").and_then(Value::as_str).unwrap_or("ok").to_string(),
             error: s.get("error").and_then(Value::as_str).map(str::to_string),
@@ -121,7 +146,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                             }
                             let text = truncate(&c.label);
                             let galley = ui.painter().layout_no_wrap(text, FontId::proportional(11.5), t.text);
-                            let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 14.0, CHIP_HEIGHT), Sense::click());
+                            let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 14.0 + ICON_SLOT, CHIP_HEIGHT), Sense::click());
                             let failed = c.status == "failed";
                             let grey = c.rolled_back || c.status == "pending";
                             let (fill, ink) = if failed {
@@ -133,7 +158,11 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                             };
                             ui.painter().rect_filled(rect, 4.0, fill);
                             ui.painter().rect_stroke(rect, 4.0, Stroke::new(1.0, t.button_border), egui::StrokeKind::Inside);
-                            ui.painter().galley(rect.center() - galley.size() / 2.0, galley.clone(), ink);
+                            let icon_rect =
+                                Rect::from_center_size(egui::pos2(rect.left() + 7.0 + ICON_SIZE / 2.0, rect.center().y), vec2(ICON_SIZE, ICON_SIZE));
+                            crate::icons::paint(ui, chip_icon(&c.cmd), icon_rect, ink);
+                            let text_pos = egui::pos2(rect.left() + 7.0 + ICON_SLOT, rect.center().y - galley.size().y / 2.0);
+                            ui.painter().galley(text_pos, galley.clone(), ink);
                             colors.push(fill);
                             rects.push(rect);
                             app.ui.workbench.hits.push((format!("chip:{i}"), rect));
