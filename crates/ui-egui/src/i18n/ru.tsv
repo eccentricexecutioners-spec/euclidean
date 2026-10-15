@@ -4512,3 +4512,10 @@ lighting	Light	Свет
 @msg	this document has no timeline steps	в этом документе нет шагов временной шкалы
 	Collapse tool panel	Свернуть панель инструмента
 	Expand tool panel	Развернуть панель инструмента
+	First step	Первый шаг
+	Previous step	Предыдущий шаг
+	Next step	Следующий шаг
+	Last step	Последний шаг
+	Step {n} failed: {error}	Шаг {n} не выполнен: {error}
+	Double-click to edit	Дважды щёлкните для редактирования
+	Roll Timeline	Откатить временную шкалу

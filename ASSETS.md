@@ -113,6 +113,14 @@ Generated-in-code art is original and has no file to list. This covers the defau
 | `assets/icons/dc-center-show.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-clear.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-color-guide.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-place.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-fit.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-sketch.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-command.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-tl-first.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-tl-prev.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-tl-next.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-tl-last.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-crystallize.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-cube.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-dash-align.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |

@@ -4887,3 +4887,10 @@ mark-style	Japanese	Japonesas
 @msg	this document has no timeline steps	este documento no tiene pasos en la línea de tiempo
 	Collapse tool panel	Contraer el panel de herramientas
 	Expand tool panel	Expandir el panel de herramientas
+	First step	Primer paso
+	Previous step	Paso anterior
+	Next step	Paso siguiente
+	Last step	Último paso
+	Step {n} failed: {error}	El paso {n} falló: {error}
+	Double-click to edit	Doble clic para editar
+	Roll Timeline	Retroceder línea de tiempo

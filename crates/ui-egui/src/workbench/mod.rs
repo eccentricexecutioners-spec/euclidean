@@ -5,8 +5,11 @@
 
 mod draw;
 mod layout;
+mod step_form;
+mod timeline_strip;
 
 pub use draw::show;
+pub use step_form::StepForm;
 
 pub use layout::*;
 
@@ -58,6 +61,18 @@ pub struct WorkbenchState {
     /// shown once by the next frame.
     #[serde(skip)]
     pub unshown_warning: Option<String>,
+    /// Was sketch mode on last frame (the edge that switches to the SKETCH tab and back)?
+    #[serde(skip)]
+    pub in_sketch: bool,
+    /// The open step-parameters form (double-click a timeline chip).
+    #[serde(skip)]
+    pub step_form: Option<step_form::StepForm>,
+    /// The fill colour each timeline chip was drawn with last frame (what the tests read).
+    #[serde(skip)]
+    pub chip_colors: Vec<egui::Color32>,
+    /// How many steps the strip showed last frame (it scrolls to the end when this grows).
+    #[serde(skip)]
+    pub strip_steps: usize,
 }
 
 impl Default for WorkbenchState {
@@ -76,6 +91,10 @@ impl Default for WorkbenchState {
             open_group: None,
             hits: vec![],
             unshown_warning: None,
+            in_sketch: false,
+            step_form: None,
+            chip_colors: vec![],
+            strip_steps: 0,
         }
     }
 }

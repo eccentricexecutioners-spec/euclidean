@@ -3836,3 +3836,10 @@ lighting	Light	光源
 @msg	this document has no timeline steps	此文件沒有時間軸步驟
 	Collapse tool panel	摺疊工具面板
 	Expand tool panel	展開工具面板
+	First step	第一步
+	Previous step	上一步
+	Next step	下一步
+	Last step	最後一步
+	Step {n} failed: {error}	第 {n} 步失敗：{error}
+	Double-click to edit	按兩下以編輯
+	Roll Timeline	回溯時間軸

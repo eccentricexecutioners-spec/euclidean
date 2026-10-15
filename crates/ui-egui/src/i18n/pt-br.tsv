@@ -3889,3 +3889,10 @@ axis	Both	Ambos
 	Replay Timeline	Reproduzir linha do tempo
 	Collapse tool panel	Recolher o painel da ferramenta
 	Expand tool panel	Expandir o painel da ferramenta
+	First step	Primeira etapa
+	Previous step	Etapa anterior
+	Next step	Próxima etapa
+	Last step	Última etapa
+	Step {n} failed: {error}	A etapa {n} falhou: {error}
+	Double-click to edit	Clique duas vezes para editar
+	Roll Timeline	Recuar linha do tempo

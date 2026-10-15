@@ -4498,3 +4498,10 @@ theme	Appearance	Giao diện
 @msg	this document has no timeline steps	tài liệu này không có bước dòng thời gian nào
 	Collapse tool panel	Thu gọn bảng công cụ
 	Expand tool panel	Mở rộng bảng công cụ
+	First step	Bước đầu tiên
+	Previous step	Bước trước
+	Next step	Bước tiếp theo
+	Last step	Bước cuối cùng
+	Step {n} failed: {error}	Bước {n} thất bại: {error}
+	Double-click to edit	Nhấp đúp để chỉnh sửa
+	Roll Timeline	Tua lại dòng thời gian

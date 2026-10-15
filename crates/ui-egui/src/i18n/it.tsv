@@ -4516,3 +4516,10 @@ lighting	Light	Luce
 @msg	this document has no timeline steps	questo documento non ha passaggi nella timeline
 	Collapse tool panel	Comprimi il pannello strumento
 	Expand tool panel	Espandi il pannello strumento
+	First step	Primo passo
+	Previous step	Passo precedente
+	Next step	Passo successivo
+	Last step	Ultimo passo
+	Step {n} failed: {error}	Passo {n} non riuscito: {error}
+	Double-click to edit	Doppio clic per modificare
+	Roll Timeline	Sposta la fine della timeline

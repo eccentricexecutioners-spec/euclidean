@@ -4496,3 +4496,10 @@ lighting	Light	Світло
 @msg	this document has no timeline steps	у цьому документі немає кроків часової шкали
 	Collapse tool panel	Згорнути панель інструмента
 	Expand tool panel	Розгорнути панель інструмента
+	First step	Перший крок
+	Previous step	Попередній крок
+	Next step	Наступний крок
+	Last step	Останній крок
+	Step {n} failed: {error}	Крок {n} не виконано: {error}
+	Double-click to edit	Двічі клацніть, щоб редагувати
+	Roll Timeline	Відкотити часову шкалу

@@ -4510,3 +4510,10 @@ lighting	Light	ライト
 @msg	this document has no timeline steps	このドキュメントにはタイムラインのステップがありません
 	Collapse tool panel	ツールパネルを折りたたむ
 	Expand tool panel	ツールパネルを展開
+	First step	最初のステップ
+	Previous step	前のステップ
+	Next step	次のステップ
+	Last step	最後のステップ
+	Step {n} failed: {error}	ステップ {n} が失敗しました: {error}
+	Double-click to edit	ダブルクリックで編集
+	Roll Timeline	タイムラインを巻き戻す

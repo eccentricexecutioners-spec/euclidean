@@ -4913,3 +4913,10 @@ imageTrace	Outline	Körvonal
 @msg	this document has no timeline steps	ennek a dokumentumnak nincsenek idővonal-lépései
 	Collapse tool panel	Eszközpanel összecsukása
 	Expand tool panel	Eszközpanel kibontása
+	First step	Első lépés
+	Previous step	Előző lépés
+	Next step	Következő lépés
+	Last step	Utolsó lépés
+	Step {n} failed: {error}	A(z) {n}. lépés sikertelen: {error}
+	Double-click to edit	Kattintson duplán a szerkesztéshez
+	Roll Timeline	Idővonal visszagörgetése

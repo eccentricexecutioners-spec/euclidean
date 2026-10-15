@@ -4946,3 +4946,10 @@ theme	Appearance	Apparence
 @msg	this document has no timeline steps	ce document n’a aucune étape de chronologie
 	Collapse tool panel	Réduire le panneau d’outil
 	Expand tool panel	Développer le panneau d’outil
+	First step	Première étape
+	Previous step	Étape précédente
+	Next step	Étape suivante
+	Last step	Dernière étape
+	Step {n} failed: {error}	L'étape {n} a échoué : {error}
+	Double-click to edit	Double-cliquez pour modifier
+	Roll Timeline	Déplacer la fin de la chronologie

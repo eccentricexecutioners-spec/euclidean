@@ -4480,3 +4480,10 @@ lighting	Light	광원
 @msg	this document has no timeline steps	이 문서에는 타임라인 단계가 없습니다
 	Collapse tool panel	도구 패널 접기
 	Expand tool panel	도구 패널 펼치기
+	First step	첫 단계
+	Previous step	이전 단계
+	Next step	다음 단계
+	Last step	마지막 단계
+	Step {n} failed: {error}	{n}단계 실패: {error}
+	Double-click to edit	두 번 클릭하여 편집
+	Roll Timeline	타임라인 되감기

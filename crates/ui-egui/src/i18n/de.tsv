@@ -4471,3 +4471,10 @@ theme	Appearance	Erscheinungsbild
 @msg	this document has no timeline steps	dieses Dokument hat keine Zeitleistenschritte
 	Collapse tool panel	Werkzeugbedienfeld einklappen
 	Expand tool panel	Werkzeugbedienfeld ausklappen
+	First step	Erster Schritt
+	Previous step	Vorheriger Schritt
+	Next step	Nächster Schritt
+	Last step	Letzter Schritt
+	Step {n} failed: {error}	Schritt {n} fehlgeschlagen: {error}
+	Double-click to edit	Doppelklick zum Bearbeiten
+	Roll Timeline	Zeitleiste zurücksetzen

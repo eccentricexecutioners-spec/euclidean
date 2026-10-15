@@ -4946,3 +4946,10 @@ mark-style	Japanese	Japonské
 @msg	this document has no timeline steps	tento dokument nemá žádné kroky časové osy
 	Collapse tool panel	Sbalit panel nástroje
 	Expand tool panel	Rozbalit panel nástroje
+	First step	První krok
+	Previous step	Předchozí krok
+	Next step	Další krok
+	Last step	Poslední krok
+	Step {n} failed: {error}	Krok {n} selhal: {error}
+	Double-click to edit	Dvojitým kliknutím upravíte
+	Roll Timeline	Posunout časovou osu

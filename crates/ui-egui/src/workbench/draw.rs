@@ -25,6 +25,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     if let Some(w) = app.ui.workbench.unshown_warning.take() {
         app.status(w);
     }
+    follow_sketch_mode(app);
     let tab = active_tab(&lay, &app.ui.workbench.tab).cloned();
     let mode = app.ui.screen_mode;
     if mode < 2 {
@@ -45,8 +46,33 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         // The first bottom panel declared is the lowest: the navigation bar sits above the status
         // and hint bars, and the timeline strip, declared after it, above it.
         nav_bar(app, ui, &t, &lay);
+        if app.session.doc().is_ok() {
+            super::timeline_strip::show(app, ui, &t);
+        }
         left_column(app, ui, &t, &lay, tab.as_ref());
         tool_panel(app, ui, &t, &lay, tab.as_ref());
+    }
+    super::step_form::show(app, ui.ctx());
+}
+
+/// Entering sketch mode (from any tab, by any route) switches to the SKETCH tab, remembering the
+/// tab it came from in `prev_tab`; leaving it (Finish, Escape, undo) goes back.
+fn follow_sketch_mode(app: &mut VectorcraftApp) {
+    let now = sketch::active(app);
+    let wb = &mut app.ui.workbench;
+    if now == wb.in_sketch {
+        return;
+    }
+    wb.in_sketch = now;
+    if now {
+        if wb.tab != "sketch" {
+            wb.prev_tab = Some(std::mem::replace(&mut wb.tab, "sketch".into()));
+        }
+    } else if wb.tab == "sketch"
+        && let Some(prev) = wb.prev_tab.take()
+        && prev != "sketch"
+    {
+        wb.tab = prev;
     }
 }
 
@@ -125,8 +151,31 @@ pub(crate) fn open_panel(app: &mut VectorcraftApp, id: &str) {
 
 // ---------------------------------------------------------------- item buttons
 
-/// An item's icon in `rect`: a tool's own icon; any other item its first letter in a small frame.
+/// The icon of a command or panel item: the panel's own (as the dock's icon column shows it), the
+/// workbench's for a few commands; `None` for the rest.
+fn item_icon(item: &Item) -> Option<&'static str> {
+    let name = match item {
+        Item::Panel { id, .. } => {
+            crate::state::ICON_PANELS.iter().find(|p| p.0 == id).map(|p| p.2).or_else(|| crate::state::DockTab::from_id(id).map(|d| d.info().2))?
+        }
+        Item::Cmd { id, .. } => match id.as_str() {
+            "file.place.queue" => "wb-place",
+            "view.fitArtboard" | "view.fitAll" => "wb-fit",
+            "sketch.edit.new" => "wb-sketch",
+            _ => "wb-command",
+        },
+        Item::Tool(_) | Item::Sep => return None,
+    };
+    icons::exists(name).then_some(name)
+}
+
+/// An item's icon in `rect`: a tool's own icon, a panel's or command's icon ([`item_icon`]); else
+/// its first letter in a small frame.
 fn paint_item(ui: &Ui, t: &Tokens, item: &Item, rect: Rect, tint: Color32) {
+    if let Some(name) = item_icon(item) {
+        icons::paint(ui, name, rect, tint);
+        return;
+    }
     match item {
         Item::Tool(info) => icons::paint(ui, icons::tool_icon(info.icon), rect, tint),
         Item::Cmd { label, .. } | Item::Panel { label, .. } => {

@@ -155,7 +155,8 @@ fn collapsing_a_section_persists() {
     rig.click("section:layers");
     assert!(rig.app.ui.workbench.collapsed.contains("layers"), "{:?}", rig.app.ui.workbench.collapsed);
     let after = rig.settle();
-    assert!(after.len() < before.len(), "the body should be gone");
+    // (Not a length comparison: the timeline strip shortens the column, so folding Layers also brings Swatches into view.)
+    assert!(before.contains("Search All") && !after.contains("Search All"), "the body should be gone");
     assert!(after.contains("Layers"), "the header stays");
     let saved = serde_json::to_string(&rig.app.ui).unwrap();
     let back: UiState = serde_json::from_str(&saved).unwrap();
@@ -227,4 +228,156 @@ fn an_unknown_id_in_the_user_layout_file_is_one_status_line_warning() {
     assert!(rig.app.ui.status.contains("(+1 more)"), "{}", rig.app.ui.status);
     // The rest of the layout still draws.
     assert!(text.contains("SELECT") && text.contains("MODIFY"));
+}
+
+// ---------------------------------------------------------------- sketch tab
+
+#[test]
+fn new_sketch_from_any_tab_switches_to_sketch_and_shows_b3s_groups() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.app.ui.workbench.tab = "type".into();
+    rig.settle();
+    crate::sketch::new_sketch(&mut rig.app).unwrap();
+    let text = rig.settle();
+    assert_eq!(rig.app.ui.workbench.tab, "sketch");
+    assert_eq!(rig.app.ui.workbench.prev_tab.as_deref(), Some("type"));
+    assert!(text.contains("FINISH SKETCH") && text.contains("CONSTRAINTS"), "{text}");
+}
+
+#[test]
+fn finish_sketch_returns_to_the_previous_tab() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.app.ui.workbench.tab = "type".into();
+    rig.settle();
+    crate::sketch::new_sketch(&mut rig.app).unwrap();
+    rig.settle();
+    assert_eq!(rig.app.ui.workbench.tab, "sketch");
+    crate::sketch::finish(&mut rig.app);
+    rig.settle();
+    assert_eq!(rig.app.ui.workbench.tab, "type");
+}
+
+#[test]
+fn the_nav_bars_hand_and_zoom_select_those_tools() {
+    let mut rig = Rig::new(Layout::Fusion);
+    for id in ["zoom", "hand"] {
+        let label = vectorcraft_tools::tool_info(id).unwrap().label;
+        rig.click(&format!("nav:{label}"));
+        assert_eq!(rig.tool(), id);
+    }
+}
+
+// ---------------------------------------------------------------- timeline strip
+
+/// A Fusion rig that records the timeline, with the drawing of the engine's timeline tests:
+/// a rectangle, an ellipse, the rectangle offset by 5 and filled red (four steps).
+fn timeline_rig() -> (Rig, u64) {
+    let mut rig = Rig::new(Layout::Fusion);
+    let s = &mut rig.app.session;
+    s.execute("timeline.setRecording", &json!({"on": true})).unwrap();
+    s.execute("file.new", &json!({"width": 300, "height": 200})).unwrap();
+    let rect = s.execute("shape.rectangle", &json!({"x": 10, "y": 10, "width": 50, "height": 40})).unwrap()["id"].as_u64().unwrap();
+    s.execute("shape.ellipse", &json!({"x": 100, "y": 50, "width": 60, "height": 30})).unwrap();
+    s.execute("select.set", &json!({"ids": [rect]})).unwrap();
+    s.execute("object.path.offsetPath", &json!({"offset": 5})).unwrap();
+    let offset = s.doc().unwrap().selection.objects[0].0;
+    s.execute("paint.setFill", &json!({"color": "#ff0000"})).unwrap();
+    rig.settle();
+    (rig, offset)
+}
+
+impl Rig {
+    fn double_click(&mut self, name: &str) {
+        let p = self.hit(name);
+        self.frame(vec![Event::PointerMoved(p)]);
+        let button = |pressed| Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
+        for pressed in [true, false, true, false] {
+            self.frame(vec![button(pressed)]);
+        }
+        self.settle();
+    }
+}
+
+#[test]
+fn the_strip_draws_one_chip_per_step() {
+    let (mut rig, _) = timeline_rig();
+    let text = rig.settle();
+    for want in ["Rectangle", "Ellipse", "Offset Path 5"] {
+        assert!(text.contains(want), "missing {want}:\n{text}");
+    }
+    let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
+    for i in 0..4 {
+        assert!(names.contains(&format!("chip:{i}")), "{names:?}");
+    }
+    assert!(!names.contains(&"chip:4".to_string()));
+    assert_eq!(rig.app.ui.workbench.chip_colors.len(), 4);
+}
+
+#[test]
+fn double_clicking_a_chip_opens_its_form() {
+    let (mut rig, offset) = timeline_rig();
+    rig.double_click("chip:0");
+    let form = rig.app.ui.workbench.step_form.as_mut().expect("the form opened");
+    assert_eq!(form.index, 0);
+    assert!(form.params.contains_key("width"), "{:?}", form.params);
+    form.params.insert("width".into(), json!(120));
+    rig.settle();
+    rig.click("form:ok");
+    assert!(rig.app.ui.workbench.step_form.is_none());
+    let w = rig.app.session.doc().unwrap().doc.bounds_of(&[vectorcraft_doc::NodeId(offset)], false).unwrap().width();
+    assert!((w - 130.0).abs() < 1e-6, "{w}");
+}
+
+#[test]
+fn cancel_closes_the_form_without_editing() {
+    let (mut rig, _) = timeline_rig();
+    rig.double_click("chip:1");
+    assert_eq!(rig.app.ui.workbench.step_form.as_ref().map(|f| f.index), Some(1));
+    let before = serde_json::to_string(&*rig.app.session.doc().unwrap().doc).unwrap();
+    rig.click("form:cancel");
+    assert!(rig.app.ui.workbench.step_form.is_none());
+    assert_eq!(before, serde_json::to_string(&*rig.app.session.doc().unwrap().doc).unwrap());
+}
+
+#[test]
+fn a_failed_step_draws_red() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let s = &mut rig.app.session;
+    s.execute("timeline.setRecording", &json!({"on": true})).unwrap();
+    s.execute("file.new", &json!({"width": 300, "height": 200})).unwrap();
+    let rect = s.execute("shape.rectangle", &json!({"x": 10, "y": 10, "width": 50, "height": 40})).unwrap()["id"].as_u64().unwrap();
+    let ellipse = s.execute("shape.ellipse", &json!({"x": 100, "y": 50, "width": 60, "height": 30})).unwrap()["id"].as_u64().unwrap();
+    s.execute("edit.clear", &json!({"ids": [ellipse]})).unwrap();
+    s.execute("select.set", &json!({"ids": [rect]})).unwrap();
+    s.execute("object.path.offsetPath", &json!({"offset": 5})).unwrap();
+    s.execute("paint.setFill", &json!({"color": "#ff0000"})).unwrap();
+    s.execute("timeline.editStep", &json!({"index": 2, "params": {"ids": [rect]}})).unwrap();
+    rig.settle();
+    let tl = vectorcraft_engine::timeline::read(&rig.app.session.doc().unwrap().doc).unwrap();
+    assert_eq!(tl.steps[3].status, vectorcraft_engine::timeline::Status::Failed);
+    let t = crate::theme::Tokens::get(&rig.ctx);
+    let colors = rig.app.ui.workbench.chip_colors.clone();
+    assert_eq!(colors.len(), 5);
+    assert_eq!(colors[3], t.error, "the failed chip is the error colour");
+    assert_ne!(colors[0], t.error);
+    assert_ne!(colors[4], t.error, "the pending one after it is greyed, not red");
+    assert_ne!(colors[4], colors[0]);
+}
+
+#[test]
+fn the_four_buttons_move_the_end_marker() {
+    if vectorcraft_engine::cmd::find_command("timeline.rollTo").is_none() {
+        return;
+    }
+    let (mut rig, _) = timeline_rig();
+    let marker = |rig: &mut Rig| rig.app.session.execute("timeline.list", &json!({})).unwrap()["marker"].as_u64().unwrap();
+    assert_eq!(marker(&mut rig), 4);
+    rig.click("tl:first");
+    assert_eq!(marker(&mut rig), 0);
+    rig.click("tl:next");
+    assert_eq!(marker(&mut rig), 1);
+    rig.click("tl:last");
+    assert_eq!(marker(&mut rig), 4);
+    rig.click("tl:prev");
+    assert_eq!(marker(&mut rig), 3);
 }
