@@ -4870,3 +4870,18 @@ mark-style	Japanese	Japonesas
 @msg	the lines are parallel	las líneas son paralelas
 @msg	the radius is too large for these lines	el radio es demasiado grande para estas líneas
 @msg	the radius must be a positive number	el radio debe ser un número positivo
+	Fusion	Fusion
+	Reload Layout	Recargar diseño
+	Reveal Layout File	Mostrar archivo de diseño
+	(+{n} more)	(+{n} más)
+	Layout reloaded	Diseño recargado
+@msg	layout must be fusion or classic	layout debe ser fusion o classic
+@msg	no preferences folder for the layout file	no hay carpeta de preferencias para el archivo de diseño
+	Edit Timeline Step	Editar paso de la línea de tiempo
+	List Timeline Steps	Enumerar pasos de la línea de tiempo
+	Record Timeline	Grabar línea de tiempo
+	Replay Timeline	Reproducir línea de tiempo
+@msg	finish the drag first	termine primero el arrastre
+@msg	the objects it acted on are gone ({_1})	los objetos sobre los que actuó ya no existen ({_1})
+@msg	the timeline's base can't be read: {e}	no se puede leer la base de la línea de tiempo: {e}
+@msg	this document has no timeline steps	este documento no tiene pasos en la línea de tiempo

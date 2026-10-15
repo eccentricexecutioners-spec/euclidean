@@ -4929,3 +4929,18 @@ mark-style	Japanese	Japonské
 @msg	the lines are parallel	úsečky jsou rovnoběžné
 @msg	the radius is too large for these lines	poloměr je pro tyto úsečky příliš velký
 @msg	the radius must be a positive number	poloměr musí být kladné číslo
+	Fusion	Fusion
+	Reload Layout	Znovu načíst rozvržení
+	Reveal Layout File	Zobrazit soubor rozvržení
+	(+{n} more)	(+{n} dalších)
+	Layout reloaded	Rozvržení znovu načteno
+@msg	layout must be fusion or classic	rozvržení musí být fusion nebo classic
+@msg	no preferences folder for the layout file	pro soubor rozvržení není složka předvoleb
+	Edit Timeline Step	Upravit krok časové osy
+	List Timeline Steps	Vypsat kroky časové osy
+	Record Timeline	Zaznamenávat časovou osu
+	Replay Timeline	Přehrát časovou osu znovu
+@msg	finish the drag first	nejprve dokončete tažení
+@msg	the objects it acted on are gone ({_1})	objekty, na které působil, již neexistují ({_1})
+@msg	the timeline's base can't be read: {e}	základ časové osy nelze přečíst: {e}
+@msg	this document has no timeline steps	tento dokument nemá žádné kroky časové osy

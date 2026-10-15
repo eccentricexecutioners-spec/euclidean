@@ -4929,3 +4929,18 @@ theme	Appearance	Apparence
 @msg	the lines are parallel	les lignes sont parallèles
 @msg	the radius is too large for these lines	le rayon est trop grand pour ces lignes
 @msg	the radius must be a positive number	le rayon doit être un nombre positif
+	Fusion	Fusion
+	Reload Layout	Recharger la disposition
+	Reveal Layout File	Afficher le fichier de disposition
+	(+{n} more)	(+{n} de plus)
+	Layout reloaded	Disposition rechargée
+@msg	layout must be fusion or classic	layout doit être fusion ou classic
+@msg	no preferences folder for the layout file	aucun dossier de préférences pour le fichier de disposition
+	Edit Timeline Step	Modifier l’étape de la chronologie
+	List Timeline Steps	Lister les étapes de la chronologie
+	Record Timeline	Enregistrer la chronologie
+	Replay Timeline	Rejouer la chronologie
+@msg	finish the drag first	terminez d’abord le glissement
+@msg	the objects it acted on are gone ({_1})	les objets sur lesquels elle agissait n’existent plus ({_1})
+@msg	the timeline's base can't be read: {e}	impossible de lire la base de la chronologie : {e}
+@msg	this document has no timeline steps	ce document n’a aucune étape de chronologie

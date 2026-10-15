@@ -246,6 +246,14 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
     ("view.snapToPoint", "Snap to Point", "Cmd+Alt+'", "{}"),
     ("view.presentation", "Presentation Mode", "Shift+F", "{}"),
     ("view.screenMode", "Screen Mode", "F", "{mode?: 0..2} (no param cycles)"),
+    ("view.layout", "Layout", "", "{layout?: \"fusion\"|\"classic\"} (no param toggles); never touches the document, selection or undo"),
+    (
+        "view.layout.reveal",
+        "Reveal Layout File",
+        "",
+        "{} show the workbench's layout.json in the file manager, writing the default there first when it is missing",
+    ),
+    ("view.layout.reload", "Reload Layout", "", "{} read layout.json again; the status line reports the first warning or \"Layout reloaded\""),
     ("view.rotateReset", "Reset Rotate View", "Cmd+Shift+1", "{}"),
     ("window.control", "Control", "", "{}"),
     ("window.toolbar", "Tools", "", "{}"),
@@ -1176,6 +1184,47 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
             };
             Ok(json!(app.ui.screen_mode))
         }
+        "view.layout" => {
+            use crate::state::Layout;
+            app.ui.layout = match p.get("layout").and_then(Value::as_str) {
+                Some("fusion") => Layout::Fusion,
+                Some("classic") => Layout::Classic,
+                Some(_) => return Some(Err("layout must be fusion or classic".into())),
+                None if app.ui.layout == Layout::Fusion => Layout::Classic,
+                None => Layout::Fusion,
+            };
+            Ok(json!(if app.ui.layout == Layout::Fusion { "fusion" } else { "classic" }))
+        }
+        "view.layout.reload" => {
+            app.ui.workbench.reload();
+            let w = &app.ui.workbench.warnings;
+            let msg = match w.first() {
+                None => tl!("Layout reloaded").to_string(),
+                Some(first) if w.len() == 1 => first.clone(),
+                Some(first) => format!("{first} {}", tl!("(+{n} more)").replace("{n}", &(w.len() - 1).to_string())),
+            };
+            let count = w.len();
+            app.status(msg);
+            Ok(json!({"warnings": count}))
+        }
+        "view.layout.reveal" => {
+            let Some(path) = app.ui.workbench.layout_path.clone() else { return Some(Err("no preferences folder for the layout file".into())) };
+            if !path.exists() {
+                let text = serde_json::from_str::<Value>(crate::workbench::default_json())
+                    .and_then(|v| serde_json::to_string_pretty(&v))
+                    .unwrap_or_default();
+                if let Some(dir) = path.parent()
+                    && let Err(e) = std::fs::create_dir_all(dir)
+                {
+                    return Some(Err(format!("{}: {e}", dir.display())));
+                }
+                if let Err(e) = std::fs::write(&path, text) {
+                    return Some(Err(format!("{}: {e}", path.display())));
+                }
+            }
+            let shown = path.to_string_lossy().into_owned();
+            crate::io::reveal_path(app, &shown).map(|()| json!({"path": shown}))
+        }
         "view.rotateReset" => {
             if let Some(v) = app.view_mut() {
                 v.rotation = 0.0;
@@ -1542,6 +1591,14 @@ pub fn checked(app: &VectorcraftApp, id: &str, p: &Value) -> Option<bool> {
     Some(match id {
         "type.orientation.vertical" | "type.orientation.horizontal" => {
             selected_text(false).is_some_and(|t| t.vertical == (id == "type.orientation.vertical"))
+        }
+        "view.layout" => {
+            use crate::state::Layout;
+            match p.get("layout").and_then(Value::as_str) {
+                Some("fusion") => app.ui.layout == Layout::Fusion,
+                Some("classic") => app.ui.layout == Layout::Classic,
+                _ => false,
+            }
         }
         "view.outline" => v.outline,
         "view.pixelPreview" => v.pixel_preview,
@@ -2569,6 +2626,16 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                         cp("Normal Screen Mode", "view.screenMode", json!({"mode": 0})),
                         cp("Full Screen Mode with Menu Bar", "view.screenMode", json!({"mode": 1})),
                         cp("Full Screen Mode", "view.screenMode", json!({"mode": 2})),
+                    ],
+                ),
+                sub(
+                    "Layout",
+                    vec![
+                        cp("Fusion", "view.layout", json!({"layout": "fusion"})),
+                        cp("Classic", "view.layout", json!({"layout": "classic"})),
+                        Sep,
+                        c("Reveal Layout File", "view.layout.reveal"),
+                        c("Reload Layout", "view.layout.reload"),
                     ],
                 ),
                 Sep,

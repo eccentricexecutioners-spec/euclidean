@@ -240,6 +240,19 @@ impl Dialog {
     }
 }
 
+/// Which window layout is drawn.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Layout {
+    #[default]
+    Classic,
+    Fusion,
+}
+
+fn fusion_layout() -> Layout {
+    Layout::Fusion
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct UiState {
@@ -327,6 +340,13 @@ pub struct UiState {
     /// Presentation Mode came back on restart with no way out).
     #[serde(skip)]
     pub screen_mode: u8,
+    /// Classic (the dock and toolbar) or Fusion (the tabbed workbench). A saved file without the key
+    /// opens in Fusion; `UiState::default()` stays Classic.
+    #[serde(default = "fusion_layout")]
+    pub layout: Layout,
+    /// The Fusion workbench's saved state and loaded layout.
+    #[serde(default)]
+    pub workbench: crate::workbench::WorkbenchState,
     /// Draw Normal / Behind / Inside.
     pub draw_mode: u8,
     pub about: bool,
@@ -702,6 +722,8 @@ impl Default for UiState {
             palette_open: false,
             palette_query: String::new(),
             screen_mode: 0,
+            layout: Layout::Classic,
+            workbench: Default::default(),
             draw_mode: 0,
             about: false,
             change_parameters: false,

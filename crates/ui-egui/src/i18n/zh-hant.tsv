@@ -3819,3 +3819,18 @@ lighting	Light	光源
 	Sketch Rectangle	草圖矩形
 	Sketch Trim	草圖修剪
 	Toggle Construction	切換構造線
+	Fusion	Fusion
+	Reload Layout	重新載入版面
+	Reveal Layout File	顯示版面檔案
+	(+{n} more)	（另有 {n} 項）
+	Layout reloaded	版面已重新載入
+@msg	layout must be fusion or classic	layout 必須是 fusion 或 classic
+@msg	no preferences folder for the layout file	沒有可存放版面檔案的偏好設定資料夾
+	Edit Timeline Step	編輯時間軸步驟
+	List Timeline Steps	列出時間軸步驟
+	Record Timeline	記錄時間軸
+	Replay Timeline	重播時間軸
+@msg	finish the drag first	請先完成拖曳
+@msg	the objects it acted on are gone ({_1})	其作用的物件已不存在 ({_1})
+@msg	the timeline's base can't be read: {e}	無法讀取時間軸的起點: {e}
+@msg	this document has no timeline steps	此文件沒有時間軸步驟

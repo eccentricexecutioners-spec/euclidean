@@ -4481,3 +4481,18 @@ theme	Appearance	Giao diện
 @msg	the lines are parallel	các đường song song
 @msg	the radius is too large for these lines	bán kính quá lớn so với các đường này
 @msg	the radius must be a positive number	bán kính phải là số dương
+	Fusion	Fusion
+	Reload Layout	Tải lại bố cục
+	Reveal Layout File	Hiện tệp bố cục
+	(+{n} more)	(+{n} nữa)
+	Layout reloaded	Đã tải lại bố cục
+@msg	layout must be fusion or classic	layout phải là fusion hoặc classic
+@msg	no preferences folder for the layout file	không có thư mục tùy chọn cho tệp bố cục
+	Edit Timeline Step	Sửa bước dòng thời gian
+	List Timeline Steps	Liệt kê các bước dòng thời gian
+	Record Timeline	Ghi dòng thời gian
+	Replay Timeline	Phát lại dòng thời gian
+@msg	finish the drag first	hãy kết thúc thao tác kéo trước
+@msg	the objects it acted on are gone ({_1})	các đối tượng mà bước này tác động không còn nữa ({_1})
+@msg	the timeline's base can't be read: {e}	không đọc được điểm gốc của dòng thời gian: {e}
+@msg	this document has no timeline steps	tài liệu này không có bước dòng thời gian nào

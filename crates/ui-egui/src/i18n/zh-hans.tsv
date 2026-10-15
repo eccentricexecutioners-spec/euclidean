@@ -4037,3 +4037,18 @@ lighting	Light	光源
 	Sketch Rectangle	草图矩形
 	Sketch Trim	草图修剪
 	Toggle Construction	切换构造线
+	Fusion	Fusion
+	Reload Layout	重新载入布局
+	Reveal Layout File	显示布局文件
+	(+{n} more)	（另有 {n} 条）
+	Layout reloaded	布局已重新载入
+@msg	layout must be fusion or classic	layout 必须是 fusion 或 classic
+@msg	no preferences folder for the layout file	没有可存放布局文件的偏好设置文件夹
+	Edit Timeline Step	编辑时间线步骤
+	List Timeline Steps	列出时间线步骤
+	Record Timeline	记录时间线
+	Replay Timeline	重放时间线
+@msg	finish the drag first	请先完成拖动
+@msg	the objects it acted on are gone ({_1})	其作用的对象已不存在 ({_1})
+@msg	the timeline's base can't be read: {e}	无法读取时间线的起点: {e}
+@msg	this document has no timeline steps	此文档没有时间线步骤

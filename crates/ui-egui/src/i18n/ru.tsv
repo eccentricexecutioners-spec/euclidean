@@ -4495,3 +4495,18 @@ lighting	Light	Свет
 @msg	the lines are parallel	линии параллельны
 @msg	the radius is too large for these lines	радиус слишком велик для этих линий
 @msg	the radius must be a positive number	радиус должен быть положительным числом
+	Fusion	Fusion
+	Reload Layout	Перезагрузить макет
+	Reveal Layout File	Показать файл макета
+	(+{n} more)	(и ещё {n})
+	Layout reloaded	Макет перезагружен
+@msg	layout must be fusion or classic	layout должен быть fusion или classic
+@msg	no preferences folder for the layout file	нет папки настроек для файла макета
+	Edit Timeline Step	Изменить шаг временной шкалы
+	List Timeline Steps	Показать шаги временной шкалы
+	Record Timeline	Записывать временную шкалу
+	Replay Timeline	Воспроизвести временную шкалу заново
+@msg	finish the drag first	сначала завершите перетаскивание
+@msg	the objects it acted on are gone ({_1})	объекты, к которым он применялся, больше не существуют ({_1})
+@msg	the timeline's base can't be read: {e}	не удаётся прочитать основу временной шкалы: {e}
+@msg	this document has no timeline steps	в этом документе нет шагов временной шкалы

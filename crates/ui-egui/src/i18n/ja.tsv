@@ -4493,3 +4493,18 @@ lighting	Light	ライト
 @msg	the lines are parallel	線が平行です
 @msg	the radius is too large for these lines	これらの線に対して半径が大きすぎます
 @msg	the radius must be a positive number	半径は正の数でなければなりません
+	Fusion	Fusion
+	Reload Layout	レイアウトを再読み込み
+	Reveal Layout File	レイアウトファイルを表示
+	(+{n} more)	(ほか {n} 件)
+	Layout reloaded	レイアウトを再読み込みしました
+@msg	layout must be fusion or classic	layout は fusion か classic にしてください
+@msg	no preferences folder for the layout file	レイアウトファイルの環境設定フォルダがありません
+	Edit Timeline Step	タイムラインのステップを編集
+	List Timeline Steps	タイムラインのステップを一覧表示
+	Record Timeline	タイムラインを記録
+	Replay Timeline	タイムラインを再実行
+@msg	finish the drag first	先にドラッグを終了してください
+@msg	the objects it acted on are gone ({_1})	操作対象のオブジェクトがありません ({_1})
+@msg	the timeline's base can't be read: {e}	タイムラインの基点を読み込めません: {e}
+@msg	this document has no timeline steps	このドキュメントにはタイムラインのステップがありません

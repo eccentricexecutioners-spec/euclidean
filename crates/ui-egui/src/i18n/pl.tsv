@@ -4772,3 +4772,18 @@ mark-style	Japanese	Japońskie
 @msg	the lines are parallel	linie są równoległe
 @msg	the radius is too large for these lines	promień jest za duży dla tych linii
 @msg	the radius must be a positive number	promień musi być liczbą dodatnią
+	Fusion	Fusion
+	Reload Layout	Wczytaj układ ponownie
+	Reveal Layout File	Pokaż plik układu
+	(+{n} more)	(+{n} więcej)
+	Layout reloaded	Układ wczytany ponownie
+@msg	layout must be fusion or classic	layout musi mieć wartość fusion lub classic
+@msg	no preferences folder for the layout file	brak folderu preferencji dla pliku układu
+	Edit Timeline Step	Edytuj krok osi czasu
+	List Timeline Steps	Wyświetl kroki osi czasu
+	Record Timeline	Rejestruj oś czasu
+	Replay Timeline	Odtwórz oś czasu ponownie
+@msg	finish the drag first	najpierw zakończ przeciąganie
+@msg	the objects it acted on are gone ({_1})	obiekty, na które działał, już nie istnieją ({_1})
+@msg	the timeline's base can't be read: {e}	nie można odczytać podstawy osi czasu: {e}
+@msg	this document has no timeline steps	ten dokument nie ma kroków osi czasu

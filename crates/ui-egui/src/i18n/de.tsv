@@ -4454,3 +4454,18 @@ theme	Appearance	Erscheinungsbild
 @msg	the lines are parallel	die Linien sind parallel
 @msg	the radius is too large for these lines	der Radius ist für diese Linien zu groß
 @msg	the radius must be a positive number	der Radius muss eine positive Zahl sein
+	Fusion	Fusion
+	Reload Layout	Layout neu laden
+	Reveal Layout File	Layoutdatei anzeigen
+	(+{n} more)	(+{n} weitere)
+	Layout reloaded	Layout neu geladen
+@msg	layout must be fusion or classic	layout muss fusion oder classic sein
+@msg	no preferences folder for the layout file	kein Einstellungsordner für die Layoutdatei
+	Edit Timeline Step	Zeitleistenschritt bearbeiten
+	List Timeline Steps	Zeitleistenschritte auflisten
+	Record Timeline	Zeitleiste aufzeichnen
+	Replay Timeline	Zeitleiste erneut abspielen
+@msg	finish the drag first	beenden Sie zuerst das Ziehen
+@msg	the objects it acted on are gone ({_1})	die Objekte, auf die er wirkte, sind nicht mehr vorhanden ({_1})
+@msg	the timeline's base can't be read: {e}	die Basis der Zeitleiste kann nicht gelesen werden: {e}
+@msg	this document has no timeline steps	dieses Dokument hat keine Zeitleistenschritte

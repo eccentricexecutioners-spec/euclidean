@@ -1,0 +1,294 @@
+{
+ "version": 1,
+ "pinned_left": [
+  "layers",
+  "colour"
+ ],
+ "tabs": [
+  {
+   "id": "draw",
+   "label": "DRAW",
+   "groups": [
+    {
+     "id": "select",
+     "label": "SELECT",
+     "items": [
+      "tool:selection",
+      "tool:directSelection",
+      "tool:groupSelection",
+      "tool:magicWand",
+      "tool:lasso",
+      "tool:livePaintSelection",
+      "tool:perspectiveSelection",
+      "menu:Select"
+     ]
+    },
+    {
+     "id": "create",
+     "label": "CREATE",
+     "items": [
+      "tool:pen",
+      "tool:curvature",
+      "tool:pencil",
+      "tool:paintbrush",
+      "tool:blobBrush",
+      "tool:shaper",
+      "tool:lineSegment",
+      "tool:arc",
+      "tool:spiral",
+      "tool:rectangularGrid",
+      "tool:polarGrid",
+      "tool:rectangle",
+      "tool:roundedRectangle",
+      "tool:ellipse",
+      "tool:polygon",
+      "tool:star",
+      "tool:blend",
+      "tool:perspectiveGrid",
+      "menu:Object/Repeat",
+      "menu:Object/Pattern",
+      "menu:Object/Blend"
+     ]
+    },
+    {
+     "id": "modify",
+     "label": "MODIFY",
+     "items": [
+      "tool:addAnchor",
+      "tool:deleteAnchor",
+      "tool:anchorPoint",
+      "tool:smooth",
+      "tool:pathEraser",
+      "tool:join",
+      "tool:eraser",
+      "tool:scissors",
+      "tool:knife",
+      "tool:mirrorCut",
+      "tool:lineCut",
+      "tool:rectCut",
+      "tool:rotate",
+      "tool:reflect",
+      "tool:scale",
+      "tool:shear",
+      "tool:reshape",
+      "tool:freeTransform",
+      "tool:puppetWarp",
+      "tool:width",
+      "tool:warp",
+      "tool:twirl",
+      "tool:pucker",
+      "tool:bloat",
+      "tool:scallop",
+      "tool:crystallize",
+      "tool:wrinkle",
+      "tool:shapeBuilder",
+      "tool:symbolShifter",
+      "tool:symbolScruncher",
+      "tool:symbolSizer",
+      "tool:symbolSpinner",
+      "panel:align",
+      "panel:pathfinder",
+      "menu:Object/Path",
+      "menu:Object/Shape",
+      "menu:Object/Envelope Distort",
+      "menu:Object/Arrange",
+      "cmd:object.group",
+      "cmd:object.ungroup"
+     ]
+    },
+    {
+     "id": "style",
+     "label": "STYLE",
+     "items": [
+      "tool:livePaintBucket",
+      "tool:gradient",
+      "tool:mesh",
+      "tool:eyedropper",
+      "tool:symbolStainer",
+      "tool:symbolScreener",
+      "tool:symbolStyler",
+      "panel:brushes",
+      "panel:patternOptions",
+      "panel:gradient",
+      "panel:transparency",
+      "panel:graphicStyles",
+      "panel:appearance",
+      "menu:Effect",
+      "menu:Object/Live Paint"
+     ]
+    },
+    {
+     "id": "inspect",
+     "label": "INSPECT",
+     "items": [
+      "tool:measure",
+      "panel:info",
+      "panel:docInfo",
+      "panel:attributes"
+     ]
+    },
+    {
+     "id": "insert",
+     "label": "INSERT",
+     "items": [
+      "cmd:file.place.queue",
+      "tool:symbolSprayer",
+      "panel:symbols",
+      "panel:libraries",
+      "panel:imageTrace",
+      "panel:links",
+      "menu:Object/Image Trace"
+     ]
+    }
+   ],
+   "left": [
+    "properties"
+   ]
+  },
+  {
+   "id": "sketch",
+   "label": "SKETCH",
+   "groups": [
+    {
+     "id": "create",
+     "label": "CREATE",
+     "items": [
+      "cmd:sketch.edit.new",
+      "tool:lineSegment",
+      "tool:rectangle",
+      "tool:ellipse",
+      "tool:arc",
+      "tool:polygon"
+     ]
+    },
+    {
+     "id": "modify",
+     "label": "MODIFY",
+     "items": [
+      "cmd:window.changeParameters"
+     ]
+    }
+   ],
+   "left": [
+    "parameters"
+   ]
+  },
+  {
+   "id": "type",
+   "label": "TYPE",
+   "groups": [
+    {
+     "id": "create",
+     "label": "CREATE",
+     "items": [
+      "tool:type",
+      "tool:areaType",
+      "tool:typeOnPath",
+      "tool:verticalType",
+      "tool:verticalAreaType",
+      "tool:verticalTypeOnPath"
+     ]
+    },
+    {
+     "id": "modify",
+     "label": "MODIFY",
+     "items": [
+      "panel:glyphs",
+      "panel:charStyles",
+      "panel:paraStyles",
+      "panel:openType",
+      "panel:tabs",
+      "menu:Type"
+     ]
+    }
+   ],
+   "left": [
+    "character",
+    "paragraph"
+   ]
+  },
+  {
+   "id": "output",
+   "label": "OUTPUT",
+   "groups": [
+    {
+     "id": "artboards",
+     "label": "ARTBOARDS",
+     "items": [
+      "tool:artboard",
+      "tool:printTiling",
+      "panel:artboards"
+     ]
+    },
+    {
+     "id": "slices",
+     "label": "SLICES",
+     "items": [
+      "tool:slice",
+      "tool:sliceSelection"
+     ]
+    },
+    {
+     "id": "export",
+     "label": "EXPORT",
+     "items": [
+      "panel:assetExport",
+      "panel:cssProperties",
+      "panel:separations",
+      "panel:flattenerPreview",
+      "cmd:file.exportForScreens",
+      "cmd:file.exportAs",
+      "cmd:file.export.svg",
+      "cmd:file.export.png",
+      "cmd:file.export.pdf",
+      "cmd:file.exportSelection",
+      "cmd:file.saveForWeb",
+      "cmd:file.print"
+     ]
+    }
+   ],
+   "left": [
+    "artboards",
+    "assetExport"
+   ]
+  }
+ ],
+ "nav": [
+  "tool:hand",
+  "tool:zoom",
+  "tool:rotateView",
+  "cmd:view.fitArtboard",
+  "panel:navigator"
+ ],
+ "sections": {
+  "colour": {
+   "label": "Colour",
+   "panels": [
+    "color",
+    "swatches",
+    "stroke",
+    "colorGuide",
+    "colorThemes"
+   ],
+   "collapsed": [
+    "colorGuide",
+    "colorThemes"
+   ]
+  }
+ },
+ "ice": [
+  "tool:touchType",
+  "tool:flare",
+  "tool:columnGraph",
+  "tool:stackedColumnGraph",
+  "tool:barGraph",
+  "tool:stackedBarGraph",
+  "tool:lineGraph",
+  "tool:areaGraph",
+  "tool:scatterGraph",
+  "tool:pieGraph",
+  "tool:radarGraph",
+  "panel:actions",
+  "panel:variables"
+ ]
+}

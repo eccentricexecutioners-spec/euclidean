@@ -61,6 +61,7 @@ mod touch;
 mod ui_fonts;
 pub mod unsaved;
 pub mod widgets;
+pub mod workbench;
 pub mod workspaces;
 
 #[cfg(test)]

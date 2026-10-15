@@ -4463,3 +4463,18 @@ lighting	Light	광원
 @msg	the lines are parallel	선이 평행합니다
 @msg	the radius is too large for these lines	이 선들에 비해 반지름이 너무 큽니다
 @msg	the radius must be a positive number	반지름은 양수여야 합니다
+	Fusion	Fusion
+	Reload Layout	레이아웃 다시 불러오기
+	Reveal Layout File	레이아웃 파일 보기
+	(+{n} more)	(외 {n}개)
+	Layout reloaded	레이아웃을 다시 불러왔습니다
+@msg	layout must be fusion or classic	layout은 fusion 또는 classic이어야 합니다
+@msg	no preferences folder for the layout file	레이아웃 파일을 둘 환경설정 폴더가 없습니다
+	Edit Timeline Step	타임라인 단계 편집
+	List Timeline Steps	타임라인 단계 나열
+	Record Timeline	타임라인 기록
+	Replay Timeline	타임라인 다시 실행
+@msg	finish the drag first	먼저 드래그를 마치십시오
+@msg	the objects it acted on are gone ({_1})	작업 대상 개체가 더 이상 없습니다 ({_1})
+@msg	the timeline's base can't be read: {e}	타임라인 기준을 읽을 수 없습니다: {e}
+@msg	this document has no timeline steps	이 문서에는 타임라인 단계가 없습니다

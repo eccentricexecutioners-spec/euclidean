@@ -4499,3 +4499,18 @@ lighting	Light	Luce
 @msg	the lines are parallel	le linee sono parallele
 @msg	the radius is too large for these lines	il raggio è troppo grande per queste linee
 @msg	the radius must be a positive number	il raggio deve essere un numero positivo
+	Fusion	Fusion
+	Reload Layout	Ricarica layout
+	Reveal Layout File	Mostra file del layout
+	(+{n} more)	(+{n} altri)
+	Layout reloaded	Layout ricaricato
+@msg	layout must be fusion or classic	layout deve essere fusion o classic
+@msg	no preferences folder for the layout file	nessuna cartella delle preferenze per il file del layout
+	Edit Timeline Step	Modifica passaggio della timeline
+	List Timeline Steps	Elenca passaggi della timeline
+	Record Timeline	Registra timeline
+	Replay Timeline	Riesegui timeline
+@msg	finish the drag first	termina prima il trascinamento
+@msg	the objects it acted on are gone ({_1})	gli oggetti su cui agiva non esistono più ({_1})
+@msg	the timeline's base can't be read: {e}	impossibile leggere la base della timeline: {e}
+@msg	this document has no timeline steps	questo documento non ha passaggi nella timeline
