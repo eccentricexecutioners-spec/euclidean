@@ -448,8 +448,11 @@ fn a_sketch_step_takes_sketch_colour_and_a_step_in_no_tab_takes_draw() {
     let t = crate::theme::Tokens::get(&egui::Context::default());
     let lay = super::resolve(&super::default_layout()).0;
     use super::step_map::{step_color, step_tab};
-    assert_eq!(step_tab(&lay, "sketch.edit.new").map(|x| x.id.as_str()), Some("sketch"));
-    assert_eq!(step_color(&t, &lay, "sketch.edit.new"), t.tab_sketch);
+    // The commands sketch mode really records (the layout places the UI command sketch.edit.new).
+    for cmd in ["sketch.new", "sketch.addRect"] {
+        assert_eq!(step_tab(&lay, cmd).map(|x| x.id.as_str()), Some("sketch"), "{cmd}");
+        assert_eq!(step_color(&t, &lay, cmd), t.tab_sketch, "{cmd}");
+    }
     assert!(step_tab(&lay, "document.setup").is_none(), "pick another command if a tab gains it");
     assert_eq!(step_color(&t, &lay, "document.setup"), t.tab_draw);
     assert_eq!(step_color(&t, &lay, "shape.rectangle"), t.tab_draw);

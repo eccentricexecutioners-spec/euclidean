@@ -76,15 +76,22 @@ pub fn step_tool(cmd: &str) -> Option<&'static str> {
 /// The first tab (layout order) that holds the step's tool or command.
 pub fn step_tab<'a>(lay: &'a ResolvedLayout, cmd: &str) -> Option<&'a ResolvedTab> {
     let tool = step_tool(cmd);
+    let via = step_ui_command(cmd);
     lay.tabs.iter().find(|tab| {
         tab.groups.iter().any(|g| {
             g.items.iter().any(|it| match it {
                 Item::Tool(t) => Some(t.id) == tool,
-                Item::Cmd { id, .. } => id == cmd,
+                Item::Cmd { id, .. } => id == cmd || Some(id.as_str()) == via,
                 _ => false,
             })
         })
     })
+}
+
+/// The UI command a layout places for steps the engine records under other ids: sketch mode
+/// (`cmd:sketch.edit.new`) records `sketch.new`, `sketch.addRect`, ….
+fn step_ui_command(cmd: &str) -> Option<&'static str> {
+    cmd.starts_with("sketch.").then_some("sketch.edit.new")
 }
 
 /// The step's colour: its tab's, or the Draw colour when no tab holds it.
