@@ -16,7 +16,7 @@ Euclidean's Fusion layout (View > Layout > Fusion) is drawn from plain JSON data
   "pinned_left": ["layers", "colour"],
   "tabs": [ { "id": "draw", "label": "DRAW",
               "groups": [ {"id": "select", "label": "SELECT", "items": ["tool:selection", "menu:Select", "sep"]} ],
-              "left": ["properties"] } ],
+              "left": ["properties"], "right": [] } ],
   "nav": ["tool:hand", "tool:zoom", "cmd:view.fitArtboard", "panel:navigator"],
   "sections": { "colour": { "label": "Colour", "panels": ["color", "swatches", "stroke", "colorGuide"], "collapsed": ["colorGuide"] } },
   "ice": ["tool:touchType", "panel:actions"] }
@@ -24,7 +24,7 @@ Euclidean's Fusion layout (View > Layout > Fusion) is drawn from plain JSON data
 
 - `version`: 1.
 - `pinned_left`: left-column entries shown on every tab. An entry is a panel id or a section id.
-- `tabs`: in order; the first is the default. Each has `id`, `label`, `groups` (each `id`, `label`, `items`) and `left` (entries below the pinned ones, again panel or section ids); and an optional `color` (one of `draw`, `sketch`, `type`, `output`: the tab's pill, group-row strip, big buttons and selected-row wash use that theme colour). A missing `color` or an unknown name uses the accent; an unknown name also shows one warning on the status line.
+- `tabs`: in order; the first is the default. Each has `id`, `label`, `groups` (each `id`, `label`, `items`) and `left` (entries below the pinned ones, again panel or section ids); an optional `right` (panel ids shown at the top of the right-hand tool panel while the tab is active, above the tool's options; each folds like a left-column panel, and opening that panel unfolds it instead of adding a second copy; default `[]`, and the default SKETCH tab uses it for `parameters`); and an optional `color` (one of `draw`, `sketch`, `type`, `output`: the tab's pill, group-row strip, big buttons and selected-row wash use that theme colour). A missing `color` or an unknown name uses the accent; an unknown name also shows one warning on the status line.
 - `nav`: items shown with every tab (hand, zoom and so on).
 - `sections`: named composite left-column sections. `panels` are the panel ids inside it; `collapsed` lists those that start folded.
 - `ice`: items with no tab group, reachable elsewhere (the tool panel).
@@ -39,7 +39,7 @@ Euclidean's Fusion layout (View > Layout > Fusion) is drawn from plain JSON data
 
 ## Unknown ids
 
-An id that does not resolve is skipped with one warning ("Layout: unknown tool id 'foo' skipped"); it never stops the workbench from drawing. A `menu:` path with no commands is one warning too.
+An id that does not resolve (in `pinned_left`, a tab's `left` or `right`, or an item) is skipped with one warning ("Layout: unknown tool id 'foo' skipped"); it never stops the workbench from drawing. A `menu:` path with no commands is one warning too.
 
 ## Every tool is placed
 

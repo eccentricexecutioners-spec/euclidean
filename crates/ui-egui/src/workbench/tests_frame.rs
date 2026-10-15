@@ -148,6 +148,32 @@ fn each_tab_shows_its_own_left_panels() {
 }
 
 #[test]
+fn sketch_shows_parameters_at_the_top_of_the_right_panel_not_the_left() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.app.ui.workbench.tab = "sketch".into();
+    let text = rig.settle();
+    let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
+    assert!(!names.iter().any(|n| n == "section:parameters"), "{names:?}");
+    let params = hit_rect(&rig, "section:right-pinned/parameters");
+    assert!(params.left() > 800.0, "{params:?}");
+    let collapse = hit_rect(&rig, "tool-panel:collapse");
+    assert!(params.top() < collapse.top(), "{params:?} vs {collapse:?}");
+    assert!(text.contains("Parameters"), "{text}");
+}
+
+#[test]
+fn other_tabs_have_no_right_pinned_panels() {
+    let mut rig = Rig::new(Layout::Fusion);
+    for (tab, left) in [("draw", "section:properties"), ("type", "section:character"), ("output", "section:artboards")] {
+        rig.app.ui.workbench.tab = tab.into();
+        rig.settle();
+        let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
+        assert!(!names.iter().any(|n| n.starts_with("section:right-pinned/")), "{tab}: {names:?}");
+        assert!(names.iter().any(|n| n == left), "{tab} lacks {left}: {names:?}");
+    }
+}
+
+#[test]
 fn collapsing_a_section_persists() {
     let mut rig = Rig::new(Layout::Fusion);
     let before = rig.settle();
@@ -235,6 +261,22 @@ fn opening_a_left_column_panel_unfolds_it_instead_of_duplicating() {
     super::draw::open_panel(&mut rig.app, "pathfinder");
     assert_eq!(rig.app.ui.workbench.right_panels, ["pathfinder"]);
     rig.settle();
+}
+
+#[test]
+fn opening_parameters_on_sketch_unfolds_the_right_copy_without_duplicating() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.app.ui.workbench.tab = "sketch".into();
+    rig.settle();
+    rig.click("section:right-pinned/parameters");
+    assert!(rig.app.ui.workbench.collapsed.contains("right-pinned/parameters"));
+    super::draw::open_panel(&mut rig.app, "parameters");
+    super::draw::open_panel(&mut rig.app, "parameters");
+    assert!(!rig.app.ui.workbench.collapsed.contains("right-pinned/parameters"));
+    assert!(rig.app.ui.workbench.right_panels.is_empty());
+    rig.settle();
+    let n = rig.app.ui.workbench.hits.iter().filter(|h| h.0.ends_with("parameters")).count();
+    assert_eq!(n, 1, "{:?}", rig.app.ui.workbench.hits);
 }
 
 #[test]

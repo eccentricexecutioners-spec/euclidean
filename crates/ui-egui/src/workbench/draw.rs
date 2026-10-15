@@ -199,8 +199,8 @@ fn set_folded(collapsed: &mut std::collections::BTreeSet<String>, key: &str, def
     }
 }
 
-/// Open panel `id`: unfold it when this tab's left column shows it, else show it in the tool panel
-/// (once; a panel already there stays).
+/// Open panel `id`: unfold it when this tab's left column or pinned right panels show it, else show
+/// it in the tool panel (once; a panel already there stays).
 pub(crate) fn open_panel(app: &mut VectorcraftApp, id: &str) {
     let lay = app.ui.workbench.layout().clone();
     let tab = active_tab(&lay, &app.ui.workbench.tab);
@@ -216,6 +216,11 @@ pub(crate) fn open_panel(app: &mut VectorcraftApp, id: &str) {
                     app.ui.workbench.section_tab.insert(sec.to_string(), id.to_string());
                 }
             }
+        }
+    } else if tab.is_some_and(|t| t.right.iter().any(|p| p == id)) {
+        if crate::floating::group_of(&app.ui, id).is_none() {
+            set_folded(&mut app.ui.workbench.collapsed, &format!("right-pinned/{id}"), false, false);
+            app.ui.workbench.right_collapsed = false;
         }
     } else if crate::floating::group_of(&app.ui, id).is_none() && !app.ui.workbench.right_panels.iter().any(|p| p == id) {
         app.ui.workbench.right_panels.push(id.to_string());
@@ -746,6 +751,14 @@ fn tool_panel(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedL
                 let width = ui.available_width();
                 egui::ScrollArea::both().id_salt("wb-tool-scroll").auto_shrink([false, false]).show(ui, |ui| {
                     ui.set_max_width(width);
+                    // This tab's pinned right panels, above the tool's own card.
+                    for id in tab.iter().flat_map(|t| &t.right) {
+                        if crate::floating::group_of(&app.ui, id).is_some() {
+                            continue;
+                        }
+                        card(t, ui, |ui| panel_section(app, ui, t, &format!("right-pinned/{id}"), id, false, 0.0, "wb-right-pinned"));
+                        ui.add_space(8.0);
+                    }
                     card(t, ui, |ui| {
                         let tool = app.session.tool_id().to_string();
                         ui.horizontal(|ui| {
@@ -769,8 +782,9 @@ fn tool_panel(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedL
                         let ids = app.ui.workbench.right_panels.clone();
                         let mut closed = None;
                         for id in &ids {
-                            // A panel is drawn in one place only: not when floating, nor when the left column shows it.
-                            if crate::floating::group_of(&app.ui, id).is_some() || !left_keys(lay, tab, id).is_empty() {
+                            // A panel is drawn in one place only: not when floating, nor when the left column or the pinned right panels show it.
+                            let pinned_right = tab.is_some_and(|t| t.right.contains(id));
+                            if crate::floating::group_of(&app.ui, id).is_some() || !left_keys(lay, tab, id).is_empty() || pinned_right {
                                 continue;
                             }
                             let key = format!("right/{id}");

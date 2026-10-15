@@ -85,6 +85,7 @@ fn menu_item_expands_to_commands_under_that_path() {
             label: "T".into(),
             groups: vec![GroupDef { id: "g".into(), label: "G".into(), items: vec!["menu:Object/Path".into()] }],
             left: vec![],
+            right: vec![],
             color: None,
         }],
         nav: vec![],
@@ -162,4 +163,17 @@ fn unknown_tab_colour_is_one_warning() {
     assert_eq!(w.len(), 1, "{w:?}");
     assert!(w[0].contains("mauve"));
     assert_eq!(r.tabs[0].color, None);
+}
+
+#[test]
+fn a_user_layout_without_right_loads() {
+    let path =
+        temp_file("no-right", r#"{"tabs":[{"id":"a","label":"A","left":["properties"],"groups":[{"id":"g","label":"G","items":["tool:pen"]}]}]}"#);
+    let (f, w) = load(Some(&path));
+    assert!(w.is_empty(), "{w:?}");
+    assert!(f.tabs[0].right.is_empty());
+    let (r, w) = resolve(&f);
+    assert!(w.is_empty(), "{w:?}");
+    assert!(r.tabs[0].right.is_empty());
+    assert_eq!(r.tabs[0].left, ["properties"]);
 }

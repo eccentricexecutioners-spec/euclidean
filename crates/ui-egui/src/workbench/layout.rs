@@ -46,6 +46,9 @@ pub struct TabDef {
     /// Left-column entries for this tab, below the pinned ones.
     #[serde(default)]
     pub left: Vec<String>,
+    /// Panels at the top of the right-hand tool panel while this tab is active.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub right: Vec<String>,
     /// The tab's colour: one of `draw`, `sketch`, `type`, `output`; else the accent is used.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
@@ -89,6 +92,7 @@ pub struct ResolvedTab {
     pub label: String,
     pub groups: Vec<ResolvedGroup>,
     pub left: Vec<String>,
+    pub right: Vec<String>,
     /// A valid colour name (see [`crate::theme::Tokens::tab_color`]), else `None`.
     pub color: Option<String>,
 }
@@ -137,6 +141,7 @@ pub fn resolve(file: &LayoutFile) -> (ResolvedLayout, Vec<String>) {
             label: t.label.clone(),
             groups: t.groups.iter().map(|g| ResolvedGroup { id: g.id.clone(), label: g.label.clone(), items: items(&g.items, &mut warns) }).collect(),
             left: t.left.clone(),
+            right: t.right.clone(),
             color: t.color.clone().filter(|c| Tokens::is_tab_color(c)),
         })
         .collect();
@@ -148,7 +153,7 @@ pub fn resolve(file: &LayoutFile) -> (ResolvedLayout, Vec<String>) {
     let nav = items(&file.nav, &mut warns);
     let ice = items(&file.ice, &mut warns);
     let known = |id: &str| file.sections.contains_key(id) || panel_label(id).is_some();
-    for id in file.pinned_left.iter().chain(file.tabs.iter().flat_map(|t| &t.left)) {
+    for id in file.pinned_left.iter().chain(file.tabs.iter().flat_map(|t| t.left.iter().chain(&t.right))) {
         if !known(id) {
             warns.push(format!("Layout: unknown panel or section id '{id}' skipped"));
         }
@@ -167,6 +172,7 @@ pub fn resolve(file: &LayoutFile) -> (ResolvedLayout, Vec<String>) {
             let mut tabs: Vec<ResolvedTab> = tabs;
             for t in &mut tabs {
                 t.left = skip(&t.left);
+                t.right = skip(&t.right);
             }
             tabs
         },
