@@ -3,14 +3,15 @@
 #
 #   scripts/release-mac.sh <version> [--dry-run] [--notes "What's new"]
 #
-# 1. Refuses unless the fork has no tracked changes, Cargo.toml's version is <version>, and tag v<version> is new.
+# 1. Refuses unless the fork has no tracked changes, Cargo.toml's version is <version>, and tag euclidean-v<version> is
+#    new. (The fork keeps upstream VectorCraft's v0.1.0, v0.1.1… tags, so Euclidean's own tags carry a prefix.)
 # 2. Builds the app only (profile release-slim: stripped, thin LTO), assembles Euclidean.app as `cargo xtask bundle`
 #    lays it out (without vectorcraft-cli), and signs the whole bundle ad-hoc.
 # 3. Commits the bundle to a one-off git repo in the release folder and tags it v<version>: Cargo Bay's release tool
 #    zips with `git archive` from a tag, so the zip holds exactly one top-level Euclidean.app/ and nothing else.
 # 4. Has Cargo Bay's release tool build, sign (the Mini's release key) and check that zip (its --dry-run), and stops
 #    if the zip is 50 MB (52,428,800 bytes) or more, Supabase's upload limit.
-# 5. Unless --dry-run: runs the release tool for real (POST /releases, upload, finalize), then tags v<version> here.
+# 5. Unless --dry-run: runs the release tool for real (POST /releases, upload, finalize), then tags euclidean-v<version>.
 #
 # Environment:
 #   CARGO_BAY_DIR             the cargo-bay checkout (default ~/Eccentric-Executioners-code/cargo-bay); the tool runs there
@@ -39,7 +40,8 @@ done
 [[ "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-beta\.(0|[1-9][0-9]*))?$ ]] \
   || die "version must look like 1.2.3 or 1.2.3-beta.4 (Cargo Bay's rule); got $VERSION"
 NOTES="${NOTES:-Euclidean $VERSION}"
-TAG="v$VERSION"
+TAG="v$VERSION"                 # the release tool reads version and channel from this tag (staging repo)
+FORK_TAG="euclidean-v$VERSION"  # this fork's tag
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -53,7 +55,7 @@ OUT="$OUT_BASE/$VERSION"
 [ -z "$(git status --porcelain --untracked-files=no)" ] || die "REFUSED: the fork has tracked changes; commit or stash them"
 have="$(cargo xtask version 2>/dev/null | tail -1)"
 [ "$have" = "$VERSION" ] || die "REFUSED: Cargo.toml says $have, not $VERSION (cargo xtask version set $VERSION, then commit)"
-git rev-parse -q --verify "refs/tags/$TAG" >/dev/null && die "REFUSED: tag $TAG already exists here (versions are never reused)"
+git rev-parse -q --verify "refs/tags/$FORK_TAG" >/dev/null && die "REFUSED: tag $FORK_TAG already exists here (versions are never reused)"
 [ -f "$RELEASE_TOOL" ] || die "no Cargo Bay release tool at $RELEASE_TOOL (set CARGO_BAY_DIR)"
 command -v node >/dev/null || die "node is not installed"
 if [ -z "${CARGO_BAY_RELEASE_KEY:-}" ]; then
@@ -119,6 +121,6 @@ fi
 
 # --- 5. Release, then tag ---------------------------------------------------------------------------------------------
 CARGO_BAY_PUBLISH_KEY="$CARGO_BAY_PUBLISH_KEY" release_tool | tee "$OUT/release.txt"
-git tag -a "$TAG" -m "Euclidean $VERSION, released through Cargo Bay (signed by $KEY_ID)"
-echo "release-mac: tagged $TAG here (not pushed). Signed by $KEY_ID."
+git tag -a "$FORK_TAG" -m "Euclidean $VERSION, released through Cargo Bay (signed by $KEY_ID)"
+echo "release-mac: tagged $FORK_TAG here (not pushed). Signed by $KEY_ID."
 echo "release-mac: Mothership tool page: $MOTHERSHIP_PAGE"
