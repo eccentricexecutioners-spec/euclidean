@@ -64,6 +64,7 @@ stores `euclidean.params`. There is no file-format version change. Its stored fo
 | `steps[].selection` | The selection the step acted on (a `vectorcraft_doc::Selection`: objects by `NodeId`, plus direct-selected anchors and segments, key object, target). |
 | `steps[].layer`, `isolation` | The current layer and the isolated group the step acted in. |
 | `steps[].new_art`, `draw_mode`, `draw_inside` | The new-art template (fill, stroke, appearance; omitted when it is the default white fill and 1 pt black stroke) and the drawing mode. Set Fill with nothing selected changes the template, not the document, and new art takes it. |
+| `marker` | Present only when the end marker is rolled back: how many steps are applied. The later steps are kept but not run, and they are greyed on the strip. |
 | `steps[].status`, `error` | Omitted when `ok`. `failed` is the step where the last replay stopped, with its error. `pending` marks a step after it that was kept but not run. |
 
 Most steps kept: 2000. Past that, the oldest go and the base is let go, so editing is off.
@@ -89,13 +90,23 @@ Measured determinism (C1 Step 1 and `replaying_unchanged_steps_gives_the_same_do
 unchanged steps from the base gives a byte-identical document (serde JSON). `NodeId`s are allocated
 deterministically, and the file format rebuilds the allocator from the largest id when a file is loaded.
 
+## The end marker
+
+`timeline.rollTo {index}` (or dragging the end marker on the strip) replays the first `index` steps from
+the base. The steps after the marker are kept, unrun, and greyed. A new action taken while the
+timeline is rolled back is **inserted at the marker**, and the later steps replay after it, as in
+Fusion. The insert and the replay together are one undo step. While rolled back, an edited step
+replays only up to the marker.
+
 ## Commands
 
 | Id | Kind | Params → result |
 |---|---|---|
-| `timeline.list` | query | `{}` → `{steps: [{index, cmd, label, params, selection: [ids], status, error}], editable, baseBytes}` |
+| `timeline.list` | query | `{}` → `{steps: [{index, cmd, label, params, selection: [ids], status, error, rolledBack}], marker, editable, baseBytes}` |
 | `timeline.editStep` | journaled, one undo step | `{index, params}`: `params` is merged over the step's params (`null` removes a key) → `{failed: index or null, error, steps}` |
 | `timeline.replay` | journaled, one undo step | `{}` replays every step from the base, so a failed step is tried again → as above |
+| `timeline.rollTo` | journaled, one undo step | `{index}`: how many steps stay applied (0 … steps). The document shows the timeline as of that step, and the later steps are kept but not run → `{failed, error, steps, marker}` |
+| `timeline.setRecording` | query | `{on}`: records steps from now on. The app records; headless sessions (CLI, MCP, tests) start without recording → `{on}` |
 
 The commands reach the CLI (`vectorcraft-cli run --cmd timeline.list`), MCP `command_run` and the
 control channel (`engine.execute`) like every other command.

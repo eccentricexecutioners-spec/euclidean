@@ -54,6 +54,17 @@ pub struct Timeline {
     pub base_bytes: Option<usize>,
     #[serde(default)]
     pub steps: Vec<Step>,
+    /// The end marker rolled back: how many steps are applied (the later ones are kept, unrun, and
+    /// a new action goes in at the marker). `None`: at the end.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub marker: Option<usize>,
+}
+
+impl Timeline {
+    /// How many steps are applied: the marker, or all of them.
+    pub fn applied(&self) -> usize {
+        self.marker.map_or(self.steps.len(), |m| m.min(self.steps.len()))
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -297,10 +308,10 @@ impl Session {
         let mut t = read(&before.doc).unwrap_or_else(|| {
             let base = base_of(&before.doc);
             let (base, base_bytes) = if base.len() <= BASE_CAP { (Some(base), None) } else { (None, Some(base.len())) };
-            Timeline { version: 1, base, base_bytes, steps: vec![] }
+            Timeline { version: 1, base, base_bytes, steps: vec![], marker: None }
         });
         let label = label.map_or_else(|| label_for(cmd, params), |l| with_values(l, params));
-        t.steps.push(Step {
+        let step = Step {
             cmd: cmd.to_string(),
             params: params.clone(),
             label,
@@ -312,7 +323,22 @@ impl Session {
             draw_inside: before.draw_inside,
             status: Status::Ok,
             error: None,
-        });
+        };
+        // Rolled back: the new step goes in at the marker and the later steps replay after it.
+        if let Some(m) = t.marker.take().filter(|m| *m < t.steps.len()) {
+            t.steps.insert(m, step);
+            let fresh = crate::History { limit: st.history.limit, byte_budget: st.history.byte_budget, ..Default::default() };
+            let history = std::mem::replace(&mut st.history, fresh);
+            if let Some(later) = t.steps.get_mut(m + 1..) {
+                self.timeline_run(later);
+            }
+            let Some(st) = self.active_mut() else { return };
+            st.history = history;
+            store(Arc::make_mut(&mut st.doc), &t);
+            st.history.recost_last(&st.doc);
+            return;
+        }
+        t.steps.push(step);
         if t.steps.len() > MAX_STEPS {
             let extra = t.steps.len() - MAX_STEPS;
             t.steps.drain(..extra);
@@ -328,13 +354,16 @@ impl Session {
     /// that fails: it is marked failed with its error, the ones after it pending; the document is
     /// left as of the last good step. → the index of the failed step.
     fn timeline_replay_from(&mut self, base: Document, steps: &mut [Step]) -> Result<Option<usize>> {
-        {
-            let st = self.doc_mut()?;
-            st.doc = Arc::new(base);
-            st.selection = Selection::default();
-            st.active_layer = None;
-            st.isolation = None;
-        }
+        let st = self.doc_mut()?;
+        st.doc = Arc::new(base);
+        st.selection = Selection::default();
+        st.active_layer = None;
+        st.isolation = None;
+        Ok(self.timeline_run(steps))
+    }
+
+    /// Run `steps` on the document as it is (see [`Session::timeline_replay_from`]).
+    fn timeline_run(&mut self, steps: &mut [Step]) -> Option<usize> {
         let depth = std::mem::replace(&mut self.depth, 0);
         let replaying = std::mem::replace(&mut self.timeline_replay, true);
         // The session's template and drawing mode are the user's now, not the steps': put back.
@@ -362,7 +391,7 @@ impl Session {
         self.depth = depth;
         self.timeline_replay = replaying;
         (self.paint, self.draw_mode, self.draw_inside) = template;
-        Ok(failed)
+        failed
     }
 
     /// Put back the selection, layer and isolation `step` acted on; an error when its objects are
@@ -384,7 +413,7 @@ impl Session {
 
     /// Replace the active document's steps with `steps` replayed from its base, as one undo step
     /// labelled `label`. → `{failed, error, steps}`.
-    pub(crate) fn timeline_rewrite(&mut self, label: &str, edit: impl FnOnce(&mut Vec<Step>) -> Result<()>) -> Result<Value> {
+    pub(crate) fn timeline_rewrite(&mut self, label: &str, edit: impl FnOnce(&mut Timeline) -> Result<()>) -> Result<Value> {
         let st = self.doc_mut()?;
         if st.interaction.is_some() {
             return Err(EngineError::Other("finish the drag first".into()));
@@ -399,13 +428,18 @@ impl Session {
             }));
         };
         let base: Document = serde_json::from_str(base).map_err(|e| EngineError::Other(format!("the timeline's base can't be read: {e}")))?;
-        edit(&mut t.steps)?;
+        edit(&mut t)?;
+        // Rolled back: only the steps before the marker run; the later ones wait, unrun.
+        let applied = t.applied();
         let before = st.doc.clone();
         let before_sel = st.selection.clone();
         let (layer, isolation) = (st.active_layer, st.isolation);
         let fresh = crate::History { limit: st.history.limit, byte_budget: st.history.byte_budget, ..Default::default() };
         let history = std::mem::replace(&mut st.history, fresh);
-        let failed = self.timeline_replay_from(base, &mut t.steps);
+        let failed = match t.steps.get_mut(..applied) {
+            Some(run) => self.timeline_replay_from(base, run),
+            None => Ok(None),
+        };
         let st = self.doc_mut()?;
         st.history = history;
         let failed = match failed {
@@ -421,7 +455,7 @@ impl Session {
         st.push_undo(label.to_string(), before, Arc::new(before_sel));
         st.revision += 1;
         let error = failed.and_then(|i| t.steps.get(i)).and_then(|s| s.error.clone());
-        Ok(json!({"failed": failed, "error": error, "steps": t.steps.len()}))
+        Ok(json!({"failed": failed, "error": error, "steps": t.steps.len(), "marker": t.applied()}))
     }
 }
 

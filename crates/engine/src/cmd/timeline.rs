@@ -12,7 +12,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "List Timeline Steps",
             [],
             None,
-            "{} → {steps: [{index, cmd, label, params, selection: [ids], status: ok|failed|pending, error}], editable (the base is kept), baseBytes} the active document's timeline, oldest step first",
+            "{} → {steps: [{index, cmd, label, params, selection: [ids], status: ok|failed|pending, error, rolledBack}], marker (steps applied), editable (the base is kept), baseBytes} the active document's timeline, oldest step first",
             has_doc,
             list
         ),
@@ -35,6 +35,15 @@ pub fn specs() -> Vec<CommandSpec> {
             edit_step
         ),
         cmd!(
+            "timeline.rollTo",
+            "Roll Timeline",
+            [],
+            None,
+            "{index (how many steps stay applied, 0…steps)} moves the end marker: the document shows the timeline as of that step, the later steps kept, unrun (greyed); a new action is inserted at the marker and the later steps replay after it. One undo step → {failed: index|null, error, steps, marker}",
+            has_timeline,
+            roll_to
+        ),
+        cmd!(
             "timeline.replay",
             "Replay Timeline",
             [],
@@ -54,6 +63,7 @@ fn has_timeline(s: &Session) -> std::result::Result<(), String> {
 fn list(s: &mut Session, _: &Value) -> Result<Value> {
     let st = s.doc()?;
     let t = timeline::read(&st.doc).unwrap_or_default();
+    let applied = t.applied();
     let steps: Vec<Value> = t
         .steps
         .iter()
@@ -67,10 +77,11 @@ fn list(s: &mut Session, _: &Value) -> Result<Value> {
                 "selection": step.selection.objects,
                 "status": step.status,
                 "error": step.error,
+                "rolledBack": i >= applied,
             })
         })
         .collect();
-    Ok(json!({"steps": steps, "editable": t.base.is_some(), "baseBytes": t.base.as_ref().map_or(t.base_bytes, |b| Some(b.len()))}))
+    Ok(json!({"steps": steps, "marker": applied, "editable": t.base.is_some(), "baseBytes": t.base.as_ref().map_or(t.base_bytes, |b| Some(b.len()))}))
 }
 
 fn set_recording(s: &mut Session, p: &Value) -> Result<Value> {
@@ -84,10 +95,12 @@ fn edit_step(s: &mut Session, p: &Value) -> Result<Value> {
     let index = p.get("index").and_then(Value::as_u64).ok_or_else(|| bad(cmd, "`index` must be a step number (0 = the first step)"))?;
     let Some(Value::Object(patch)) = p.get("params") else { return Err(bad(cmd, "`params` must be an object")) };
     let patch = patch.clone();
-    s.timeline_rewrite("Edit Timeline Step", |steps| {
-        let n = steps.len();
-        let step =
-            usize::try_from(index).ok().and_then(|i| steps.get_mut(i)).ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
+    s.timeline_rewrite("Edit Timeline Step", |t| {
+        let n = t.steps.len();
+        let step = usize::try_from(index)
+            .ok()
+            .and_then(|i| t.steps.get_mut(i))
+            .ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
         let mut params = match &step.params {
             Value::Object(o) => o.clone(),
             _ => serde_json::Map::new(),
@@ -102,6 +115,23 @@ fn edit_step(s: &mut Session, p: &Value) -> Result<Value> {
         step.params = Value::Object(params);
         step.label = timeline::label_for(&step.cmd, &step.params);
         step.status = Status::Ok;
+        Ok(())
+    })
+}
+
+fn roll_to(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.rollTo";
+    let index = p
+        .get("index")
+        .and_then(Value::as_u64)
+        .and_then(|i| usize::try_from(i).ok())
+        .ok_or_else(|| bad(cmd, "`index` must be a step count (0 = before the first step)"))?;
+    s.timeline_rewrite("Roll Timeline", |t| {
+        let n = t.steps.len();
+        if index > n {
+            return Err(bad(cmd, format!("the timeline has {n} steps")));
+        }
+        t.marker = (index < n).then_some(index);
         Ok(())
     })
 }

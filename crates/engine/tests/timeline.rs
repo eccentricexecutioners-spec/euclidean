@@ -202,3 +202,43 @@ fn a_document_opened_from_a_file_starts_from_the_document_as_opened() {
     // The rectangle from the file is still there.
     assert!(t.doc().unwrap().doc.node(NodeId(2)).is_some());
 }
+
+#[test]
+fn rolling_back_to_step_2_of_4_shows_the_document_as_of_step_2() {
+    let mut s = session();
+    let (rect, offset) = drawing(&mut s);
+    let r = run(&mut s, "timeline.rollTo", json!({"index": 2}));
+    assert_eq!(r["marker"], 2);
+    let d = &s.doc().unwrap().doc;
+    assert!(d.node(NodeId(rect)).is_some() && d.node(NodeId(offset)).is_none(), "the offset path is not made yet");
+    let l = run(&mut s, "timeline.list", json!({}));
+    assert_eq!(l["marker"], 2);
+    let rolled: Vec<bool> = l["steps"].as_array().unwrap().iter().map(|v| v["rolledBack"].as_bool().unwrap()).collect();
+    assert_eq!(rolled, [false, false, true, true]);
+    // Rolling forward to the end gives the document back.
+    run(&mut s, "timeline.rollTo", json!({"index": 4}));
+    assert!((width_of(&s, offset) - 60.0).abs() < 0.5);
+    assert_eq!(run(&mut s, "timeline.list", json!({}))["marker"], 4);
+}
+
+#[test]
+fn a_new_action_while_rolled_back_is_inserted_at_the_marker_and_the_later_steps_replay() {
+    let mut s = session();
+    let (rect, _) = drawing(&mut s);
+    run(&mut s, "timeline.rollTo", json!({"index": 2}));
+    let rolled_back = doc_json(&s);
+    let star = run(&mut s, "shape.rectangle", json!({"x": 200, "y": 20, "width": 30, "height": 30}))["id"].as_u64().unwrap();
+    assert_eq!(cmds(&mut s), ["shape.rectangle", "shape.ellipse", "shape.rectangle", "object.path.offsetPath", "paint.setFill"]);
+    let l = run(&mut s, "timeline.list", json!({}));
+    assert_eq!(l["marker"], 5);
+    assert!(l["steps"].as_array().unwrap().iter().all(|v| v["status"] == "ok" && v["rolledBack"] == false), "{l}");
+    // Steps 3 and 4 replayed after the new one: the offset path of the first rectangle exists
+    // again (its id moved up by one), filled red.
+    let d = &s.doc().unwrap().doc;
+    assert!(d.node(NodeId(rect)).is_some() && d.node(NodeId(star)).is_some());
+    let offset = star + 1;
+    assert!((width_of(&s, offset) - 60.0).abs() < 0.5, "{}", width_of(&s, offset));
+    // One undo step: undo goes back to the rolled-back document.
+    run(&mut s, "edit.undo", json!({}));
+    assert_eq!(doc_json(&s), rolled_back);
+}
