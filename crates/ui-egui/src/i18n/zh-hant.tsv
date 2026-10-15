@@ -3834,3 +3834,5 @@ lighting	Light	光源
 @msg	the objects it acted on are gone ({_1})	其作用的物件已不存在 ({_1})
 @msg	the timeline's base can't be read: {e}	無法讀取時間軸的起點: {e}
 @msg	this document has no timeline steps	此文件沒有時間軸步驟
+	Collapse tool panel	摺疊工具面板
+	Expand tool panel	展開工具面板

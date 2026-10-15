@@ -260,6 +260,9 @@ fn load_prefs(app: &mut VectorcraftApp, saved: Option<vectorcraft_ui_egui::UiSta
     }
     if let Some(ui) = saved {
         app.ui = ui.sanitized();
+    } else {
+        // A fresh preference file: the Fusion workbench is the default layout.
+        app.ui.layout = vectorcraft_ui_egui::state::Layout::Fusion;
     }
     vectorcraft_ui_egui::prefs_dialog::restore(app);
 }
@@ -803,6 +806,12 @@ fn main() -> std::process::ExitCode {
                     #[cfg(windows)]
                     set_taskbar_icon(w);
                 }
+                // The Fusion layout file and the timeline: `load_prefs` above replaced `app.ui`, whose
+                // `layout_path` is not saved, so it is set after it.
+                if prefs_enabled() {
+                    app.ui.workbench.layout_path = prefs_path().and_then(|p| Some(p.parent()?.join("layout.json")));
+                }
+                app.session.timeline_recording = true;
                 // User Defined swatch and graphic style libraries live next to the preferences.
                 let swatches = prefs_path().and_then(|p| Some(p.parent()?.join("Swatches").to_string_lossy().to_string()));
                 app.session.swatch_libraries.set_user_dir(swatches);

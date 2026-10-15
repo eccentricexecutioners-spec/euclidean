@@ -4787,3 +4787,5 @@ mark-style	Japanese	Japońskie
 @msg	the objects it acted on are gone ({_1})	obiekty, na które działał, już nie istnieją ({_1})
 @msg	the timeline's base can't be read: {e}	nie można odczytać podstawy osi czasu: {e}
 @msg	this document has no timeline steps	ten dokument nie ma kroków osi czasu
+	Collapse tool panel	Zwiń panel narzędzia
+	Expand tool panel	Rozwiń panel narzędzia

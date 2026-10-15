@@ -4885,3 +4885,5 @@ mark-style	Japanese	Japonesas
 @msg	the objects it acted on are gone ({_1})	los objetos sobre los que actuó ya no existen ({_1})
 @msg	the timeline's base can't be read: {e}	no se puede leer la base de la línea de tiempo: {e}
 @msg	this document has no timeline steps	este documento no tiene pasos en la línea de tiempo
+	Collapse tool panel	Contraer el panel de herramientas
+	Expand tool panel	Expandir el panel de herramientas

@@ -4494,3 +4494,5 @@ lighting	Light	Світло
 @msg	the objects it acted on are gone ({_1})	об’єкти, до яких він застосовувався, більше не існують ({_1})
 @msg	the timeline's base can't be read: {e}	не вдається прочитати основу часової шкали: {e}
 @msg	this document has no timeline steps	у цьому документі немає кроків часової шкали
+	Collapse tool panel	Згорнути панель інструмента
+	Expand tool panel	Розгорнути панель інструмента

@@ -4478,3 +4478,5 @@ lighting	Light	광원
 @msg	the objects it acted on are gone ({_1})	작업 대상 개체가 더 이상 없습니다 ({_1})
 @msg	the timeline's base can't be read: {e}	타임라인 기준을 읽을 수 없습니다: {e}
 @msg	this document has no timeline steps	이 문서에는 타임라인 단계가 없습니다
+	Collapse tool panel	도구 패널 접기
+	Expand tool panel	도구 패널 펼치기

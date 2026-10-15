@@ -4508,3 +4508,5 @@ lighting	Light	ライト
 @msg	the objects it acted on are gone ({_1})	操作対象のオブジェクトがありません ({_1})
 @msg	the timeline's base can't be read: {e}	タイムラインの基点を読み込めません: {e}
 @msg	this document has no timeline steps	このドキュメントにはタイムラインのステップがありません
+	Collapse tool panel	ツールパネルを折りたたむ
+	Expand tool panel	ツールパネルを展開

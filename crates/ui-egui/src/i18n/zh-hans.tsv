@@ -4052,3 +4052,5 @@ lighting	Light	光源
 @msg	the objects it acted on are gone ({_1})	其作用的对象已不存在 ({_1})
 @msg	the timeline's base can't be read: {e}	无法读取时间线的起点: {e}
 @msg	this document has no timeline steps	此文档没有时间线步骤
+	Collapse tool panel	折叠工具面板
+	Expand tool panel	展开工具面板

@@ -4911,3 +4911,5 @@ imageTrace	Outline	Körvonal
 @msg	the objects it acted on are gone ({_1})	az objektumok, amelyekre hatott, már nem léteznek ({_1})
 @msg	the timeline's base can't be read: {e}	az idővonal alapja nem olvasható: {e}
 @msg	this document has no timeline steps	ennek a dokumentumnak nincsenek idővonal-lépései
+	Collapse tool panel	Eszközpanel összecsukása
+	Expand tool panel	Eszközpanel kibontása

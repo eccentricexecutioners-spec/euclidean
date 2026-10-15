@@ -4469,3 +4469,5 @@ theme	Appearance	Erscheinungsbild
 @msg	the objects it acted on are gone ({_1})	die Objekte, auf die er wirkte, sind nicht mehr vorhanden ({_1})
 @msg	the timeline's base can't be read: {e}	die Basis der Zeitleiste kann nicht gelesen werden: {e}
 @msg	this document has no timeline steps	dieses Dokument hat keine Zeitleistenschritte
+	Collapse tool panel	Werkzeugbedienfeld einklappen
+	Expand tool panel	Werkzeugbedienfeld ausklappen

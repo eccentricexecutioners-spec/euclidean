@@ -3,7 +3,10 @@
 //! read from a JSON file, see `docs/layout.md`) and the workbench's saved state; drawing lives
 //! elsewhere.
 
+mod draw;
 mod layout;
+
+pub use draw::show;
 
 pub use layout::*;
 
@@ -47,6 +50,14 @@ pub struct WorkbenchState {
     /// The tab group whose flyout is open.
     #[serde(skip)]
     pub open_group: Option<String>,
+    /// Screen rects of the buttons drawn last frame, by name (`tab:draw`, `group:create`,
+    /// `label:modify`, `section:layers`, `close:pathfinder`...): what the headless tests click.
+    #[serde(skip)]
+    pub hits: Vec<(String, egui::Rect)>,
+    /// The status-line warning from the last load (the first unknown id, and how many more),
+    /// shown once by the next frame.
+    #[serde(skip)]
+    pub unshown_warning: Option<String>,
 }
 
 impl Default for WorkbenchState {
@@ -63,6 +74,8 @@ impl Default for WorkbenchState {
             warnings: vec![],
             right_panels: vec![],
             open_group: None,
+            hits: vec![],
+            unshown_warning: None,
         }
     }
 }
@@ -81,6 +94,10 @@ impl WorkbenchState {
         let (file, mut warnings) = load(self.layout_path.as_deref());
         let (resolved, more) = resolve(&file);
         warnings.extend(more);
+        self.unshown_warning = warnings.first().map(|first| match warnings.len() {
+            1 => first.clone(),
+            n => format!("{first} {}", crate::tl!("(+{n} more)").replace("{n}", &(n - 1).to_string())),
+        });
         self.warnings = warnings;
         self.loaded = Some(LoadedLayout { file, resolved });
     }
@@ -88,3 +105,5 @@ impl WorkbenchState {
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_frame;

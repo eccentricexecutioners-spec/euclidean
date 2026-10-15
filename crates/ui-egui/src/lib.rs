@@ -1301,24 +1301,28 @@ impl VectorcraftApp {
         font_menu::end_stale_preview(self, &ctx);
         floating::track(self, &ctx);
         let t = theme::Tokens::get(&ctx);
-        if self.ui.screen_mode < 2 {
-            chrome::app_bar(self, ui);
-            if sketch::active(self) {
-                // Sketch mode: the sketch toolbar replaces the Control bar, in every workspace.
-                sketch::toolbar::show(self, ui);
-            } else if self.ui.control_bar {
-                chrome::control_bar(self, ui);
+        if self.ui.layout == state::Layout::Fusion {
+            workbench::show(self, ui);
+        } else {
+            if self.ui.screen_mode < 2 {
+                chrome::app_bar(self, ui);
+                if sketch::active(self) {
+                    // Sketch mode: the sketch toolbar replaces the Control bar, in every workspace.
+                    sketch::toolbar::show(self, ui);
+                } else if self.ui.control_bar {
+                    chrome::control_bar(self, ui);
+                }
             }
-        }
-        if self.ui.status_bar && self.ui.screen_mode < 3 {
-            chrome::status_bar(self, ui);
-            chrome::hint_bar(self, ui);
-        }
-        if self.ui.toolbar && self.ui.screen_mode < 3 {
-            toolbar::show(self, ui);
-        }
-        if self.ui.dock && self.ui.screen_mode < 3 {
-            dock::show(self, ui);
+            if self.ui.status_bar && self.ui.screen_mode < 3 {
+                chrome::status_bar(self, ui);
+                chrome::hint_bar(self, ui);
+            }
+            if self.ui.toolbar && self.ui.screen_mode < 3 {
+                toolbar::show(self, ui);
+            }
+            if self.ui.dock && self.ui.screen_mode < 3 {
+                dock::show(self, ui);
+            }
         }
         egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.pasteboard)).show(ui, |ui| {
             if self.ui.screen_mode < 3 {
@@ -1328,7 +1332,9 @@ impl VectorcraftApp {
             canvas::show(self, ui);
         });
         sketch::params_dialog::show(self, &ctx);
-        dock::floating_panel(self, &ctx);
+        if self.ui.layout != state::Layout::Fusion {
+            dock::floating_panel(self, &ctx);
+        }
         floating::show(self, &ctx);
         panels::library_panel::show_window(self, &ctx);
         dialogs::show(self, &ctx);

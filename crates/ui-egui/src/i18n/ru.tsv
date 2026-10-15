@@ -4510,3 +4510,5 @@ lighting	Light	Свет
 @msg	the objects it acted on are gone ({_1})	объекты, к которым он применялся, больше не существуют ({_1})
 @msg	the timeline's base can't be read: {e}	не удаётся прочитать основу временной шкалы: {e}
 @msg	this document has no timeline steps	в этом документе нет шагов временной шкалы
+	Collapse tool panel	Свернуть панель инструмента
+	Expand tool panel	Развернуть панель инструмента

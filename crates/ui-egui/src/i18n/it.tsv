@@ -4514,3 +4514,5 @@ lighting	Light	Luce
 @msg	the objects it acted on are gone ({_1})	gli oggetti su cui agiva non esistono più ({_1})
 @msg	the timeline's base can't be read: {e}	impossibile leggere la base della timeline: {e}
 @msg	this document has no timeline steps	questo documento non ha passaggi nella timeline
+	Collapse tool panel	Comprimi il pannello strumento
+	Expand tool panel	Espandi il pannello strumento

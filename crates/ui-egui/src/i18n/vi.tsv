@@ -4496,3 +4496,5 @@ theme	Appearance	Giao diện
 @msg	the objects it acted on are gone ({_1})	các đối tượng mà bước này tác động không còn nữa ({_1})
 @msg	the timeline's base can't be read: {e}	không đọc được điểm gốc của dòng thời gian: {e}
 @msg	this document has no timeline steps	tài liệu này không có bước dòng thời gian nào
+	Collapse tool panel	Thu gọn bảng công cụ
+	Expand tool panel	Mở rộng bảng công cụ
