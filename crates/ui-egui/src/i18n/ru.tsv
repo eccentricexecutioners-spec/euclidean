@@ -4512,6 +4512,8 @@ lighting	Light	Свет
 @msg	this document has no timeline steps	в этом документе нет шагов временной шкалы
 	Collapse tool panel	Свернуть панель инструмента
 	Expand tool panel	Развернуть панель инструмента
+	Collapse panel column	Свернуть колонку панелей
+	Expand panel column	Развернуть колонку панелей
 	First step	Первый шаг
 	Previous step	Предыдущий шаг
 	Next step	Следующий шаг

@@ -4510,6 +4510,8 @@ lighting	Light	ライト
 @msg	this document has no timeline steps	このドキュメントにはタイムラインのステップがありません
 	Collapse tool panel	ツールパネルを折りたたむ
 	Expand tool panel	ツールパネルを展開
+	Collapse panel column	パネル列を折りたたむ
+	Expand panel column	パネル列を展開
 	First step	最初のステップ
 	Previous step	前のステップ
 	Next step	次のステップ

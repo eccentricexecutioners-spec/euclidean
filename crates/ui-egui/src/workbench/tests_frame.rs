@@ -406,3 +406,38 @@ fn the_four_buttons_move_the_end_marker() {
     rig.click("tl:prev");
     assert_eq!(marker(&mut rig), 3);
 }
+
+fn hit_rect(rig: &Rig, name: &str) -> egui::Rect {
+    rig.app.ui.workbench.hits.iter().find(|h| h.0 == name).unwrap_or_else(|| panic!("no hit '{name}'")).1
+}
+
+#[test]
+fn fusion_left_column_spans_full_height() {
+    let rig = Rig::new(Layout::Fusion);
+    let (left, tabs, nav) = (hit_rect(&rig, "panel:left"), hit_rect(&rig, "panel:tabs"), hit_rect(&rig, "panel:nav"));
+    assert!(left.top() <= tabs.top() + 0.5, "{left:?} {tabs:?}");
+    // (1.5, not 0.5: the left panel's rect stops 1px short of the nav bar's, a frame stroke.)
+    assert!(left.bottom() >= nav.bottom() - 1.5, "{left:?} {nav:?}");
+    assert!(tabs.left() >= left.right() - 0.5, "{left:?} {tabs:?}");
+}
+
+#[test]
+fn left_column_collapses_to_a_rail_and_back() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.click("left:collapse");
+    assert!(hit_rect(&rig, "panel:left").width() < 60.0);
+    rig.hit("left:expand");
+    assert!(rig.app.ui.workbench.left_collapsed);
+    let saved = serde_json::to_string(&rig.app.ui).unwrap();
+    let back: UiState = serde_json::from_str(&saved).unwrap();
+    assert!(back.workbench.left_collapsed);
+    rig.click("left:expand");
+    assert!(hit_rect(&rig, "panel:left").width() > 200.0);
+    assert!(!rig.app.ui.workbench.left_collapsed);
+    rig.click("left:collapse");
+    rig.app.ui.workbench.collapsed.insert("layers".into());
+    rig.click("rail:layers");
+    assert!(!rig.app.ui.workbench.left_collapsed);
+    assert!(!rig.app.ui.workbench.collapsed.contains("layers"));
+    assert!(hit_rect(&rig, "panel:left").width() > 200.0);
+}

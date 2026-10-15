@@ -4054,6 +4054,8 @@ lighting	Light	光源
 @msg	this document has no timeline steps	此文档没有时间线步骤
 	Collapse tool panel	折叠工具面板
 	Expand tool panel	展开工具面板
+	Collapse panel column	折叠面板栏
+	Expand panel column	展开面板栏
 	First step	第一步
 	Previous step	上一步
 	Next step	下一步

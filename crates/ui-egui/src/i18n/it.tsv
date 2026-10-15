@@ -4516,6 +4516,8 @@ lighting	Light	Luce
 @msg	this document has no timeline steps	questo documento non ha passaggi nella timeline
 	Collapse tool panel	Comprimi il pannello strumento
 	Expand tool panel	Espandi il pannello strumento
+	Collapse panel column	Comprimi la colonna dei pannelli
+	Expand panel column	Espandi la colonna dei pannelli
 	First step	Primo passo
 	Previous step	Passo precedente
 	Next step	Passo successivo

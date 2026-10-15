@@ -39,6 +39,9 @@ pub struct WorkbenchState {
     pub left_width: f32,
     pub right_width: f32,
     pub right_collapsed: bool,
+    /// The left column folded to a rail of icons.
+    #[serde(default)]
+    pub left_collapsed: bool,
     /// The tab before the last switch (a tool that lives on another tab may flip back).
     pub prev_tab: Option<String>,
     /// The user's `layout.json`; the app sets it (none in tests: the compiled-in default is used).
@@ -87,6 +90,7 @@ impl Default for WorkbenchState {
             left_width: 260.0,
             right_width: 280.0,
             right_collapsed: false,
+            left_collapsed: false,
             prev_tab: None,
             layout_path: None,
             loaded: None,

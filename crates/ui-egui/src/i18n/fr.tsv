@@ -4946,6 +4946,8 @@ theme	Appearance	Apparence
 @msg	this document has no timeline steps	ce document n’a aucune étape de chronologie
 	Collapse tool panel	Réduire le panneau d’outil
 	Expand tool panel	Développer le panneau d’outil
+	Collapse panel column	Réduire la colonne de panneaux
+	Expand panel column	Développer la colonne de panneaux
 	First step	Première étape
 	Previous step	Étape précédente
 	Next step	Étape suivante

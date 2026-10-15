@@ -14,9 +14,14 @@ const NAV_HEIGHT: f32 = 28.0;
 const BIG_BUTTON: f32 = 28.0;
 const HEADER_HEIGHT: f32 = 22.0;
 const COLLAPSED_STRIP: f32 = 22.0;
+const RAIL_WIDTH: f32 = 44.0;
 
-/// Draw the whole Fusion chrome (everything but the canvas), in egui's panel order: top panels
-/// (menu bar, tabs, groups), bottom panels (status, hint, navigation), then left and right.
+/// Draw the whole Fusion chrome (everything but the canvas), in egui's panel order. The left
+/// column is declared right after the app bar and the status and hint bars, so it spans the full
+/// height between them (a side panel declared before later top and bottom panels takes the whole
+/// remaining height; those then only span the remaining width). Then come the tab row and the
+/// group row on top, the navigation bar and timeline strip at the bottom, and the tool panel on
+/// the right.
 pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     app.ui.workbench.hits.clear();
@@ -30,6 +35,15 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     let mode = app.ui.screen_mode;
     if mode < 2 {
         chrome::app_bar(app, ui);
+    }
+    if app.ui.status_bar && mode < 3 {
+        chrome::status_bar(app, ui);
+        chrome::hint_bar(app, ui);
+    }
+    if mode < 3 {
+        left_column(app, ui, &t, &lay, tab.as_ref());
+    }
+    if mode < 2 {
         tab_row(app, ui, &t, &lay, tab.as_ref());
         if sketch::active(app) {
             // Sketch mode: the sketch toolbar takes the group row's place.
@@ -38,10 +52,6 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
             group_row(app, ui, &t, tab.as_ref());
         }
     }
-    if app.ui.status_bar && mode < 3 {
-        chrome::status_bar(app, ui);
-        chrome::hint_bar(app, ui);
-    }
     if mode < 3 {
         // The first bottom panel declared is the lowest: the navigation bar sits above the status
         // and hint bars, and the timeline strip, declared after it, above it.
@@ -49,7 +59,6 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         if app.session.doc().is_ok() {
             super::timeline_strip::show(app, ui, &t);
         }
-        left_column(app, ui, &t, &lay, tab.as_ref());
         tool_panel(app, ui, &t, &lay, tab.as_ref());
     }
     super::step_form::show(app, ui.ctx());
@@ -228,7 +237,7 @@ fn paint_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, item: &Item, rect: Re
 // ---------------------------------------------------------------- top rows
 
 fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, active: Option<&ResolvedTab>) {
-    egui::Panel::top("wb_tabs")
+    let panel = egui::Panel::top("wb_tabs")
         .exact_size(TAB_ROW_HEIGHT)
         .frame(egui::Frame::NONE.fill(t.panel_darker).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
@@ -245,6 +254,7 @@ fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayo
                 }
             });
         });
+    app.ui.workbench.hits.push(("panel:tabs".into(), panel.response.rect));
 }
 
 fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&ResolvedTab>) {
@@ -329,7 +339,7 @@ fn dropdown_row(app: &VectorcraftApp, ui: &mut Ui, t: &Tokens, item: &Item) -> b
 // ---------------------------------------------------------------- navigation bar
 
 fn nav_bar(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout) {
-    egui::Panel::bottom("wb_nav")
+    let panel = egui::Panel::bottom("wb_nav")
         .exact_size(NAV_HEIGHT)
         .frame(egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
@@ -349,6 +359,7 @@ fn nav_bar(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayo
                 }
             });
         });
+    app.ui.workbench.hits.push(("panel:nav".into(), panel.response.rect));
 }
 
 // ---------------------------------------------------------------- panel headers
@@ -435,12 +446,23 @@ fn body(app: &mut VectorcraftApp, ui: &mut Ui, host: &str, id: &str) {
 // ---------------------------------------------------------------- left column
 
 fn left_column(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, tab: Option<&ResolvedTab>) {
-    let resp = egui::Panel::left("wb_left")
-        .resizable(true)
-        .default_size(app.ui.workbench.left_width)
-        .size_range(220.0..=600.0)
-        .frame(egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.border)))
-        .show(ui, |ui| {
+    let frame = egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.border));
+    if app.ui.workbench.left_collapsed {
+        left_rail(app, ui, t, lay, frame);
+        return;
+    }
+    let resp = egui::Panel::left("wb_left").resizable(true).default_size(app.ui.workbench.left_width).size_range(220.0..=600.0).frame(frame).show(
+        ui,
+        |ui| {
+            // A slim header row: the button that folds the whole column to a rail.
+            ui.allocate_ui_with_layout(vec2(ui.available_width(), HEADER_HEIGHT), egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.add_space(4.0);
+                let resp = ui.button("\u{2039}").on_hover_text(tl!("Collapse panel column"));
+                app.ui.workbench.hits.push(("left:collapse".into(), resp.rect));
+                if resp.clicked() {
+                    app.ui.workbench.left_collapsed = true;
+                }
+            });
             // Both ways: a panel wider than the column (Parameters' table) scrolls inside it instead
             // of widening the column (egui grows a side panel to its content).
             let width = ui.available_width();
@@ -451,10 +473,55 @@ fn left_column(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &Resolved
                     left_entry(app, ui, t, lay, id);
                 }
             });
-        });
-    let w = resp.response.rect.width();
+        },
+    );
+    let rect = resp.response.rect;
+    app.ui.workbench.hits.push(("panel:left".into(), rect));
+    let w = rect.width();
     if w.is_finite() && w >= 1.0 {
         app.ui.workbench.left_width = w;
+    }
+}
+
+/// The collapsed left column: a narrow rail with an expand button and one icon per pinned entry.
+/// (Its own panel id, so the resizable column's saved width is left alone.)
+fn left_rail(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, frame: egui::Frame) {
+    let mut expand = false;
+    let mut unfold: Option<String> = None;
+    let resp = egui::Panel::left("wb_left_rail").resizable(false).exact_size(RAIL_WIDTH).frame(frame).show(ui, |ui| {
+        ui.vertical_centered(|ui| {
+            let resp = ui.button("\u{203A}").on_hover_text(tl!("Expand panel column"));
+            app.ui.workbench.hits.push(("left:expand".into(), resp.rect));
+            if resp.clicked() {
+                expand = true;
+            }
+            ui.add_space(4.0);
+            for id in &lay.pinned_left {
+                let (panel, label) = match lay.sections.get(id) {
+                    Some(sec) => (sec.panels.first().cloned().unwrap_or_else(|| id.clone()), sec.label.as_str()),
+                    None => (id.clone(), panel_label(id)),
+                };
+                let item = Item::Panel { id: panel, label: label.to_string() };
+                let (rect, resp) = ui.allocate_exact_size(vec2(BIG_BUTTON, BIG_BUTTON), Sense::click());
+                if resp.hovered() {
+                    ui.painter().rect_filled(rect, 3.0, t.hover);
+                }
+                paint_item(ui, t, &item, rect.shrink(rect.width() * 0.15), t.icon);
+                let resp = resp.on_hover_text(tr(label));
+                app.ui.workbench.hits.push((format!("rail:{id}"), rect));
+                if resp.clicked() {
+                    expand = true;
+                    unfold = Some(id.clone());
+                }
+            }
+        });
+    });
+    app.ui.workbench.hits.push(("panel:left".into(), resp.response.rect));
+    if let Some(id) = unfold {
+        set_folded(&mut app.ui.workbench.collapsed, &id, false, false);
+    }
+    if expand {
+        app.ui.workbench.left_collapsed = false;
     }
 }
 

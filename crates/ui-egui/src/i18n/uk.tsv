@@ -4496,6 +4496,8 @@ lighting	Light	Світло
 @msg	this document has no timeline steps	у цьому документі немає кроків часової шкали
 	Collapse tool panel	Згорнути панель інструмента
 	Expand tool panel	Розгорнути панель інструмента
+	Collapse panel column	Згорнути колонку панелей
+	Expand panel column	Розгорнути колонку панелей
 	First step	Перший крок
 	Previous step	Попередній крок
 	Next step	Наступний крок

@@ -4887,6 +4887,8 @@ mark-style	Japanese	Japonesas
 @msg	this document has no timeline steps	este documento no tiene pasos en la línea de tiempo
 	Collapse tool panel	Contraer el panel de herramientas
 	Expand tool panel	Expandir el panel de herramientas
+	Collapse panel column	Contraer la columna de paneles
+	Expand panel column	Expandir la columna de paneles
 	First step	Primer paso
 	Previous step	Paso anterior
 	Next step	Paso siguiente

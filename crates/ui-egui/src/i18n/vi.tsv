@@ -4498,6 +4498,8 @@ theme	Appearance	Giao diện
 @msg	this document has no timeline steps	tài liệu này không có bước dòng thời gian nào
 	Collapse tool panel	Thu gọn bảng công cụ
 	Expand tool panel	Mở rộng bảng công cụ
+	Collapse panel column	Thu gọn cột bảng
+	Expand panel column	Mở rộng cột bảng
 	First step	Bước đầu tiên
 	Previous step	Bước trước
 	Next step	Bước tiếp theo
