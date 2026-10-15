@@ -7,6 +7,7 @@
  "tabs": [
   {
    "id": "draw",
+   "color": "draw",
    "label": "DRAW",
    "groups": [
     {
@@ -147,6 +148,7 @@
   },
   {
    "id": "sketch",
+   "color": "sketch",
    "label": "SKETCH",
    "groups": [
     {
@@ -175,6 +177,7 @@
   },
   {
    "id": "type",
+   "color": "type",
    "label": "TYPE",
    "groups": [
     {
@@ -209,6 +212,7 @@
   },
   {
    "id": "output",
+   "color": "output",
    "label": "OUTPUT",
    "groups": [
     {

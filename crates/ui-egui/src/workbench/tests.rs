@@ -85,6 +85,7 @@ fn menu_item_expands_to_commands_under_that_path() {
             label: "T".into(),
             groups: vec![GroupDef { id: "g".into(), label: "G".into(), items: vec!["menu:Object/Path".into()] }],
             left: vec![],
+            color: None,
         }],
         nav: vec![],
         sections: Default::default(),
@@ -136,4 +137,29 @@ fn reload_reports_and_reveal_needs_a_path() {
     app.run("view.layout.reload", json!({})).unwrap();
     assert!(app.ui.status.contains("unknown tool id 'nope'"), "{}", app.ui.status);
     assert_eq!(app.ui.workbench.layout().tabs[0].id, "a");
+}
+
+#[test]
+fn default_layout_gives_each_tab_its_colour() {
+    let (r, w) = resolve(&default_layout());
+    assert!(w.is_empty(), "{w:?}");
+    for t in &r.tabs {
+        assert_eq!(t.color.as_deref(), Some(t.id.as_str()), "tab {}", t.id);
+    }
+    let f: LayoutFile = serde_json::from_value(json!({"tabs":[{"id":"a","label":"A"}]})).unwrap();
+    let (r, w) = resolve(&f);
+    assert!(w.is_empty());
+    assert_eq!(r.tabs[0].color, None);
+    let tk = crate::theme::Tokens::for_brightness(crate::theme::Brightness::Dark);
+    assert_eq!(tk.tab_color(None), tk.accent);
+    assert_eq!(tk.tab_color(Some("sketch")), tk.tab_sketch);
+}
+
+#[test]
+fn unknown_tab_colour_is_one_warning() {
+    let f: LayoutFile = serde_json::from_value(json!({"tabs":[{"id":"a","label":"A","color":"mauve"}]})).unwrap();
+    let (r, w) = resolve(&f);
+    assert_eq!(w.len(), 1, "{w:?}");
+    assert!(w[0].contains("mauve"));
+    assert_eq!(r.tabs[0].color, None);
 }

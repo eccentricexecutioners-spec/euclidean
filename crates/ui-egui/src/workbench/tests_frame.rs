@@ -441,3 +441,18 @@ fn left_column_collapses_to_a_rail_and_back() {
     assert!(!rig.app.ui.workbench.collapsed.contains("layers"));
     assert!(hit_rect(&rig, "panel:left").width() > 200.0);
 }
+
+#[test]
+fn active_tab_pill_is_filled_with_its_colour() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let t = crate::theme::Tokens::get(&rig.ctx);
+    let fills = |rig: &Rig| rig.app.ui.workbench.tab_fills.clone();
+    let fill_of = |rig: &Rig, id: &str| fills(rig).into_iter().find(|f| f.0 == id).map(|f| f.1);
+    assert_eq!(fill_of(&rig, "draw"), Some(t.tab_color(Some("draw"))));
+    assert_eq!(fill_of(&rig, "sketch"), Some(t.surface));
+    rig.click("tab:sketch");
+    assert_eq!(fill_of(&rig, "sketch"), Some(t.tab_sketch));
+    assert_eq!(fill_of(&rig, "draw"), Some(t.surface));
+    // The canvas side sees the unchanged tokens after the workbench drew with its washed one.
+    assert_eq!(crate::theme::Tokens::get(&rig.ctx).row_selected, t.row_selected);
+}

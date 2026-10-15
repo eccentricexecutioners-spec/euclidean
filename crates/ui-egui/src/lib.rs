@@ -1324,13 +1324,16 @@ impl VectorcraftApp {
                 dock::show(self, ui);
             }
         }
-        egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.pasteboard)).show(ui, |ui| {
+        let central = egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.pasteboard)).show(ui, |ui| {
             if self.ui.screen_mode < 3 {
                 chrome::doc_tabs(self, ui);
             }
             sketch::strip::show(self, ui);
             canvas::show(self, ui);
         });
+        if self.ui.layout == state::Layout::Fusion {
+            workbench::round_canvas(ui, central.response.rect);
+        }
         sketch::params_dialog::show(self, &ctx);
         if self.ui.layout != state::Layout::Fusion {
             dock::floating_panel(self, &ctx);

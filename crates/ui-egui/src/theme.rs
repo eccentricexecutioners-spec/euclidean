@@ -41,6 +41,17 @@ impl Brightness {
 #[derive(Clone, Copy, Debug)]
 pub struct Tokens {
     pub dark: bool,
+    /// Fusion workbench: the frame around the cards, the surface of rows, the card fill.
+    pub frame: Color32,
+    pub surface: Color32,
+    pub card: Color32,
+    /// Text and icons on a filled accent or tab colour.
+    pub on_accent: Color32,
+    /// Fusion tab colours (see [`Tokens::tab_color`]).
+    pub tab_draw: Color32,
+    pub tab_sketch: Color32,
+    pub tab_type: Color32,
+    pub tab_output: Color32,
     pub app_bar: Color32,
     pub panel: Color32,
     pub panel_darker: Color32,
@@ -100,33 +111,41 @@ impl Tokens {
         let hex = |s: u32| Color32::from_rgb((s >> 16) as u8, (s >> 8) as u8, s as u8);
         let base = Tokens {
             dark: true,
-            app_bar: hex(0x262626),
-            panel: hex(0x323232),
-            panel_darker: hex(0x282828),
-            input: hex(0x1f1f1f),
-            input_border: hex(0x464646),
-            border: hex(0x1b1b1b),
-            divider: hex(0x3f3f3f),
-            text: hex(0xd8d8d8),
-            text_dim: hex(0xa8a8a8),
-            text_disabled: hex(0x6e6e6e),
-            icon: hex(0xcfcfcf),
-            hover: hex(0x444444),
-            tool_active: hex(0x1d1d1d),
+            frame: hex(0x1a1d23),
+            surface: hex(0x22262e),
+            card: hex(0x2a2f38),
+            on_accent: hex(0xffffff),
+            tab_draw: hex(0x5b8cff),
+            tab_sketch: hex(0xff9447),
+            tab_type: hex(0xb07dff),
+            tab_output: hex(0x2fc796),
+            app_bar: hex(0x1a1d23),
+            panel: hex(0x2a2f38),
+            panel_darker: hex(0x22262e),
+            input: hex(0x1d2128),
+            input_border: hex(0x444b57),
+            border: hex(0x363c47),
+            divider: hex(0x363c47),
+            text: hex(0xe7eaef),
+            text_dim: hex(0x98a1b0),
+            text_disabled: hex(0x5f6775),
+            icon: hex(0xd5dae2),
+            hover: hex(0x353b46),
+            tool_active: hex(0x1d2128),
             accent: hex(0x378ef0),
             accent_strong: hex(0x1473e6),
-            row_selected: hex(0x484b50),
-            pasteboard: hex(0x1e1e1e),
-            ruler: hex(0x2f2f2f),
-            ruler_tick: hex(0x8a8a8a),
+            row_selected: hex(0x354364),
+            pasteboard: hex(0x121418),
+            ruler: hex(0x22262e),
+            ruler_tick: hex(0x8a919e),
             smart_guide: hex(0xff3dfc),
             guide: hex(0x4affff),
             measure_bg: Color32::from_rgba_unmultiplied(92, 92, 92, 235),
-            button: hex(0x444444),
-            radius: 2,
-            text_strong: hex(0xf5f5f5),
-            tab_strip: hex(0x282828),
-            button_border: hex(0x6a6a6a),
+            button: hex(0x323844),
+            radius: 6,
+            text_strong: hex(0xffffff),
+            tab_strip: hex(0x1a1d23),
+            button_border: hex(0x6a7383),
             selection: hex(0x4f80ff),
             anchor_selected: hex(0x3d82ff),
             flyout_active: hex(0x54b2f7),
@@ -143,79 +162,102 @@ impl Tokens {
         };
         match b {
             Brightness::Dark => base,
-            // Measured from Illustrator 2026 (plan/illustrator/10-observed-ui.md §1).
             Brightness::MediumDark => Tokens {
-                app_bar: hex(0x535353),
-                panel: hex(0x535353),
-                panel_darker: hex(0x424242),
-                tab_strip: hex(0x424242),
-                input: hex(0x454545),
-                input_border: hex(0x5f5f5f),
-                border: hex(0x383838),
-                divider: hex(0x4b4b4b),
-                text: hex(0xd1d1d1),
+                frame: hex(0x2f333b),
+                surface: hex(0x393e47),
+                card: hex(0x424852),
+                app_bar: hex(0x2f333b),
+                panel: hex(0x424852),
+                panel_darker: hex(0x393e47),
+                tab_strip: hex(0x2f333b),
+                input: hex(0x343941),
+                input_border: hex(0x5d6573),
+                border: hex(0x4f5664),
+                divider: hex(0x4f5664),
+                text: hex(0xe2e5ea),
                 text_strong: hex(0xffffff),
-                text_dim: hex(0xb0b0b0),
-                text_disabled: hex(0x7a7a7a),
-                icon: hex(0xc2c2c2),
-                hover: hex(0x606060),
-                tool_active: hex(0x303030),
-                row_selected: hex(0x52677c),
-                pasteboard: hex(0x606060),
-                ruler: hex(0x333333),
-                ruler_tick: hex(0x8a8a8a),
-                button: hex(0x535353),
-                button_border: hex(0x747474),
+                text_dim: hex(0xaab2bf),
+                text_disabled: hex(0x747c8a),
+                icon: hex(0xcfd4dc),
+                hover: hex(0x4c5360),
+                tool_active: hex(0x2b2f36),
+                row_selected: hex(0x4a5a7e),
+                pasteboard: hex(0x3a3f47),
+                ruler: hex(0x343840),
+                ruler_tick: hex(0x8a919e),
+                button: hex(0x4a515c),
+                button_border: hex(0x7c8494),
+                on_accent: hex(0xffffff),
+                tab_draw: hex(0x5b8cff),
+                tab_sketch: hex(0xff9447),
+                tab_type: hex(0xb07dff),
+                tab_output: hex(0x2fc796),
                 ..base
             },
             Brightness::MediumLight => Tokens {
-                tab_strip: hex(0xa6a6a6),
-                text_strong: hex(0x000000),
-                button_border: hex(0x7a7a7a),
                 dark: false,
-                app_bar: hex(0xa9a9a9),
-                panel: hex(0xb8b8b8),
-                panel_darker: hex(0xaaaaaa),
-                input: hex(0xd6d6d6),
-                input_border: hex(0x8c8c8c),
-                border: hex(0x969696),
-                divider: hex(0x9e9e9e),
-                text: hex(0x1f1f1f),
-                text_dim: hex(0x3c3c3c),
-                text_disabled: hex(0x7c7c7c),
-                icon: hex(0x2a2a2a),
-                hover: hex(0xc8c8c8),
-                tool_active: hex(0x969696),
-                row_selected: hex(0x9fb4d6),
-                pasteboard: hex(0xa0a0a0),
-                ruler: hex(0xc2c2c2),
-                ruler_tick: hex(0x4a4a4a),
-                button: hex(0xcacaca),
+                frame: hex(0xbcc2cb),
+                surface: hex(0xccd1d9),
+                card: hex(0xd8dce2),
+                app_bar: hex(0xbcc2cb),
+                panel: hex(0xd8dce2),
+                panel_darker: hex(0xccd1d9),
+                tab_strip: hex(0xbcc2cb),
+                input: hex(0xe6e9ee),
+                input_border: hex(0x8f97a3),
+                border: hex(0xaab1bc),
+                divider: hex(0xaab1bc),
+                text: hex(0x1c2029),
+                text_strong: hex(0x000000),
+                text_dim: hex(0x3f4654),
+                text_disabled: hex(0x7c8592),
+                icon: hex(0x262b34),
+                hover: hex(0xc5cbd4),
+                tool_active: hex(0xa9b0bb),
+                row_selected: hex(0xb3c5ea),
+                pasteboard: hex(0xa9afb8),
+                ruler: hex(0xc9ced6),
+                ruler_tick: hex(0x4a5260),
+                button: hex(0xcdd2da),
+                button_border: hex(0x7f8794),
+                on_accent: hex(0xffffff),
+                tab_draw: hex(0x2f6bff),
+                tab_sketch: hex(0xff7a1a),
+                tab_type: hex(0x9b4dff),
+                tab_output: hex(0x12a37a),
                 ..base
             },
             Brightness::Light => Tokens {
-                tab_strip: hex(0xdddddd),
-                text_strong: hex(0x000000),
-                button_border: hex(0x9a9a9a),
                 dark: false,
-                app_bar: hex(0xe4e4e4),
-                panel: hex(0xf0f0f0),
-                panel_darker: hex(0xe2e2e2),
-                input: hex(0xffffff),
-                input_border: hex(0xb4b4b4),
-                border: hex(0xcfcfcf),
-                divider: hex(0xd6d6d6),
-                text: hex(0x1f1f1f),
-                text_dim: hex(0x4b4b4b),
-                text_disabled: hex(0x9a9a9a),
-                icon: hex(0x303030),
-                hover: hex(0xdddddd),
-                tool_active: hex(0xcdcdcd),
-                row_selected: hex(0xc8daf7),
-                pasteboard: hex(0xdcdcdc),
-                ruler: hex(0xeaeaea),
-                ruler_tick: hex(0x5a5a5a),
-                button: hex(0xe0e0e0),
+                frame: hex(0xe4e7ec),
+                surface: hex(0xf7f8fa),
+                card: hex(0xffffff),
+                app_bar: hex(0xe4e7ec),
+                panel: hex(0xffffff),
+                panel_darker: hex(0xf7f8fa),
+                tab_strip: hex(0xe4e7ec),
+                input: hex(0xf3f5f8),
+                input_border: hex(0xc3c9d2),
+                border: hex(0xdde1e7),
+                divider: hex(0xdde1e7),
+                text: hex(0x1c2029),
+                text_strong: hex(0x0f1218),
+                text_dim: hex(0x6a7383),
+                text_disabled: hex(0xa3aab5),
+                icon: hex(0x2b313c),
+                hover: hex(0xeef1f5),
+                tool_active: hex(0xdfe4ec),
+                row_selected: hex(0xe2eaff),
+                pasteboard: hex(0xd9dde3),
+                ruler: hex(0xeef0f3),
+                ruler_tick: hex(0x5a6270),
+                button: hex(0xeef1f5),
+                button_border: hex(0x9aa1ad),
+                on_accent: hex(0xffffff),
+                tab_draw: hex(0x2f6bff),
+                tab_sketch: hex(0xff7a1a),
+                tab_type: hex(0x9b4dff),
+                tab_output: hex(0x12a37a),
                 ..base
             },
         }
@@ -224,6 +266,31 @@ impl Tokens {
     pub fn get(ctx: &egui::Context) -> Tokens {
         ctx.data(|d| d.get_temp::<Tokens>(egui::Id::NULL)).unwrap_or_else(|| Tokens::for_brightness(Brightness::MediumDark))
     }
+    /// Names a layout file may give a tab's colour.
+    pub const TAB_COLOR_NAMES: [&'static str; 4] = ["draw", "sketch", "type", "output"];
+
+    pub fn is_tab_color(name: &str) -> bool {
+        Self::TAB_COLOR_NAMES.contains(&name)
+    }
+
+    /// A Fusion tab's colour by name; an unknown name or none gives the accent.
+    pub fn tab_color(&self, name: Option<&str>) -> Color32 {
+        match name {
+            Some("draw") => self.tab_draw,
+            Some("sketch") => self.tab_sketch,
+            Some("type") => self.tab_type,
+            Some("output") => self.tab_output,
+            _ => self.accent,
+        }
+    }
+
+    /// `c` mixed `amount` (0..1) over the card colour.
+    pub fn wash(&self, c: Color32, amount: f32) -> Color32 {
+        let a = if amount.is_finite() { amount.clamp(0.0, 1.0) } else { 0.0 };
+        let mix = |x: u8, y: u8| (f32::from(y) + (f32::from(x) - f32::from(y)) * a).round().clamp(0.0, 255.0) as u8;
+        Color32::from_rgb(mix(c.r(), self.card.r()), mix(c.g(), self.card.g()), mix(c.b(), self.card.b()))
+    }
+
     pub fn cr(&self) -> CornerRadius {
         CornerRadius::same(self.radius)
     }
@@ -301,8 +368,8 @@ pub fn apply(ctx: &egui::Context, b: Brightness) {
     v.extreme_bg_color = t.input;
     v.faint_bg_color = t.panel_darker;
     v.window_stroke = Stroke::new(1.0, t.border);
-    v.window_corner_radius = CornerRadius::same(6);
-    v.menu_corner_radius = CornerRadius::same(6);
+    v.window_corner_radius = CornerRadius::same(10);
+    v.menu_corner_radius = CornerRadius::same(10);
     v.selection.bg_fill = t.accent.gamma_multiply(0.55);
     v.selection.stroke = Stroke::new(1.0, t.accent);
     v.hyperlink_color = t.accent;

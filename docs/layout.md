@@ -24,7 +24,7 @@ Euclidean's Fusion layout (View > Layout > Fusion) is drawn from plain JSON data
 
 - `version`: 1.
 - `pinned_left`: left-column entries shown on every tab. An entry is a panel id or a section id.
-- `tabs`: in order; the first is the default. Each has `id`, `label`, `groups` (each `id`, `label`, `items`) and `left` (entries below the pinned ones, again panel or section ids).
+- `tabs`: in order; the first is the default. Each has `id`, `label`, `groups` (each `id`, `label`, `items`) and `left` (entries below the pinned ones, again panel or section ids); and an optional `color` (one of `draw`, `sketch`, `type`, `output`: the tab's pill, group-row strip, big buttons and selected-row wash use that theme colour). A missing `color` or an unknown name uses the accent; an unknown name also shows one warning on the status line.
 - `nav`: items shown with every tab (hand, zoom and so on).
 - `sections`: named composite left-column sections. `panels` are the panel ids inside it; `collapsed` lists those that start folded.
 - `ice`: items with no tab group, reachable elsewhere (the tool panel).

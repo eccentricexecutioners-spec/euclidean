@@ -8,7 +8,7 @@ mod layout;
 mod step_form;
 mod timeline_strip;
 
-pub use draw::show;
+pub use draw::{round_canvas, show};
 pub use step_form::StepForm;
 
 pub use layout::*;
@@ -67,6 +67,9 @@ pub struct WorkbenchState {
     /// shown once by the next frame.
     #[serde(skip)]
     pub unshown_warning: Option<String>,
+    /// The fill each tab's pill was drawn with last frame, by tab id (what the tests read).
+    #[serde(skip)]
+    pub tab_fills: Vec<(String, egui::Color32)>,
     /// Was sketch mode on last frame (the edge that switches to the SKETCH tab and back)?
     #[serde(skip)]
     pub in_sketch: bool,
@@ -99,6 +102,7 @@ impl Default for WorkbenchState {
             open_group: None,
             hits: vec![],
             unshown_warning: None,
+            tab_fills: vec![],
             in_sketch: false,
             step_form: None,
             chip_colors: vec![],

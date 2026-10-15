@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use vectorcraft_tools::ToolInfo;
 
+use crate::theme::Tokens;
+
 /// The layout compiled in; the user's `layout.json` replaces it whole.
 const DEFAULT_JSON: &str = include_str!("default-layout.json");
 
@@ -44,6 +46,9 @@ pub struct TabDef {
     /// Left-column entries for this tab, below the pinned ones.
     #[serde(default)]
     pub left: Vec<String>,
+    /// The tab's colour: one of `draw`, `sketch`, `type`, `output`; else the accent is used.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -84,6 +89,8 @@ pub struct ResolvedTab {
     pub label: String,
     pub groups: Vec<ResolvedGroup>,
     pub left: Vec<String>,
+    /// A valid colour name (see [`crate::theme::Tokens::tab_color`]), else `None`.
+    pub color: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -130,8 +137,14 @@ pub fn resolve(file: &LayoutFile) -> (ResolvedLayout, Vec<String>) {
             label: t.label.clone(),
             groups: t.groups.iter().map(|g| ResolvedGroup { id: g.id.clone(), label: g.label.clone(), items: items(&g.items, &mut warns) }).collect(),
             left: t.left.clone(),
+            color: t.color.clone().filter(|c| Tokens::is_tab_color(c)),
         })
         .collect();
+    for t in &file.tabs {
+        if let Some(c) = t.color.as_deref().filter(|c| !Tokens::is_tab_color(c)) {
+            warns.push(format!("Layout: unknown colour '{c}' for tab '{}'; using the accent", t.id));
+        }
+    }
     let nav = items(&file.nav, &mut warns);
     let ice = items(&file.ice, &mut warns);
     let known = |id: &str| file.sections.contains_key(id) || panel_label(id).is_some();

@@ -8,10 +8,14 @@ use super::{Item, ResolvedLayout, ResolvedTab};
 use crate::theme::Tokens;
 use crate::{VectorcraftApp, chrome, dock, icons, panels, sketch, toolbar};
 
-const TAB_ROW_HEIGHT: f32 = 26.0;
-const GROUP_ROW_HEIGHT: f32 = 58.0;
+const TAB_ROW_HEIGHT: f32 = 34.0;
+const TAB_PILL_HEIGHT: f32 = 24.0;
+const GROUP_ROW_HEIGHT: f32 = 66.0;
+const GROUP_CELL_HEIGHT: f32 = 54.0;
 const NAV_HEIGHT: f32 = 28.0;
 const BIG_BUTTON: f32 = 28.0;
+const GROUP_BUTTON: f32 = 30.0;
+const CARD_RADIUS: u8 = 14;
 const HEADER_HEIGHT: f32 = 22.0;
 const COLLAPSED_STRIP: f32 = 22.0;
 const RAIL_WIDTH: f32 = 44.0;
@@ -23,8 +27,9 @@ const RAIL_WIDTH: f32 = 44.0;
 /// group row on top, the navigation bar and timeline strip at the bottom, and the tool panel on
 /// the right.
 pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
-    let t = Tokens::get(ui.ctx());
+    let orig = Tokens::get(ui.ctx());
     app.ui.workbench.hits.clear();
+    app.ui.workbench.tab_fills.clear();
     let lay = app.ui.workbench.layout().clone();
     // An unknown id in the layout file is skipped with one warning on the status line.
     if let Some(w) = app.ui.workbench.unshown_warning.take() {
@@ -32,6 +37,13 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     }
     follow_sketch_mode(app);
     let tab = active_tab(&lay, &app.ui.workbench.tab).cloned();
+    // The selected-row wash is the active tab's colour, for the chrome only: the original tokens go
+    // back at the end, so the canvas and Classic see them unchanged.
+    let mut t = orig;
+    if let Some(tab) = &tab {
+        t.row_selected = orig.wash(orig.tab_color(tab.color.as_deref()), if orig.dark { 0.22 } else { 0.14 });
+        ui.ctx().data_mut(|d| d.insert_temp(egui::Id::NULL, t));
+    }
     let mode = app.ui.screen_mode;
     if mode < 2 {
         chrome::app_bar(app, ui);
@@ -62,6 +74,43 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         tool_panel(app, ui, &t, &lay, tab.as_ref());
     }
     super::step_form::show(app, ui.ctx());
+    ui.ctx().data_mut(|d| d.insert_temp(egui::Id::NULL, orig));
+}
+
+/// Round the canvas's four corners: a mask in the frame colour over each corner of `rect` (the
+/// central panel), painted after the panel on the same layer, so it lies over the canvas and under
+/// every window, popup and tooltip (those are on higher layers).
+pub fn round_canvas(ui: &Ui, rect: Rect) {
+    const R: f32 = 12.0;
+    const STEPS: usize = 12;
+    let t = Tokens::get(ui.ctx());
+    if !rect.is_finite() || rect.width() < 2.0 * R || rect.height() < 2.0 * R {
+        return;
+    }
+    let mut mesh = egui::Mesh::default();
+    for (corner, sx, sy) in
+        [(rect.left_top(), 1.0, 1.0), (rect.right_top(), -1.0, 1.0), (rect.left_bottom(), 1.0, -1.0), (rect.right_bottom(), -1.0, -1.0)]
+    {
+        let centre = corner + vec2(sx * R, sy * R);
+        let first = mesh.vertices.len() as u32;
+        mesh.colored_vertex(corner, t.frame);
+        for i in 0..=STEPS {
+            let phi = std::f32::consts::FRAC_PI_2 * i as f32 / STEPS as f32;
+            mesh.colored_vertex(centre + vec2(-sx * R * phi.sin(), -sy * R * phi.cos()), t.frame);
+        }
+        for i in 0..STEPS as u32 {
+            mesh.add_triangle(first, first + 1 + i, first + 2 + i);
+        }
+    }
+    ui.painter().with_clip_rect(rect).add(egui::Shape::mesh(mesh));
+}
+
+/// A rounded card around one left-column entry or the tool panel's content.
+fn card(t: &Tokens, ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
+    egui::Frame::NONE.fill(t.card).corner_radius(CARD_RADIUS).inner_margin(6).show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        add(ui);
+    });
 }
 
 /// Entering sketch mode (from any tab, by any route) switches to the SKETCH tab, remembering the
@@ -236,17 +285,52 @@ fn paint_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, item: &Item, rect: Re
 
 // ---------------------------------------------------------------- top rows
 
+/// The big button of a group: a washed square in the tab's colour, filled with it when the group's
+/// first item is the active tool.
+fn paint_group_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, hue: Color32, item: &Item, rect: Rect, resp: &egui::Response) {
+    let active = item_active(app, item);
+    let fill = if active {
+        hue
+    } else if resp.hovered() {
+        t.wash(hue, 0.24)
+    } else {
+        t.wash(hue, 0.14)
+    };
+    ui.painter().rect_filled(rect, 9.0, fill);
+    paint_item(ui, t, item, rect.shrink(rect.width() * 0.17), if active { t.on_accent } else { hue });
+}
+
 fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, active: Option<&ResolvedTab>) {
     let panel = egui::Panel::top("wb_tabs")
         .exact_size(TAB_ROW_HEIGHT)
-        .frame(egui::Frame::NONE.fill(t.panel_darker).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
+        .frame(egui::Frame::NONE.fill(t.frame).inner_margin(egui::Margin::symmetric(8, 5)))
         .show(ui, |ui| {
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 6.0;
                 for tab in &lay.tabs {
                     let selected = active.is_some_and(|a| a.id == tab.id);
-                    let resp = ui.selectable_label(selected, egui::RichText::new(&tab.label).strong().size(12.5));
+                    let hue = t.tab_color(tab.color.as_deref());
+                    let galley = ui.painter().layout_no_wrap(tab.label.to_uppercase(), crate::theme::semibold(12.0), t.text_dim);
+                    let w = galley.size().x + 9.0 + 8.0 + 12.0 + 14.0;
+                    let (rect, resp) = ui.allocate_exact_size(vec2(w, TAB_PILL_HEIGHT), Sense::click());
+                    let fill = if selected {
+                        hue
+                    } else if resp.hovered() {
+                        t.hover
+                    } else {
+                        t.surface
+                    };
+                    let radius = (TAB_PILL_HEIGHT / 2.0) as u8;
+                    let p = ui.painter();
+                    p.rect_filled(rect, radius, fill);
+                    if !selected {
+                        p.rect_stroke(rect, radius, Stroke::new(1.0, t.border), egui::StrokeKind::Inside);
+                    }
+                    let (dot, text) = if selected { (t.on_accent, t.on_accent) } else { (hue, t.text_dim) };
+                    p.circle_filled(egui::pos2(rect.left() + 12.0 + 4.5, rect.center().y), 4.5, dot);
+                    p.galley(egui::pos2(rect.left() + 12.0 + 9.0 + 8.0, rect.center().y - galley.size().y / 2.0), galley, text);
                     app.ui.workbench.hits.push((format!("tab:{}", tab.id), resp.rect));
+                    app.ui.workbench.tab_fills.push((tab.id.clone(), fill));
                     if resp.clicked() {
                         app.ui.workbench.prev_tab = Some(app.ui.workbench.tab.clone()).filter(|p| !p.is_empty());
                         app.ui.workbench.tab = tab.id.clone();
@@ -258,58 +342,75 @@ fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayo
 }
 
 fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&ResolvedTab>) {
+    let hue = t.tab_color(tab.and_then(|t| t.color.as_deref()));
     egui::Panel::top("wb_groups")
         .exact_size(GROUP_ROW_HEIGHT)
-        .frame(egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
+        .frame(egui::Frame::NONE.fill(t.frame).inner_margin(egui::Margin { left: 8, right: 8, top: 0, bottom: 6 }))
         .show(ui, |ui| {
-            ui.horizontal_centered(|ui| {
-                ui.spacing_mut().item_spacing.x = 0.0;
-                let Some(tab) = tab else { return };
-                for (i, g) in tab.groups.iter().enumerate() {
-                    if i > 0 {
-                        let (r, _) = ui.allocate_exact_size(vec2(9.0, GROUP_ROW_HEIGHT - 12.0), Sense::hover());
-                        ui.painter().vline(r.center().x, r.y_range(), Stroke::new(1.0, t.divider));
-                    }
-                    let first = g.items.iter().find(|i| !matches!(i, Item::Sep));
-                    let caption = format!("{} ▾", g.label);
-                    let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), t.text_dim);
-                    let w = galley.size().x.max(BIG_BUTTON) + 14.0;
-                    let (rect, _) = ui.allocate_exact_size(vec2(w, GROUP_ROW_HEIGHT - 6.0), Sense::hover());
-                    let button =
-                        Rect::from_center_size(egui::pos2(rect.center().x, rect.top() + BIG_BUTTON / 2.0 + 2.0), vec2(BIG_BUTTON, BIG_BUTTON));
-                    let label_rect = Rect::from_min_max(egui::pos2(rect.left(), button.bottom() + 1.0), rect.right_bottom());
-                    if let Some(item) = first {
-                        let resp = ui.interact(button, ui.id().with(("wb-big", &g.id)), Sense::click());
-                        paint_button(app, ui, t, item, button, &resp);
-                        let resp = resp.on_hover_text(item_label(item));
-                        app.ui.workbench.hits.push((format!("group:{}", g.id), button));
-                        if resp.clicked() {
-                            use_item(app, item);
-                        }
-                    }
-                    let lresp = ui.interact(label_rect, ui.id().with(("wb-label", &g.id)), Sense::click());
-                    let colour = if lresp.hovered() { t.text_strong } else { t.text_dim };
-                    ui.painter().galley(label_rect.center() - galley.size() / 2.0, galley, colour);
-                    app.ui.workbench.hits.push((format!("label:{}", g.id), label_rect));
-                    let mut chosen: Option<Item> = None;
-                    egui::Popup::menu(&lresp).show(|ui| {
-                        crate::widgets::menu_scroll(ui, |ui| {
-                            ui.set_min_width(280.0);
-                            for item in &g.items {
-                                if matches!(item, Item::Sep) {
-                                    ui.separator();
-                                } else if dropdown_row(app, ui, t, item) {
-                                    chosen = Some(item.clone());
-                                    ui.close();
+            let container = egui::Frame::NONE
+                .fill(t.surface)
+                .stroke(Stroke::new(1.0, t.border))
+                .corner_radius(14)
+                .inner_margin(egui::Margin::symmetric(10, 3))
+                .show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.set_height(GROUP_CELL_HEIGHT);
+                    ui.horizontal_centered(|ui| {
+                        ui.spacing_mut().item_spacing.x = 0.0;
+                        let Some(tab) = tab else { return };
+                        for (i, g) in tab.groups.iter().enumerate() {
+                            if i > 0 {
+                                let (r, _) = ui.allocate_exact_size(vec2(9.0, GROUP_CELL_HEIGHT - 12.0), Sense::hover());
+                                ui.painter().vline(r.center().x, r.y_range(), Stroke::new(1.0, t.divider));
+                            }
+                            let first = g.items.iter().find(|i| !matches!(i, Item::Sep));
+                            let caption = format!("{} ▾", g.label);
+                            let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), t.text_dim);
+                            let w = galley.size().x.max(GROUP_BUTTON) + 14.0;
+                            let (rect, _) = ui.allocate_exact_size(vec2(w, GROUP_CELL_HEIGHT), Sense::hover());
+                            let button = Rect::from_center_size(
+                                egui::pos2(rect.center().x, rect.top() + GROUP_BUTTON / 2.0 + 2.0),
+                                vec2(GROUP_BUTTON, GROUP_BUTTON),
+                            );
+                            let label_rect = Rect::from_min_max(egui::pos2(rect.left(), button.bottom() + 1.0), rect.right_bottom());
+                            if let Some(item) = first {
+                                let resp = ui.interact(button, ui.id().with(("wb-big", &g.id)), Sense::click());
+                                paint_group_button(app, ui, t, hue, item, button, &resp);
+                                let resp = resp.on_hover_text(item_label(item));
+                                app.ui.workbench.hits.push((format!("group:{}", g.id), button));
+                                if resp.clicked() {
+                                    use_item(app, item);
                                 }
                             }
-                        });
+                            let lresp = ui.interact(label_rect, ui.id().with(("wb-label", &g.id)), Sense::click());
+                            let colour = if lresp.hovered() { t.text_strong } else { t.text_dim };
+                            ui.painter().galley(label_rect.center() - galley.size() / 2.0, galley, colour);
+                            app.ui.workbench.hits.push((format!("label:{}", g.id), label_rect));
+                            let mut chosen: Option<Item> = None;
+                            egui::Popup::menu(&lresp).show(|ui| {
+                                crate::widgets::menu_scroll(ui, |ui| {
+                                    ui.set_min_width(280.0);
+                                    for item in &g.items {
+                                        if matches!(item, Item::Sep) {
+                                            ui.separator();
+                                        } else if dropdown_row(app, ui, t, item) {
+                                            chosen = Some(item.clone());
+                                            ui.close();
+                                        }
+                                    }
+                                });
+                            });
+                            if let Some(item) = chosen {
+                                use_item(app, &item);
+                            }
+                        }
                     });
-                    if let Some(item) = chosen {
-                        use_item(app, &item);
-                    }
-                }
-            });
+                });
+            // The 3 pt strip of the tab's colour across the container's top edge.
+            let r = container.response.rect;
+            let strip = Rect::from_min_size(r.min, vec2(r.width(), 3.0));
+            let top = egui::CornerRadius { nw: 14, ne: 14, sw: 0, se: 0 };
+            ui.painter().with_clip_rect(r).rect_filled(strip, top, hue);
         });
 }
 
@@ -341,7 +442,7 @@ fn dropdown_row(app: &VectorcraftApp, ui: &mut Ui, t: &Tokens, item: &Item) -> b
 fn nav_bar(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout) {
     let panel = egui::Panel::bottom("wb_nav")
         .exact_size(NAV_HEIGHT)
-        .frame(egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
+        .frame(egui::Frame::NONE.fill(t.frame).inner_margin(egui::Margin::symmetric(8, 2)))
         .show(ui, |ui| {
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
@@ -387,7 +488,6 @@ fn header(
 ) -> HeaderOut {
     let mut out = HeaderOut::default();
     let (_, rect) = ui.allocate_space(vec2(ui.available_width(), HEADER_HEIGHT));
-    ui.painter().rect_filled(rect, 0.0, t.panel_darker);
     let mut right = rect.right() - 4.0;
     let slot = |ui: &Ui, right: &mut f32, name: &str| {
         let r = Rect::from_min_size(egui::pos2(*right - 18.0, rect.center().y - 9.0), vec2(18.0, 18.0));
@@ -418,7 +518,7 @@ fn header(
     let main = Rect::from_min_max(rect.min, egui::pos2(right, rect.bottom()));
     let resp = ui.interact(main, ui.id().with(("wb-head", key)), Sense::click());
     if resp.hovered() && fold.is_some() {
-        ui.painter().rect_filled(main, 0.0, t.hover);
+        ui.painter().rect_filled(main, 6.0, t.hover);
     }
     let arrow = match fold {
         Some(true) => "▸ ",
@@ -446,9 +546,9 @@ fn body(app: &mut VectorcraftApp, ui: &mut Ui, host: &str, id: &str) {
 // ---------------------------------------------------------------- left column
 
 fn left_column(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, tab: Option<&ResolvedTab>) {
-    let frame = egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.border));
+    let frame = egui::Frame::NONE.fill(t.frame).inner_margin(8);
     if app.ui.workbench.left_collapsed {
-        left_rail(app, ui, t, lay, frame);
+        left_rail(app, ui, t, lay, egui::Frame::NONE.fill(t.frame));
         return;
     }
     let resp = egui::Panel::left("wb_left").resizable(true).default_size(app.ui.workbench.left_width).size_range(220.0..=600.0).frame(frame).show(
@@ -529,6 +629,18 @@ fn left_rail(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLa
 /// entry's key is its id (present = folded); a panel inside a section is `"<section>/<panel>"`,
 /// present = flipped from the section's default (so `colour/colorGuide` present = unfolded).
 fn left_entry(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, id: &str) {
+    let visible = match lay.sections.get(id) {
+        Some(sec) => sec.panels.iter().any(|p| crate::floating::group_of(&app.ui, p).is_none()),
+        None => crate::floating::group_of(&app.ui, id).is_none(),
+    };
+    if !visible {
+        return;
+    }
+    card(t, ui, |ui| left_entry_body(app, ui, t, lay, id));
+    ui.add_space(8.0);
+}
+
+fn left_entry_body(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, id: &str) {
     if let Some(sec) = lay.sections.get(id) {
         let shown: Vec<&String> = sec.panels.iter().filter(|p| crate::floating::group_of(&app.ui, p).is_none()).collect();
         if shown.is_empty() {
@@ -608,9 +720,9 @@ fn panel_section(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, key: &str, i
 // ---------------------------------------------------------------- tool panel
 
 fn tool_panel(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, tab: Option<&ResolvedTab>) {
-    let frame = egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.border));
+    let frame = egui::Frame::NONE.fill(t.frame).inner_margin(8);
     if app.ui.workbench.right_collapsed {
-        egui::Panel::right("wb_tool_panel").resizable(false).exact_size(COLLAPSED_STRIP).frame(frame).show(ui, |ui| {
+        egui::Panel::right("wb_tool_panel").resizable(false).exact_size(COLLAPSED_STRIP).frame(egui::Frame::NONE.fill(t.frame)).show(ui, |ui| {
             let resp = ui.button("«").on_hover_text(tl!("Expand tool panel"));
             app.ui.workbench.hits.push(("tool-panel:expand".into(), resp.rect));
             if resp.clicked() {
@@ -626,41 +738,43 @@ fn tool_panel(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedL
                 let width = ui.available_width();
                 egui::ScrollArea::both().id_salt("wb-tool-scroll").auto_shrink([false, false]).show(ui, |ui| {
                     ui.set_max_width(width);
-                    let tool = app.session.tool_id().to_string();
-                    ui.horizontal(|ui| {
-                        let name = vectorcraft_tools::tool_info(&tool).map_or(tool.as_str(), |i| tr(i.label));
-                        ui.label(egui::RichText::new(name).strong().size(13.0));
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let resp = ui.button("»").on_hover_text(tl!("Collapse tool panel"));
-                            app.ui.workbench.hits.push(("tool-panel:collapse".into(), resp.rect));
-                            if resp.clicked() {
-                                app.ui.workbench.right_collapsed = true;
-                            }
+                    card(t, ui, |ui| {
+                        let tool = app.session.tool_id().to_string();
+                        ui.horizontal(|ui| {
+                            let name = vectorcraft_tools::tool_info(&tool).map_or(tool.as_str(), |i| tr(i.label));
+                            ui.label(egui::RichText::new(name).strong().size(13.0));
+                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                let resp = ui.button("»").on_hover_text(tl!("Collapse tool panel"));
+                                app.ui.workbench.hits.push(("tool-panel:collapse".into(), resp.rect));
+                                if resp.clicked() {
+                                    app.ui.workbench.right_collapsed = true;
+                                }
+                            });
                         });
+                        ui.horizontal_wrapped(|ui| toolbar::control_bar_options(app, ui));
+                        if ui.button(tl!("Tool Options…")).clicked()
+                            && let Err(e) = toolbar::open_options(app, &tool)
+                        {
+                            app.status(e);
+                        }
+                        ui.add_space(6.0);
+                        let ids = app.ui.workbench.right_panels.clone();
+                        let mut closed = None;
+                        for id in &ids {
+                            // A panel is drawn in one place only: not when floating, nor when the left column shows it.
+                            if crate::floating::group_of(&app.ui, id).is_some() || !left_keys(lay, tab, id).is_empty() {
+                                continue;
+                            }
+                            let key = format!("right/{id}");
+                            if header(app, ui, t, &key, tr(panel_label(id)), None, Some(id), true, 0.0).closed {
+                                closed = Some(id.clone());
+                            }
+                            body(app, ui, "wb-right", id);
+                        }
+                        if let Some(id) = closed {
+                            app.ui.workbench.right_panels.retain(|p| *p != id);
+                        }
                     });
-                    ui.horizontal_wrapped(|ui| toolbar::control_bar_options(app, ui));
-                    if ui.button(tl!("Tool Options…")).clicked()
-                        && let Err(e) = toolbar::open_options(app, &tool)
-                    {
-                        app.status(e);
-                    }
-                    ui.add_space(6.0);
-                    let ids = app.ui.workbench.right_panels.clone();
-                    let mut closed = None;
-                    for id in &ids {
-                        // A panel is drawn in one place only: not when floating, nor when the left column shows it.
-                        if crate::floating::group_of(&app.ui, id).is_some() || !left_keys(lay, tab, id).is_empty() {
-                            continue;
-                        }
-                        let key = format!("right/{id}");
-                        if header(app, ui, t, &key, tr(panel_label(id)), None, Some(id), true, 0.0).closed {
-                            closed = Some(id.clone());
-                        }
-                        body(app, ui, "wb-right", id);
-                    }
-                    if let Some(id) = closed {
-                        app.ui.workbench.right_panels.retain(|p| *p != id);
-                    }
                 });
             },
         );
