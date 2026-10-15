@@ -225,3 +225,35 @@ warning, never a failed build.
 | Date | Change | Summary |
 |---|---|---|
 | 2026-10-12 | minor | RPM dependencies use 64-bit runtime capabilities and enforce glibc 2.35 (#1275); real distro install/start-up checks remain pending |
+
+## Euclidean on Cargo Bay (macOS, from the Mini)
+
+Euclidean (this fork's app) is released through Cargo Bay, not GitHub. Testers install it from the
+Mothership's Tools page, and the app updates itself (see [`updates.md`](updates.md)). Releases are
+made on the Mac Mini with `scripts/release-mac.sh`.
+
+**Once per Mini:** `~/.cargo-bay/release-keys/` holds the Mini's release key
+(`release-signing-rk-….key`, mode 600, made with cargo-bay's `tools/release-key.mjs`, named in the
+master-signed key list) and `publish-key` (mode 600, the publish key whose hash is Cargo Bay's
+`CARGO_BAY_PUBLISH_KEY_HASH`). Neither file ever leaves the Mini or goes into a repo. A cargo-bay
+checkout sits at `~/Eccentric-Executioners-code/cargo-bay` (or set `CARGO_BAY_DIR`).
+
+**Each release:**
+
+1. `cargo xtask version set 0.1.2`, then commit `Cargo.toml` and `Cargo.lock`.
+2. `bash scripts/release-mac.sh 0.1.2 --notes "What's new"` (add `--dry-run` first to check
+   without sending anything).
+3. Open the tool page it prints. The new version is live; linked copies pick it up at their
+   next check.
+
+The script refuses tracked changes, a version that differs from `Cargo.toml`, and a tag that
+already exists. It builds the app alone with the `release-slim` profile (stripped, no
+`vectorcraft-cli`), signs the whole bundle ad-hoc (`codesign --force --deep -s -`), and commits it
+to a one-off git repo in `~/euclidean-releases/<version>/stage`. Cargo Bay's release tool
+(`tools/release.mjs`) zips that tag with `git archive`, so the zip holds exactly one top-level
+`Euclidean.app/`. The tool signs the manifest with the Mini's release key. The script stops if the
+zip is 50 MB (52,428,800 bytes) or more, Supabase's upload limit. Then it sends the release (POST
+`/releases`, upload, finalize) and tags the fork `euclidean-v<version>`, because upstream
+VectorCraft's `v0.1.0`… tags are kept here. Versions are never reused, so a failed release takes
+the next number. The build is Apple silicon (arm64) only, and it is not notarised: a tester clicks
+**Open Anyway** once, and updates after that open without asking.
