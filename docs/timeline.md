@@ -65,6 +65,7 @@ stores `euclidean.params`. There is no file-format version change. Its stored fo
 | `steps[].layer`, `isolation` | The current layer and the isolated group the step acted in. |
 | `steps[].new_art`, `draw_mode`, `draw_inside` | The new-art template (fill, stroke, appearance; omitted when it is the default white fill and 1 pt black stroke) and the drawing mode. Set Fill with nothing selected changes the template, not the document, and new art takes it. |
 | `marker` | Present only when the end marker is rolled back: how many steps are applied. The later steps are kept but not run, and they are greyed on the strip. |
+| `steps[].suppressed` | Omitted when false. A suppressed step is skipped on replay: it does not run, its status is `ok`, and the later steps replay without it (one that then misses its objects is marked `failed` as usual). |
 | `steps[].status`, `error` | Omitted when `ok`. `failed` is the step where the last replay stopped, with its error. `pending` marks a step after it that was kept but not run. |
 
 Most steps kept: 2000. Past that, the oldest go and the base is let go, so editing is off.
@@ -102,8 +103,10 @@ replays only up to the marker.
 
 | Id | Kind | Params → result |
 |---|---|---|
-| `timeline.list` | query | `{}` → `{steps: [{index, cmd, label, params, selection: [ids], status, error, rolledBack}], marker, editable, baseBytes}` |
+| `timeline.list` | query | `{}` → `{steps: [{index, cmd, label, params, selection: [ids], status, error, rolledBack, suppressed}], marker, editable, baseBytes}` |
 | `timeline.editStep` | journaled, one undo step | `{index, params}`: `params` is merged over the step's params (`null` removes a key) → `{failed: index or null, error, steps}` |
+| `timeline.suppressStep` | journaled, one undo step | `{index, on}`: skips the step (`on`) or runs it again (off) on replay; the later steps replay without it, and one that then fails is marked failed → `{failed: index or null, error, steps, marker}` |
+| `timeline.deleteStep` | journaled, one undo step | `{index}`: removes the step and replays the later ones without it. The later steps are renumbered (step 3 becomes step 2), and a rolled-back end marker after the deleted step moves up by one → `{failed, error, steps, marker}` |
 | `timeline.replay` | journaled, one undo step | `{}` replays every step from the base, so a failed step is tried again → as above |
 | `timeline.rollTo` | journaled, one undo step | `{index}`: how many steps stay applied (0 … steps). The document shows the timeline as of that step, and the later steps are kept but not run → `{failed, error, steps, marker}` |
 | `timeline.setRecording` | query | `{on}`: records steps from now on. The app records; headless sessions (CLI, MCP, tests) start without recording → `{on}` |

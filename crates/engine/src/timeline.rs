@@ -110,6 +110,9 @@ pub struct Step {
     pub status: Status,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    /// Skipped on replay (Suppress Timeline Step); the later steps run without it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub suppressed: bool,
 }
 
 fn is_normal(m: &DrawMode) -> bool {
@@ -330,6 +333,7 @@ impl Session {
             draw_inside: before.draw_inside,
             status: Status::Ok,
             error: None,
+            suppressed: false,
         };
         // Rolled back: the new step goes in at the marker and the later steps replay after it.
         if let Some(m) = t.marker.take().filter(|m| *m < t.steps.len()) {
@@ -379,6 +383,11 @@ impl Session {
         for (i, step) in steps.iter_mut().enumerate() {
             if failed.is_some() {
                 step.status = Status::Pending;
+                step.error = None;
+                continue;
+            }
+            if step.suppressed {
+                step.status = Status::Ok;
                 step.error = None;
                 continue;
             }

@@ -12,7 +12,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "List Timeline Steps",
             [],
             None,
-            "{} → {steps: [{index, cmd, label, params, selection: [ids], status: ok|failed|pending, error, rolledBack}], marker (steps applied), editable (the base is kept), baseBytes} the active document's timeline, oldest step first",
+            "{} → {steps: [{index, cmd, label, params, selection: [ids], status: ok|failed|pending, error, rolledBack, suppressed}], marker (steps applied), editable (the base is kept), baseBytes} the active document's timeline, oldest step first",
             has_doc,
             list
         ),
@@ -42,6 +42,24 @@ pub fn specs() -> Vec<CommandSpec> {
             "{index (how many steps stay applied, 0…steps)} moves the end marker: the document shows the timeline as of that step, the later steps kept, unrun (greyed); a new action is inserted at the marker and the later steps replay after it. One undo step → {failed: index|null, error, steps, marker}",
             has_timeline,
             roll_to
+        ),
+        cmd!(
+            "timeline.suppressStep",
+            "Suppress Timeline Step",
+            [],
+            None,
+            "{index, on} skips the step (on) or runs it again (off) on replay; the later steps replay without it, and one that then fails is marked failed. One undo step → {failed: index|null, error, steps, marker}",
+            has_timeline,
+            suppress_step
+        ),
+        cmd!(
+            "timeline.deleteStep",
+            "Delete Timeline Step",
+            [],
+            None,
+            "{index} removes the step and replays the later ones without it (they are renumbered); one that then fails is marked failed. One undo step → {failed: index|null, error, steps, marker}",
+            has_timeline,
+            delete_step
         ),
         cmd!(
             "timeline.replay",
@@ -78,6 +96,7 @@ fn list(s: &mut Session, _: &Value) -> Result<Value> {
                 "status": step.status,
                 "error": step.error,
                 "rolledBack": i >= applied,
+                "suppressed": step.suppressed,
             })
         })
         .collect();
@@ -132,6 +151,37 @@ fn roll_to(s: &mut Session, p: &Value) -> Result<Value> {
             return Err(bad(cmd, format!("the timeline has {n} steps")));
         }
         t.marker = (index < n).then_some(index);
+        Ok(())
+    })
+}
+
+fn suppress_step(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.suppressStep";
+    let index = p.get("index").and_then(Value::as_u64).ok_or_else(|| bad(cmd, "`index` must be a step number (0 = the first step)"))?;
+    let on = p.get("on").and_then(Value::as_bool).ok_or_else(|| bad(cmd, "`on` must be true or false"))?;
+    let label = if on { "Suppress Timeline Step" } else { "Unsuppress Timeline Step" };
+    s.timeline_rewrite(label, |t| {
+        let n = t.steps.len();
+        let step = usize::try_from(index)
+            .ok()
+            .and_then(|i| t.steps.get_mut(i))
+            .ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
+        step.suppressed = on;
+        Ok(())
+    })
+}
+
+fn delete_step(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.deleteStep";
+    let index = p.get("index").and_then(Value::as_u64).ok_or_else(|| bad(cmd, "`index` must be a step number (0 = the first step)"))?;
+    s.timeline_rewrite("Delete Timeline Step", |t| {
+        let n = t.steps.len();
+        let i = usize::try_from(index).ok().filter(|i| *i < n).ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
+        t.steps.remove(i);
+        if let Some(m) = t.marker {
+            let m = if i < m { m - 1 } else { m };
+            t.marker = (m < t.steps.len()).then_some(m);
+        }
         Ok(())
     })
 }
