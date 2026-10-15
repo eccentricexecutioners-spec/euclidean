@@ -26,6 +26,11 @@ const RAIL_WIDTH: f32 = 44.0;
 /// remaining height; those then only span the remaining width). Then come the tab row and the
 /// group row on top, the navigation bar and timeline strip at the bottom, and the tool panel on
 /// the right.
+///
+/// Tab (the UI command `window.dock`) turns the dock and the tool column off together; with
+/// either off (`chrome_on` false) the left column, tab row, group row, navigation bar, timeline
+/// strip and tool panel are not drawn. The app bar, status and hint bars, step form and (while
+/// sketching) the sketch toolbar stay. No collapse state is touched, so Tab again restores it.
 pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     let orig = Tokens::get(ui.ctx());
     app.ui.workbench.hits.clear();
@@ -45,6 +50,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         ui.ctx().data_mut(|d| d.insert_temp(egui::Id::NULL, t));
     }
     let mode = app.ui.screen_mode;
+    let chrome_on = app.ui.dock && app.ui.toolbar;
     if mode < 2 {
         chrome::app_bar(app, ui);
     }
@@ -52,19 +58,21 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         chrome::status_bar(app, ui);
         chrome::hint_bar(app, ui);
     }
-    if mode < 3 {
+    if mode < 3 && chrome_on {
         left_column(app, ui, &t, &lay, tab.as_ref());
     }
     if mode < 2 {
-        tab_row(app, ui, &t, &lay, tab.as_ref());
+        if chrome_on {
+            tab_row(app, ui, &t, &lay, tab.as_ref());
+        }
         if sketch::active(app) {
             // Sketch mode: the sketch toolbar takes the group row's place.
             sketch::toolbar::show(app, ui);
-        } else {
+        } else if chrome_on {
             group_row(app, ui, &t, tab.as_ref());
         }
     }
-    if mode < 3 {
+    if mode < 3 && chrome_on {
         // The first bottom panel declared is the lowest: the navigation bar sits above the status
         // and hint bars, and the timeline strip, declared after it, above it.
         nav_bar(app, ui, &t, &lay);

@@ -456,3 +456,120 @@ fn active_tab_pill_is_filled_with_its_colour() {
     // The canvas side sees the unchanged tokens after the workbench drew with its washed one.
     assert_eq!(crate::theme::Tokens::get(&rig.ctx).row_selected, t.row_selected);
 }
+
+fn tab_key(pressed: bool) -> Event {
+    Event::Key { key: egui::Key::Tab, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE }
+}
+
+impl Rig {
+    fn press_tab(&mut self) -> String {
+        self.frame(vec![tab_key(true)]);
+        self.frame(vec![tab_key(false)]);
+        self.settle()
+    }
+
+    fn names(&self) -> Vec<String> {
+        self.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect()
+    }
+}
+
+#[test]
+fn tab_hides_the_workbench_and_tab_brings_it_back() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.click("tool-panel:collapse");
+    assert!(rig.app.ui.workbench.right_collapsed);
+    let left = rig.app.ui.workbench.left_collapsed;
+    let shown = rig.names();
+    for want in ["panel:left", "panel:tabs", "panel:nav", "tl:first", "tool-panel:expand"] {
+        assert!(shown.iter().any(|n| n == want), "missing {want} before Tab: {shown:?}");
+    }
+    assert!(shown.iter().any(|n| n.starts_with("group:")));
+    let before = rig.settle();
+    let text = rig.press_tab();
+    assert!(!rig.app.ui.dock && !rig.app.ui.toolbar);
+    let hidden = rig.names();
+    for n in &hidden {
+        assert!(
+            !(n == "panel:left"
+                || n == "panel:tabs"
+                || n == "panel:nav"
+                || n.starts_with("group:")
+                || n == "tl:first"
+                || n.starts_with("tool-panel:")),
+            "{n} still drawn after Tab: {hidden:?}"
+        );
+    }
+    // The status bar stays: its rotation box reads "0°".
+    assert!(text.contains('°'), "status bar gone:\n{text}");
+    assert!(rig.app.ui.workbench.right_collapsed);
+    assert_eq!(rig.app.ui.workbench.left_collapsed, left);
+    rig.press_tab();
+    assert!(rig.app.ui.dock && rig.app.ui.toolbar);
+    assert_eq!(rig.names(), shown);
+    assert!(rig.app.ui.workbench.right_collapsed);
+    assert_eq!(rig.app.ui.workbench.left_collapsed, left);
+    assert_eq!(rig.settle(), before);
+}
+
+#[test]
+fn tab_in_a_text_field_does_not_toggle_the_workbench() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let mut text = String::new();
+    let screen = egui::Rect::from_min_size(Pos2::ZERO, egui::vec2(1600.0, 850.0));
+    // Each frame also draws a multi-line text field in a window, focused from the first frame.
+    let mut run = |rig: &mut Rig, events: Vec<Event>| {
+        let app = &mut rig.app;
+        let text = &mut text;
+        let mut out = rig.ctx.run_ui(egui::RawInput { events, screen_rect: Some(screen), ..Default::default() }, |ui| {
+            app.logic(ui.ctx());
+            app.ui(ui);
+            egui::Window::new("probe").show(ui.ctx(), |ui| {
+                let r = ui.add(egui::TextEdit::multiline(text).id(egui::Id::new("probe-field")));
+                r.request_focus();
+            });
+        });
+        out.textures_delta.clear();
+    };
+    for _ in 0..4 {
+        run(&mut rig, vec![]);
+    }
+    assert!(rig.ctx.egui_wants_keyboard_input(), "the field has the keyboard");
+    run(&mut rig, vec![tab_key(true)]);
+    run(&mut rig, vec![tab_key(false)]);
+    run(&mut rig, vec![]);
+    assert!(rig.app.ui.dock && rig.app.ui.toolbar, "Tab in a field must not hide the workbench");
+}
+
+#[test]
+fn every_catalogue_tool_shortcut_selects_its_tool_in_fusion() {
+    // The key as the runtime reads it: "Shift+X" is X with Shift held; a letter is typed
+    // lowercase; other characters as they are.
+    fn press(rig: &mut Rig, shortcut: &str) -> String {
+        let (shift, key) = match shortcut.strip_prefix("Shift+") {
+            Some(k) => (true, k),
+            None => (false, shortcut),
+        };
+        let text = if key.chars().all(|c| c.is_alphabetic()) && !shift { key.to_lowercase() } else { key.to_string() };
+        let held = if shift { Modifiers::SHIFT } else { Modifiers::NONE };
+        rig.frame(vec![Event::ModifiersChanged(held), Event::Text(text)]);
+        rig.frame(vec![Event::ModifiersChanged(Modifiers::NONE)]);
+        rig.settle();
+        rig.tool()
+    }
+    let mut differs = Vec::new();
+    let mut own = 0;
+    for t in vectorcraft_tools::catalog::all_tools() {
+        let Some(sc) = t.shortcut else { continue };
+        let mut classic = Rig::new(Layout::Classic);
+        let mut fusion = Rig::new(Layout::Fusion);
+        let (c, f) = (press(&mut classic, sc), press(&mut fusion, sc));
+        assert_eq!(f, c, "Fusion and Classic disagree for {} ({sc})", t.id);
+        if f == t.id {
+            own += 1;
+        } else {
+            differs.push(format!("{} ({sc}) -> {f}", t.id));
+        }
+    }
+    assert!(own > 0 && differs.len() <= own / 4, "most tools must select themselves; the others: {differs:?}");
+    eprintln!("shortcuts that select another tool in both layouts: {differs:?}");
+}
