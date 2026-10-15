@@ -4855,6 +4855,7 @@ dependencies = [
  "vectorcraft-engine",
  "vectorcraft-text",
  "vectorcraft-ui-egui",
+ "vectorcraft-uplink",
  "wayland-client",
  "wayland-protocols",
  "webbrowser",

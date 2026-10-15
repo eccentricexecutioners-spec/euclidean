@@ -3854,3 +3854,33 @@ lighting	Light	光源
 	Roll to here	回復到此處
 	Delete Timeline Step	刪除時間軸步驟
 	Suppress Timeline Step	抑制時間軸步驟
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	檢查更新…
+	Link to Cargo Bay…	連結至 Cargo Bay…
+	Link to Cargo Bay	連結至 Cargo Bay
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	請輸入 Mothership 上「工具」頁面中的連結碼，讓 Euclidean 能自動更新。
+	Link code	連結碼
+	Later	稍後
+	Linking…	正在連結…
+	Restart to update	重新啟動以更新
+	{new} ready	{new} 已就緒
+@msg	Getting {new} ready…	正在準備 {new}…
+@msg	{new} ready — Restart to update	{new} 已就緒 — 重新啟動以更新
+@msg	Updated to {new} (was {old})	已更新至 {new}（先前為 {old}）
+@msg	Euclidean {version} is up to date	Euclidean {version} 已是最新版本
+@msg	{new} is available — download it from the Mothership's Tools page	{new} 已可使用 — 請從 Mothership 的「工具」頁面下載
+@msg	Linked. Euclidean will update itself.	已連結。Euclidean 將自動更新。
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	該代碼無效。連結碼的有效期限為 15 分鐘 — 請在「工具」頁面取得新的連結碼。
+@msg	Your access to Euclidean was turned off.	您對 Euclidean 的存取權已關閉。
+@msg	Too many tries — wait a few minutes, then try again.	嘗試次數過多 — 請稍候幾分鐘後再試。
+@msg	Can't reach Cargo Bay — check your internet and try again.	無法連線至 Cargo Bay — 請檢查網路連線後再試。
+@msg	Can't check for updates securely from this computer.	此電腦無法安全地檢查更新。
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay 發生問題 — 請稍後再試。
+@msg	This copy is no longer linked — link it again from Help.	此副本已不再連結 — 請從「說明」選單重新連結。
+@msg	Link Euclidean to Cargo Bay to get updates.	將 Euclidean 連結至 Cargo Bay 以取得更新。
+@msg	This update didn't pass its safety check, so it wasn't installed.	此更新未通過安全檢查，因此未安裝。
+@msg	The new version couldn't be put in place, so your old one is back.	無法安裝新版本，已還原為舊版本。
+@msg	Couldn't get the update ready — try again later.	無法準備更新 — 請稍後再試。
+@msg	Updates are off in this copy.	此副本已關閉更新。
+@msg	Checking for updates…	正在檢查更新…

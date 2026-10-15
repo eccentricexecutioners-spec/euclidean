@@ -11,6 +11,7 @@ pub mod artboard_options;
 pub mod blend_options;
 mod brush_art_options;
 pub mod brush_options;
+pub mod cargo_bay;
 pub mod color_balance;
 pub mod color_guide_options;
 mod color_picker;
@@ -140,6 +141,9 @@ pub(crate) struct DialogSpec {
     pub ok: Option<&'static str>,
     /// An extra button left of Cancel that sets `discard: true` and confirms ("Don't Save").
     pub discard: Option<&'static str>,
+    /// The cancel button's label when it isn't "Cancel" (or "Close", with no OK button): the Link
+    /// to Cargo Bay dialog's "Later".
+    pub cancel: Option<&'static str>,
     pub min_width: f32,
     pub max_width: Option<f32>,
     /// The body runs a live preview interaction that Cancel rolls back.
@@ -164,6 +168,7 @@ impl DialogSpec {
         },
         ok: Some("OK"),
         discard: None,
+        cancel: None,
         min_width: 320.0,
         max_width: None,
         preview: false,
@@ -279,6 +284,7 @@ registry! {
     DivideSlices: [slices::DIVIDE] => slices::DIVIDE_SPEC,
     EpsOptions: [eps_options::KIND] => eps_options::SPEC,
     Recovery: [crate::recovery::KIND] => recovery::SPEC,
+    CargoBay: [cargo_bay::KIND] => cargo_bay::SPEC,
     DxfImport: [dxf_import::KIND] => dxf_import::SPEC,
     RasterFormatOptions: ["tiffOptions", "bmpOptions", "tgaOptions"] => png_options::SPEC,
     SaveForWeb: [save_for_web::KIND] => save_for_web::SPEC,
@@ -314,6 +320,7 @@ pub fn button_labels() -> Vec<&'static str> {
     for spec in std::iter::once(&DialogSpec::FORM).chain(DialogKind::ALL.iter().map(|k| k.spec())) {
         v.extend(spec.ok);
         v.extend(spec.discard);
+        v.extend(spec.cancel);
     }
     v.sort_unstable();
     v.dedup();
@@ -336,7 +343,12 @@ fn run_and_close(app: &mut VectorcraftApp, id: &str, params: Value) -> DialogRes
 /// Close the open dialog as Cancel does, rolling back a live preview (`ui.dialog.cancel`).
 pub fn cancel(app: &mut VectorcraftApp) {
     missing_fonts::requeue_replaced(app);
-    if app.ui.dialog.take().is_some_and(|d| spec(&d.kind).preview) {
+    let closed = app.ui.dialog.take();
+    // Later on the link dialog: not offered again until the next start.
+    if closed.as_ref().is_some_and(|d| d.kind == cargo_bay::KIND) {
+        app.updates_later = true;
+    }
+    if closed.is_some_and(|d| spec(&d.kind).preview) {
         let _ = app.session.cancel_interaction();
     }
     settle(app);
@@ -440,7 +452,7 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                 ok = true;
             }
             ui.add_space(8.0);
-            if widgets::secondary_button(ui, if spec.ok.is_some() { "Cancel" } else { "Close" }).clicked() {
+            if widgets::secondary_button(ui, spec.cancel.unwrap_or(if spec.ok.is_some() { "Cancel" } else { "Close" })).clicked() {
                 cancel = true;
             }
             if let Some(label) = spec.discard {

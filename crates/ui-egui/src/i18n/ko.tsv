@@ -4498,3 +4498,33 @@ lighting	Light	광원
 	Roll to here	여기로 롤백
 	Delete Timeline Step	타임라인 단계 삭제
 	Suppress Timeline Step	타임라인 단계 비활성화
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	업데이트 확인…
+	Link to Cargo Bay…	Cargo Bay에 링크…
+	Link to Cargo Bay	Cargo Bay에 링크
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Euclidean이 스스로 업데이트할 수 있도록 Mothership의 도구 페이지에 있는 링크 코드를 입력하세요.
+	Link code	링크 코드
+	Later	나중에
+	Linking…	링크하는 중…
+	Restart to update	다시 시작하여 업데이트
+	{new} ready	{new} 준비됨
+@msg	Getting {new} ready…	{new} 준비 중…
+@msg	{new} ready — Restart to update	{new} 준비됨 — 다시 시작하여 업데이트
+@msg	Updated to {new} (was {old})	{new}(으)로 업데이트됨(이전 {old})
+@msg	Euclidean {version} is up to date	Euclidean {version}은(는) 최신 버전입니다
+@msg	{new} is available — download it from the Mothership's Tools page	{new}을(를) 사용할 수 있습니다 — Mothership의 도구 페이지에서 다운로드하세요
+@msg	Linked. Euclidean will update itself.	링크되었습니다. Euclidean이 스스로 업데이트합니다.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	코드가 맞지 않습니다. 코드는 15분 동안 유효합니다 — 도구 페이지에서 새 코드를 받으세요.
+@msg	Your access to Euclidean was turned off.	Euclidean에 대한 접근이 해제되었습니다.
+@msg	Too many tries — wait a few minutes, then try again.	시도 횟수가 너무 많습니다 — 몇 분 기다린 후 다시 시도하세요.
+@msg	Can't reach Cargo Bay — check your internet and try again.	Cargo Bay에 연결할 수 없습니다 — 인터넷 연결을 확인하고 다시 시도하세요.
+@msg	Can't check for updates securely from this computer.	이 컴퓨터에서는 안전하게 업데이트를 확인할 수 없습니다.
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay에 문제가 발생했습니다 — 나중에 다시 시도하세요.
+@msg	This copy is no longer linked — link it again from Help.	이 복사본은 더 이상 링크되어 있지 않습니다 — 도움말에서 다시 링크하세요.
+@msg	Link Euclidean to Cargo Bay to get updates.	업데이트를 받으려면 Euclidean을 Cargo Bay에 링크하세요.
+@msg	This update didn't pass its safety check, so it wasn't installed.	이 업데이트는 안전 검사를 통과하지 못해 설치되지 않았습니다.
+@msg	The new version couldn't be put in place, so your old one is back.	새 버전을 설치하지 못해 이전 버전으로 되돌렸습니다.
+@msg	Couldn't get the update ready — try again later.	업데이트를 준비하지 못했습니다 — 나중에 다시 시도하세요.
+@msg	Updates are off in this copy.	이 복사본에서는 업데이트가 꺼져 있습니다.
+@msg	Checking for updates…	업데이트를 확인하는 중…

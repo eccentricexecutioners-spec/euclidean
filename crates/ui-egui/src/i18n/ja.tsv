@@ -4528,3 +4528,33 @@ lighting	Light	ライト
 	Roll to here	ここまでロール
 	Delete Timeline Step	タイムラインのステップを削除
 	Suppress Timeline Step	タイムラインのステップを抑制
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	アップデートを確認…
+	Link to Cargo Bay…	Cargo Bay にリンク…
+	Link to Cargo Bay	Cargo Bay にリンク
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Euclidean が自動で更新できるように、Mothership の「ツール」ページにあるリンクコードを入力してください。
+	Link code	リンクコード
+	Later	あとで
+	Linking…	リンク中…
+	Restart to update	再起動して更新
+	{new} ready	{new} の準備ができました
+@msg	Getting {new} ready…	{new} を準備しています…
+@msg	{new} ready — Restart to update	{new} の準備ができました — 再起動して更新
+@msg	Updated to {new} (was {old})	{new} に更新しました（以前は {old}）
+@msg	Euclidean {version} is up to date	Euclidean {version} は最新です
+@msg	{new} is available — download it from the Mothership's Tools page	{new} が利用可能です — Mothership の「ツール」ページからダウンロードしてください
+@msg	Linked. Euclidean will update itself.	リンクしました。Euclidean は自動で更新されます。
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	このコードは使えませんでした。コードの有効期間は 15 分です — 「ツール」ページで新しいコードを取得してください。
+@msg	Your access to Euclidean was turned off.	Euclidean へのアクセスがオフになりました。
+@msg	Too many tries — wait a few minutes, then try again.	試行回数が多すぎます — 数分待ってからもう一度お試しください。
+@msg	Can't reach Cargo Bay — check your internet and try again.	Cargo Bay に接続できません — インターネット接続を確認して、もう一度お試しください。
+@msg	Can't check for updates securely from this computer.	このコンピュータでは安全にアップデートを確認できません。
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay で問題が発生しました — しばらくしてからもう一度お試しください。
+@msg	This copy is no longer linked — link it again from Help.	このコピーのリンクは解除されました — ヘルプメニューからもう一度リンクしてください。
+@msg	Link Euclidean to Cargo Bay to get updates.	アップデートを受け取るには、Euclidean を Cargo Bay にリンクしてください。
+@msg	This update didn't pass its safety check, so it wasn't installed.	このアップデートは安全性チェックに合格しなかったため、インストールされませんでした。
+@msg	The new version couldn't be put in place, so your old one is back.	新しいバージョンを設定できなかったため、以前のバージョンに戻しました。
+@msg	Couldn't get the update ready — try again later.	アップデートを準備できませんでした — しばらくしてからもう一度お試しください。
+@msg	Updates are off in this copy.	このコピーではアップデートはオフです。
+@msg	Checking for updates…	アップデートを確認しています…

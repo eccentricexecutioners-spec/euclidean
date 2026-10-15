@@ -4964,3 +4964,33 @@ mark-style	Japanese	Japonské
 	Roll to here	Vrátit sem
 	Delete Timeline Step	Smazat krok časové osy
 	Suppress Timeline Step	Potlačit krok časové osy
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	Zkontrolovat aktualizace…
+	Link to Cargo Bay…	Propojit s Cargo Bay…
+	Link to Cargo Bay	Propojit s Cargo Bay
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Zadejte kód propojení ze stránky Nástroje na Mothership, aby se Euclidean mohl aktualizovat sám.
+	Link code	Kód propojení
+	Later	Později
+	Linking…	Propojování…
+	Restart to update	Restartovat a aktualizovat
+	{new} ready	{new} je připraveno
+@msg	Getting {new} ready…	Připravuje se {new}…
+@msg	{new} ready — Restart to update	{new} je připraveno — restartujte pro aktualizaci
+@msg	Updated to {new} (was {old})	Aktualizováno na {new} (bylo {old})
+@msg	Euclidean {version} is up to date	Euclidean {version} je aktuální
+@msg	{new} is available — download it from the Mothership's Tools page	{new} je k dispozici — stáhněte ji na stránce Nástroje na Mothership
+@msg	Linked. Euclidean will update itself.	Propojeno. Euclidean se bude aktualizovat sám.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	Tento kód nefungoval. Kódy platí 15 minut — nový získáte na stránce Nástroje.
+@msg	Your access to Euclidean was turned off.	Váš přístup k Euclidean byl vypnut.
+@msg	Too many tries — wait a few minutes, then try again.	Příliš mnoho pokusů — počkejte pár minut a zkuste to znovu.
+@msg	Can't reach Cargo Bay — check your internet and try again.	Cargo Bay není dostupný — zkontrolujte připojení k internetu a zkuste to znovu.
+@msg	Can't check for updates securely from this computer.	Na tomto počítači nelze zabezpečeně zkontrolovat aktualizace.
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay má potíže — zkuste to později.
+@msg	This copy is no longer linked — link it again from Help.	Tato kopie už není propojena — propojte ji znovu v nabídce Nápověda.
+@msg	Link Euclidean to Cargo Bay to get updates.	Propojte Euclidean s Cargo Bay, abyste získávali aktualizace.
+@msg	This update didn't pass its safety check, so it wasn't installed.	Tato aktualizace neprošla bezpečnostní kontrolou, a proto nebyla nainstalována.
+@msg	The new version couldn't be put in place, so your old one is back.	Novou verzi se nepodařilo nainstalovat, takže se vrátila ta stará.
+@msg	Couldn't get the update ready — try again later.	Aktualizaci se nepodařilo připravit — zkuste to později.
+@msg	Updates are off in this copy.	Aktualizace jsou v této kopii vypnuty.
+@msg	Checking for updates…	Kontrolují se aktualizace…

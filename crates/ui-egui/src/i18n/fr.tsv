@@ -4964,3 +4964,33 @@ theme	Appearance	Apparence
 	Roll to here	Revenir ici
 	Delete Timeline Step	Supprimer l’étape de la chronologie
 	Suppress Timeline Step	Désactiver l’étape de la chronologie
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	Rechercher les mises à jour…
+	Link to Cargo Bay…	Lier à Cargo Bay…
+	Link to Cargo Bay	Lier à Cargo Bay
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Saisissez le code de liaison de votre page Outils sur la Mothership pour qu’Euclidean puisse se mettre à jour tout seul.
+	Link code	Code de liaison
+	Later	Plus tard
+	Linking…	Liaison…
+	Restart to update	Redémarrer pour mettre à jour
+	{new} ready	{new} est prête
+@msg	Getting {new} ready…	Préparation de {new}…
+@msg	{new} ready — Restart to update	{new} est prête — redémarrez pour mettre à jour
+@msg	Updated to {new} (was {old})	Mise à jour vers {new} effectuée (ancienne version : {old})
+@msg	Euclidean {version} is up to date	Euclidean {version} est à jour
+@msg	{new} is available — download it from the Mothership's Tools page	{new} est disponible — téléchargez-la depuis la page Outils de la Mothership
+@msg	Linked. Euclidean will update itself.	Liaison établie. Euclidean se mettra à jour tout seul.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	Ce code n’a pas fonctionné. Les codes sont valables 15 minutes — obtenez-en un nouveau sur votre page Outils.
+@msg	Your access to Euclidean was turned off.	Votre accès à Euclidean a été désactivé.
+@msg	Too many tries — wait a few minutes, then try again.	Trop de tentatives — patientez quelques minutes, puis réessayez.
+@msg	Can't reach Cargo Bay — check your internet and try again.	Impossible de joindre Cargo Bay — vérifiez votre connexion internet et réessayez.
+@msg	Can't check for updates securely from this computer.	Impossible de rechercher les mises à jour de façon sécurisée depuis cet ordinateur.
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay a rencontré un problème — réessayez plus tard.
+@msg	This copy is no longer linked — link it again from Help.	Cette copie n’est plus liée — liez-la de nouveau depuis le menu Aide.
+@msg	Link Euclidean to Cargo Bay to get updates.	Liez Euclidean à Cargo Bay pour recevoir les mises à jour.
+@msg	This update didn't pass its safety check, so it wasn't installed.	Cette mise à jour n’a pas passé son contrôle de sécurité et n’a donc pas été installée.
+@msg	The new version couldn't be put in place, so your old one is back.	La nouvelle version n’a pas pu être mise en place : votre ancienne version a été rétablie.
+@msg	Couldn't get the update ready — try again later.	Impossible de préparer la mise à jour — réessayez plus tard.
+@msg	Updates are off in this copy.	Les mises à jour sont désactivées dans cette copie.
+@msg	Checking for updates…	Recherche de mises à jour…

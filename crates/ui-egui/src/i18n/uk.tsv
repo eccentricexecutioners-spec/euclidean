@@ -4514,3 +4514,33 @@ lighting	Light	Світло
 	Roll to here	Відкотити сюди
 	Delete Timeline Step	Видалити крок часової шкали
 	Suppress Timeline Step	Пригнітити крок часової шкали
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	Перевірити оновлення…
+	Link to Cargo Bay…	Зв’язати з Cargo Bay…
+	Link to Cargo Bay	Зв’язати з Cargo Bay
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Введіть код зв’язку зі своєї сторінки «Інструменти» на Mothership, щоб Euclidean міг оновлюватися сам.
+	Link code	Код зв’язку
+	Later	Пізніше
+	Linking…	Зв’язування…
+	Restart to update	Перезапустити для оновлення
+	{new} ready	{new} готова
+@msg	Getting {new} ready…	Підготовка {new}…
+@msg	{new} ready — Restart to update	{new} готова — перезапустіть для оновлення
+@msg	Updated to {new} (was {old})	Оновлено до {new} (було {old})
+@msg	Euclidean {version} is up to date	Euclidean {version} — актуальна версія
+@msg	{new} is available — download it from the Mothership's Tools page	Доступна {new} — завантажте її на сторінці «Інструменти» на Mothership
+@msg	Linked. Euclidean will update itself.	Зв’язок установлено. Euclidean оновлюватиметься сам.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	Цей код не підійшов. Коди дійсні 15 хвилин — отримайте новий на сторінці «Інструменти».
+@msg	Your access to Euclidean was turned off.	Ваш доступ до Euclidean вимкнено.
+@msg	Too many tries — wait a few minutes, then try again.	Забагато спроб — зачекайте кілька хвилин і спробуйте ще раз.
+@msg	Can't reach Cargo Bay — check your internet and try again.	Не вдається зв’язатися з Cargo Bay — перевірте підключення до інтернету й спробуйте ще раз.
+@msg	Can't check for updates securely from this computer.	З цього комп’ютера не можна безпечно перевірити оновлення.
+@msg	Cargo Bay had a problem — try again later.	У Cargo Bay виникла проблема — спробуйте пізніше.
+@msg	This copy is no longer linked — link it again from Help.	Ця копія більше не зв’язана — зв’яжіть її знову через меню «Довідка».
+@msg	Link Euclidean to Cargo Bay to get updates.	Зв’яжіть Euclidean із Cargo Bay, щоб отримувати оновлення.
+@msg	This update didn't pass its safety check, so it wasn't installed.	Це оновлення не пройшло перевірку безпеки, тому його не було встановлено.
+@msg	The new version couldn't be put in place, so your old one is back.	Не вдалося встановити нову версію, тому повернуто попередню.
+@msg	Couldn't get the update ready — try again later.	Не вдалося підготувати оновлення — спробуйте пізніше.
+@msg	Updates are off in this copy.	У цій копії оновлення вимкнено.
+@msg	Checking for updates…	Перевірка оновлень…

@@ -15,6 +15,8 @@ wgpu = ["eframe/wgpu", "dep:winsafe"]
 accessibility = ["eframe/accesskit"]
 # Build with --no-default-features --features windows7 and the win7 Rust target.
 windows7 = ["eframe/glow"]
+# Trusts the uplink crate's TEST master key, for the scratch end-to-end run. Never in a release build.
+uplink-test-key = ["vectorcraft-uplink/uplink-test-key"]
 
 [dependencies]
 vectorcraft-engine = { workspace = true }
@@ -27,6 +29,8 @@ log = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rfd = { workspace = true }
+# Cargo Bay updates (Help › Check for Updates): linking, signed update checks, the swap at start.
+vectorcraft-uplink = { workspace = true }
 # wayland-data-control: native Wayland clipboard (Linux; X11 through XWayland only sees what X11 apps copied).
 arboard = { workspace = true, features = ["image-data", "wayland-data-control"] }
 image = { workspace = true }

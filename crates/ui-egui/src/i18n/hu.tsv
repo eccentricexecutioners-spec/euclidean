@@ -4931,3 +4931,33 @@ imageTrace	Outline	Körvonal
 	Roll to here	Visszagörgetés ide
 	Delete Timeline Step	Idővonal-lépés törlése
 	Suppress Timeline Step	Idővonal-lépés elnyomása
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	Frissítések keresése…
+	Link to Cargo Bay…	Csatolás a Cargo Bayhez…
+	Link to Cargo Bay	Csatolás a Cargo Bayhez
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Írja be a Mothership Eszközök oldalán kapott csatolási kódot, hogy a Euclidean frissíthesse önmagát.
+	Link code	Csatolási kód
+	Later	Később
+	Linking…	Csatolás…
+	Restart to update	Újraindítás a frissítéshez
+	{new} ready	{new} kész
+@msg	Getting {new} ready…	{new} előkészítése…
+@msg	{new} ready — Restart to update	{new} kész — indítsa újra a frissítéshez
+@msg	Updated to {new} (was {old})	Frissítve erre: {new} (előző: {old})
+@msg	Euclidean {version} is up to date	A Euclidean {version} naprakész
+@msg	{new} is available — download it from the Mothership's Tools page	{new} elérhető — töltse le a Mothership Eszközök oldaláról
+@msg	Linked. Euclidean will update itself.	Csatolva. A Euclidean frissíteni fogja önmagát.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	Ez a kód nem működött. A kódok 15 percig érvényesek — kérjen újat az Eszközök oldalon.
+@msg	Your access to Euclidean was turned off.	A Euclideanhoz való hozzáférését kikapcsolták.
+@msg	Too many tries — wait a few minutes, then try again.	Túl sok próbálkozás — várjon néhány percet, majd próbálja újra.
+@msg	Can't reach Cargo Bay — check your internet and try again.	A Cargo Bay nem érhető el — ellenőrizze az internetkapcsolatot, és próbálja újra.
+@msg	Can't check for updates securely from this computer.	Ezen a számítógépen nem ellenőrizhetők biztonságosan a frissítések.
+@msg	Cargo Bay had a problem — try again later.	A Cargo Bay hibát jelzett — próbálja újra később.
+@msg	This copy is no longer linked — link it again from Help.	Ez a példány már nincs csatolva — csatolja újra a Súgó menüben.
+@msg	Link Euclidean to Cargo Bay to get updates.	Csatolja a Euclideant a Cargo Bayhez a frissítések fogadásához.
+@msg	This update didn't pass its safety check, so it wasn't installed.	Ez a frissítés nem ment át a biztonsági ellenőrzésen, ezért nem lett telepítve.
+@msg	The new version couldn't be put in place, so your old one is back.	Az új verziót nem sikerült a helyére tenni, ezért a régi került vissza.
+@msg	Couldn't get the update ready — try again later.	A frissítést nem sikerült előkészíteni — próbálja újra később.
+@msg	Updates are off in this copy.	A frissítések ki vannak kapcsolva ebben a példányban.
+@msg	Checking for updates…	Frissítések keresése…

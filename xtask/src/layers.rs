@@ -63,7 +63,8 @@ pub const TABLE: &[(&str, Class)] = &[
     ("plugins", Class::Layer(2)),
     ("affinity", Class::Standalone),
     ("scriptcheck", Class::Standalone),
-    ("uplink", Class::Standalone),
+    // Desktop only (network, TLS, the app-bundle swap): kept out of the wasm set, like mcp.
+    ("uplink", Class::Layer(6)),
 ];
 
 /// Explicit orderings *within* a layer (earlier may be used by later).

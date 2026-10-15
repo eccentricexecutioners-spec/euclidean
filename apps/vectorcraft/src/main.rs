@@ -65,6 +65,117 @@ struct App {
     window_frame: Option<window_frame::WindowFrameFn>,
 }
 
+/// Set when Restart to update was pressed: [`relaunch_if_asked`] opens the new app once this one
+/// has quit.
+static RELAUNCH: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+/// The app bundle to open again.
+static RELAUNCH_BUNDLE: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+
+/// Open the updated app, if Restart to update asked for it. The new process swaps the staged
+/// copy in at its start.
+fn relaunch_if_asked() {
+    if RELAUNCH.load(std::sync::atomic::Ordering::SeqCst)
+        && let Some(bundle) = RELAUNCH_BUNDLE.get()
+    {
+        match vectorcraft_uplink::relaunch(bundle) {
+            Ok(()) => log::info!("opening {} again to finish the update", bundle.display()),
+            Err(e) => log::warn!("could not open {} again: {e}", bundle.display()),
+        }
+    }
+}
+
+/// The updater as the UI sees it ([`vectorcraft_ui_egui::UpdateHost`]).
+struct UpdaterHost(vectorcraft_uplink::Updater);
+
+impl vectorcraft_ui_egui::UpdateHost for UpdaterHost {
+    fn view(&self) -> vectorcraft_ui_egui::UpdateView {
+        let v = self.0.view();
+        vectorcraft_ui_egui::UpdateView {
+            linked: v.linked,
+            busy: v.busy,
+            message: v.message,
+            message_seq: v.seq,
+            ready: v.ready,
+            link_error: v.link_error,
+        }
+    }
+    fn link(&mut self, code: &str) {
+        self.0.link(code);
+    }
+    fn check(&mut self) {
+        self.0.check();
+    }
+    fn restart(&mut self) {
+        RELAUNCH.store(true, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+/// What start-up made of Cargo Bay updates, before the window.
+enum UpdateStart {
+    /// Updates are off in this run.
+    Off,
+    /// A staged update was swapped in and the new app opened: this process ends.
+    Relaunched,
+    On {
+        updater: vectorcraft_uplink::Updater,
+        /// What to tell the person in the status line (an update that was installed or failed).
+        message: Option<String>,
+    },
+}
+
+/// Finish a staged update (macOS) and build the updater, unless updates are off (a development
+/// run, `EUCLIDEAN_NO_UPDATE`, a run without preferences).
+fn start_updates() -> UpdateStart {
+    use vectorcraft_uplink::{Config, StartOutcome, Updater, messages};
+    let exe = match std::env::current_exe() {
+        Ok(exe) => exe,
+        Err(e) => {
+            log::info!("updates are off: {e}");
+            return UpdateStart::Off;
+        }
+    };
+    if let Some(why) = vectorcraft_uplink::off_reason(false, &exe) {
+        log::info!("updates are off: {why}");
+        return UpdateStart::Off;
+    }
+    let cfg = Config::from_env(env!("CARGO_PKG_VERSION"));
+    let mut message = None;
+    if cfg!(target_os = "macos")
+        && let Some(bundle) = vectorcraft_uplink::current_bundle(&exe)
+    {
+        match vectorcraft_uplink::finish_pending(&cfg.state, &cfg.trust, &bundle, &cfg.installed_version) {
+            StartOutcome::NothingPending => {}
+            StartOutcome::Swapped { from, to } => {
+                log::info!("update swapped in: {from} -> {to}");
+                match vectorcraft_uplink::relaunch(&bundle) {
+                    Ok(()) => return UpdateStart::Relaunched,
+                    // The new version is in place; this run goes on and says so.
+                    Err(e) => log::warn!("could not open the updated app: {e}"),
+                }
+            }
+            StartOutcome::VerifyFailed(why) => {
+                log::warn!("staged update failed its check: {why}");
+                message = Some(messages::VERIFY_FAILED.to_string());
+            }
+            StartOutcome::InstallFailed(why) => {
+                log::warn!("staged update could not be installed: {why}");
+                message = Some(messages::INSTALL_FAILED.to_string());
+            }
+            StartOutcome::Unreadable(why) => {
+                log::warn!("staged update could not be read: {why}");
+                message = Some(messages::STAGE_FAILED.to_string());
+            }
+        }
+        if let Some((new, old)) = vectorcraft_uplink::unshown_update(&cfg.state) {
+            log::info!("updated to {new} (was {old})");
+            message.get_or_insert_with(|| messages::fill(messages::UPDATED_FROM, &[("new", &new), ("old", &old)]));
+            vectorcraft_uplink::swap::mark_shown(&cfg.state);
+        }
+        let _ = RELAUNCH_BUNDLE.set(bundle);
+    }
+    UpdateStart::On { updater: Updater::new(cfg), message }
+}
+
 impl eframe::App for App {
     // Each frame runs unconfined: it is the person at the keyboard's. The app confines what the
     // control channel asks for, and the frames carrying input it injected, to the automation roots
@@ -107,11 +218,13 @@ impl eframe::App for App {
     #[cfg(not(feature = "windows7"))]
     fn on_exit(&mut self) {
         file_access::unconfined(|| save_prefs(&self.app));
+        relaunch_if_asked();
         end_before_teardown(self.frames);
     }
     #[cfg(feature = "windows7")]
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         file_access::unconfined(|| save_prefs(&self.app));
+        relaunch_if_asked();
     }
 }
 
@@ -685,6 +798,11 @@ fn main() -> std::process::ExitCode {
             None => logger.no_file(),
         }
     }
+    // A staged update is swapped in before any window: the new app opens and this one ends.
+    let updates = match start_updates() {
+        UpdateStart::Relaunched => return std::process::ExitCode::SUCCESS,
+        other => other,
+    };
     // The roots confine the control channel: a bad one keeps the app from starting rather than
     // leaving agents unconfined. Without a control port there is nothing to confine.
     let roots = if control_port.is_none() {
@@ -864,6 +982,18 @@ fn main() -> std::process::ExitCode {
                         file_access::confine_process(roots.clone());
                         log::info!("control channel confined to the automation roots: read {:?}, write {:?}", roots.read_root(), roots.write_root());
                     }
+                }
+                if let UpdateStart::On { updater, message } = updates {
+                    let ctx = cc.egui_ctx.clone();
+                    updater.set_on_change(move || ctx.request_repaint());
+                    if let Some(message) = message {
+                        app.status(message);
+                    }
+                    // A linked copy looks for an update as it starts, on a thread of its own.
+                    if updater.view().linked {
+                        updater.check();
+                    }
+                    app.services.updates = Some(Box::new(UpdaterHost(updater)));
                 }
                 #[cfg(target_os = "macos")]
                 {

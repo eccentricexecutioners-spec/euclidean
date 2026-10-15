@@ -76,6 +76,7 @@ fn vectorcraft_gets_a_mac_app_menu() {
         ids(&app_menu.children),
         [
             "help.about",
+            "help.checkForUpdates",
             "---",
             "[Settings]",
             "[Language]",

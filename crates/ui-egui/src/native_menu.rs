@@ -319,6 +319,7 @@ pub fn mac_layout(app: &VectorcraftApp, bar: &MenuBar, lang: Lang) -> Layout {
     // What the application menu takes from the others (every copy: About is in Help too, Settings
     // in Edit as Preferences…).
     let about = take_items(&mut bar, "help.about").into_iter().next();
+    let updates = take_items(&mut bar, "help.checkForUpdates").into_iter().next();
     let settings = take_items(&mut bar, "edit.preferences").into_iter().next();
     let quit = take_items(&mut bar, "app.quit").into_iter().next();
     // Language and UI Brightness live only in the App menu: taken from the tree when it carries
@@ -330,6 +331,7 @@ pub fn mac_layout(app: &VectorcraftApp, bar: &MenuBar, lang: Lang) -> Layout {
 
     let mut app = Vec::new();
     app.extend(about.map(Node::Item));
+    app.extend(updates.map(Node::Item));
     app.push(Node::Separator);
     app.extend(settings.map(|s| Node::Submenu { label: tr(lang, "Settings").into(), children: settings_pages(&s, lang) }));
     app.extend(language);

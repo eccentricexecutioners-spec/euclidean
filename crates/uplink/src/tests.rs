@@ -569,3 +569,37 @@ fn versions_compare_like_cargo_bay() {
     assert!(!newer("0.1.0", "0.10.0"));
     assert!(!newer("junk", "0.1.0"));
 }
+
+static ENV: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// With `VECTORCRAFT_NO_PREFS` set the updater is off, and nothing in the crate's start-up path
+/// (the off check, the configuration, a new updater) talks to the server.
+#[test]
+#[allow(unsafe_code)]
+fn from_env_is_none_with_no_prefs_and_makes_no_request() {
+    let _guard = ENV.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let tmp = tempfile::TempDir::new().unwrap();
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.set_nonblocking(true).unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    // SAFETY: only this test touches these variables, under the ENV lock.
+    unsafe {
+        std::env::set_var("VECTORCRAFT_NO_PREFS", "1");
+        std::env::set_var("EUCLIDEAN_CARGO_BAY_URL", &url);
+        std::env::set_var("EUCLIDEAN_CARGO_BAY_STATE_DIR", tmp.path());
+    }
+    let exe = Path::new("/Applications/Euclidean.app/Contents/MacOS/euclidean");
+    let off = crate::off_reason(false, exe);
+    let updater = crate::Updater::new(crate::Config::from_env("0.1.0"));
+    let view = updater.view();
+    // SAFETY: as above.
+    unsafe {
+        std::env::remove_var("VECTORCRAFT_NO_PREFS");
+        std::env::remove_var("EUCLIDEAN_CARGO_BAY_URL");
+        std::env::remove_var("EUCLIDEAN_CARGO_BAY_STATE_DIR");
+    }
+    assert_eq!(off, Some("VECTORCRAFT_NO_PREFS is set"));
+    assert!(!view.linked && !view.busy);
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    assert!(matches!(listener.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock), "the server heard from the crate");
+}

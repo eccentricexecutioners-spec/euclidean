@@ -212,6 +212,17 @@ pub struct View {
     pub ready: Option<String>,
     /// A newer version this platform cannot install by itself.
     pub elsewhere: Option<String>,
+    /// Bumps each time `message` is set, so the app shows each message once.
+    pub seq: u64,
+    /// The last link attempt's English error, cleared when the next attempt starts or works.
+    pub link_error: Option<String>,
+}
+
+impl View {
+    fn say(&mut self, message: String) {
+        self.message = Some(message);
+        self.seq += 1;
+    }
 }
 
 type OnChange = Arc<dyn Fn() + Send + Sync>;
@@ -278,6 +289,7 @@ impl Updater {
         {
             v.busy = true;
             v.message = None;
+            v.link_error = None;
             started = true;
         }
         if started {
@@ -300,9 +312,12 @@ impl Updater {
                 match &result {
                     Ok(()) => {
                         v.linked = true;
-                        v.message = Some(messages::LINKED.into());
+                        v.say(messages::LINKED.into());
                     }
-                    Err(e) => v.message = Some(link_message(e).into()),
+                    Err(e) => {
+                        v.link_error = Some(link_message(e).into());
+                        v.say(link_message(e).into());
+                    }
                 }
             });
         });
@@ -317,12 +332,12 @@ impl Updater {
         std::thread::spawn(move || {
             let cfg = &me.inner.cfg;
             let outcome = run_check(cfg, &|new| {
-                me.update(|v| v.message = Some(messages::fill(messages::STAGING, &[("new", new)])));
+                me.update(|v| v.say(messages::fill(messages::STAGING, &[("new", new)])));
             });
             let message = outcome_message(&outcome, &cfg.installed_version);
             me.update(|v| {
                 v.busy = false;
-                v.message = Some(message);
+                v.say(message);
                 match &outcome {
                     Outcome::Staged { version, .. } => v.ready = Some(version.clone()),
                     Outcome::Elsewhere(version) => v.elsewhere = Some(version.clone()),

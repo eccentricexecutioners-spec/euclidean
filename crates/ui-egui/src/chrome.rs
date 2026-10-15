@@ -580,6 +580,15 @@ pub fn status_bar(app: &mut VectorcraftApp, ui: &mut Ui) {
                             egui::RichText::new(format!("X: {}  Y: {}", u.readout(p.x), u.readout(p.y))).font(theme::mono(10.5)).color(t.text_dim),
                         );
                     }
+                    // A staged update waits for a restart: the text, then its button to the right.
+                    if let Some(ready) = app.services.updates.as_ref().and_then(|h| h.view().ready) {
+                        if ui.add(egui::Button::new(egui::RichText::new(tl!("Restart to update")).size(11.0)).small()).clicked() {
+                            crate::dialogs::cargo_bay::restart(app);
+                        }
+                        let text = crate::i18n::fmt(tl!("{new} ready"), &[("new", &ready)]);
+                        ui.label(egui::RichText::new(text).size(11.0).color(t.text));
+                        ui.separator();
+                    }
                     // Background saves, exports and opens in progress, else the last message.
                     let busy: Vec<&str> =
                         app.background.jobs.iter().map(|j| j.label.as_str()).chain(app.opening.pending.iter().map(|p| p.label.as_str())).collect();

@@ -391,6 +391,8 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
         "{} opens the Save PDF dialog; with params = document.exportPdf options written to path (asked when missing; viewAfterSaving opens the file) → {path, bytes, warnings}",
     ),
     ("help.about", "About Euclidean", "", "{}"),
+    ("help.checkForUpdates", "Check for Updates…", "", "{} look for a new version at Cargo Bay → {started}"),
+    ("help.linkCargoBay", "Link to Cargo Bay…", "", "{} opens the dialog that links this copy to Cargo Bay for updates → {started}"),
     ("sketch.edit.new", "New Sketch", "", "{} make a new drawn sketch (sketch.new) and enter sketch mode on it → {id}"),
     ("sketch.edit.finish", "Finish Sketch", "", "{} leave sketch mode: the sketch is selected again"),
     ("help.commandPalette", "Search Commands…", "Cmd+Shift+/", "{}"),
@@ -1358,6 +1360,8 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
             app.ui.about = true;
             Ok(Value::Null)
         }
+        "help.checkForUpdates" => Ok(crate::dialogs::cargo_bay::check(app)),
+        "help.linkCargoBay" => Ok(crate::dialogs::cargo_bay::open_link(app)),
         "sketch.edit.new" => crate::sketch::new_sketch(app),
         "sketch.edit.finish" => {
             crate::sketch::finish(app);
@@ -2798,6 +2802,9 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 Sep,
                 c("Search Commands…", "help.commandPalette"),
                 todos("Euclidean Help…", "F1"),
+                Sep,
+                c("Check for Updates…", "help.checkForUpdates"),
+                c("Link to Cargo Bay…", "help.linkCargoBay"),
                 Sep,
                 c("About Euclidean", "help.about"),
             ],

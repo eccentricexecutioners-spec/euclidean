@@ -166,6 +166,7 @@ use vectorcraft_engine::file_access::{self, AutomationRoots};
 use vectorcraft_engine::{Session, ViewInfo};
 
 pub use control::{ControlRequest, ControlResponse, Ticket as ControlTicket};
+pub use dialogs::cargo_bay::{UpdateHost, UpdateView};
 pub use state::{UiState, View};
 pub use sysclip::{ClipboardProbeFactory, SystemClipboard};
 
@@ -269,6 +270,10 @@ pub struct Services {
     /// The window is on Wayland: the tool cursors are painted into it instead of handed to the
     /// compositor as bitmaps ([`cursors::os_cursors`]).
     pub wayland: bool,
+    /// Keeps Euclidean up to date through Cargo Bay (the desktop app's updater). `None`: the updater
+    /// is off (web, tests, `VECTORCRAFT_NO_PREFS`, `EUCLIDEAN_NO_UPDATE`, development runs): no link
+    /// dialog and no Restart button, and the two Help commands say so in the status line.
+    pub updates: Option<Box<dyn dialogs::cargo_bay::UpdateHost>>,
 }
 
 /// Cached canvas raster.
@@ -444,6 +449,12 @@ pub struct VectorcraftApp {
     /// This frame carries input the control channel injected ([`Self::raw_input_hook`]): it runs
     /// confined to [`Self::automation_roots`].
     synthetic_frame: bool,
+    /// Link to Cargo Bay: Later was pressed, so it isn't offered again this run (not saved).
+    pub(crate) updates_later: bool,
+    /// Link to Cargo Bay: the first-run offer has been considered.
+    updates_offered: bool,
+    /// The newest updater message already shown in the status line ([`Services::updates`]).
+    updates_seen: u64,
 }
 
 /// A window capture asked for through the control channel (`ui.screenshot`), answered once a
@@ -532,6 +543,9 @@ impl VectorcraftApp {
             scrub_group: false,
             automation_roots: None,
             synthetic_frame: false,
+            updates_later: false,
+            updates_offered: false,
+            updates_seen: 0,
         }
     }
 
@@ -1094,6 +1108,7 @@ impl VectorcraftApp {
         picks::poll(self, ctx);
         background::poll(self);
         opening::poll(self);
+        dialogs::cargo_bay::frame(self);
         #[cfg(not(target_arch = "wasm32"))]
         self.tick_link_updates(ctx, now);
         if !self.background.jobs.is_empty() || !self.opening.pending.is_empty() {

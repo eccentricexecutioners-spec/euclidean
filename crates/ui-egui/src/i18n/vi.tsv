@@ -4516,3 +4516,33 @@ theme	Appearance	Giao diện
 	Roll to here	Hoàn lại đến đây
 	Delete Timeline Step	Xóa bước dòng thời gian
 	Suppress Timeline Step	Tắt bước dòng thời gian
+
+# Cargo Bay updater (Check for Updates, Link to Cargo Bay, Restart to update).
+	Check for Updates…	Kiểm tra bản cập nhật…
+	Link to Cargo Bay…	Liên kết với Cargo Bay…
+	Link to Cargo Bay	Liên kết với Cargo Bay
+	Type the link code from your Tools page on the Mothership so Euclidean can update itself.	Nhập mã liên kết từ trang Công cụ của bạn trên Mothership để Euclidean có thể tự cập nhật.
+	Link code	Mã liên kết
+	Later	Để sau
+	Linking…	Đang liên kết…
+	Restart to update	Khởi động lại để cập nhật
+	{new} ready	{new} đã sẵn sàng
+@msg	Getting {new} ready…	Đang chuẩn bị {new}…
+@msg	{new} ready — Restart to update	{new} đã sẵn sàng — khởi động lại để cập nhật
+@msg	Updated to {new} (was {old})	Đã cập nhật lên {new} (trước đó là {old})
+@msg	Euclidean {version} is up to date	Euclidean {version} đã là bản mới nhất
+@msg	{new} is available — download it from the Mothership's Tools page	Đã có {new} — hãy tải về từ trang Công cụ của Mothership
+@msg	Linked. Euclidean will update itself.	Đã liên kết. Euclidean sẽ tự cập nhật.
+@msg	That code didn't work. Codes last 15 minutes — get a new one on your Tools page.	Mã đó không hợp lệ. Mã có hiệu lực trong 15 phút — hãy lấy mã mới trên trang Công cụ của bạn.
+@msg	Your access to Euclidean was turned off.	Quyền truy cập Euclidean của bạn đã bị tắt.
+@msg	Too many tries — wait a few minutes, then try again.	Thử quá nhiều lần — hãy đợi vài phút rồi thử lại.
+@msg	Can't reach Cargo Bay — check your internet and try again.	Không thể kết nối với Cargo Bay — hãy kiểm tra internet rồi thử lại.
+@msg	Can't check for updates securely from this computer.	Không thể kiểm tra bản cập nhật một cách an toàn từ máy tính này.
+@msg	Cargo Bay had a problem — try again later.	Cargo Bay gặp sự cố — hãy thử lại sau.
+@msg	This copy is no longer linked — link it again from Help.	Bản này không còn được liên kết — hãy liên kết lại từ menu Trợ giúp.
+@msg	Link Euclidean to Cargo Bay to get updates.	Hãy liên kết Euclidean với Cargo Bay để nhận bản cập nhật.
+@msg	This update didn't pass its safety check, so it wasn't installed.	Bản cập nhật này không qua được bước kiểm tra an toàn nên chưa được cài đặt.
+@msg	The new version couldn't be put in place, so your old one is back.	Không thể cài phiên bản mới nên bản cũ đã được khôi phục.
+@msg	Couldn't get the update ready — try again later.	Không thể chuẩn bị bản cập nhật — hãy thử lại sau.
+@msg	Updates are off in this copy.	Bản cập nhật đang tắt trong bản này.
+@msg	Checking for updates…	Đang kiểm tra bản cập nhật…
