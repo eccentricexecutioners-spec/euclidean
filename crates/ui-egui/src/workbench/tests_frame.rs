@@ -701,3 +701,39 @@ fn every_catalogue_tool_shortcut_selects_its_tool_in_fusion() {
     assert!(own > 0 && differs.len() <= own / 4, "most tools must select themselves; the others: {differs:?}");
     eprintln!("shortcuts that select another tool in both layouts: {differs:?}");
 }
+
+fn sketch_tool_rects(rig: &Rig) -> Vec<(String, egui::Rect)> {
+    rig.app.ui.workbench.hits.iter().filter(|h| h.0.starts_with("sketch-tool:")).cloned().collect()
+}
+
+#[test]
+fn sketch_row_icons_are_twice_their_classic_size() {
+    let mut rig = Rig::new(Layout::Fusion);
+    crate::sketch::new_sketch(&mut rig.app).unwrap();
+    rig.settle();
+    let tools = sketch_tool_rects(&rig);
+    assert!(!tools.is_empty());
+    for (name, r) in &tools {
+        assert!((r.width() - 48.0).abs() <= 1.0 && (r.height() - 48.0).abs() <= 1.0, "{name}: {:?}", r.size());
+    }
+}
+
+#[test]
+fn draw_row_is_unchanged_by_the_sketch_icons() {
+    let mut rig = Rig::new(Layout::Fusion);
+    rig.settle();
+    let groups: Vec<_> = rig.app.ui.workbench.hits.iter().filter(|h| h.0.starts_with("group:")).collect();
+    assert!(!groups.is_empty());
+    for (name, r) in groups {
+        assert!((r.width() - 30.0).abs() < 0.01 && (r.height() - 30.0).abs() < 0.01, "{name}: {:?}", r.size());
+    }
+    assert!(sketch_tool_rects(&rig).is_empty());
+}
+
+#[test]
+fn classic_sketch_toolbar_keeps_its_size() {
+    let mut rig = Rig::new(Layout::Classic);
+    crate::sketch::new_sketch(&mut rig.app).unwrap();
+    rig.settle();
+    assert!(sketch_tool_rects(&rig).is_empty());
+}

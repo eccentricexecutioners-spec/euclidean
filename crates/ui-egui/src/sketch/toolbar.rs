@@ -81,26 +81,32 @@ fn active_act(app: &VectorcraftApp, act: Act) -> bool {
 }
 
 /// An icon button of the row; returns whether it was pressed.
-fn button(ui: &mut Ui, t: &Tokens, entry: &Entry, on: bool) -> bool {
-    let (rect, resp) = ui.allocate_exact_size(vec2(24.0, 24.0), Sense::click());
+/// `scale` multiplies the button, its icon margin and its corner radius (1.0 is the Classic size).
+fn button(ui: &mut Ui, t: &Tokens, entry: &Entry, on: bool, scale: f32) -> (bool, egui::Rect) {
+    let (rect, resp) = ui.allocate_exact_size(vec2(24.0 * scale, 24.0 * scale), Sense::click());
     if on {
-        ui.painter().rect_filled(rect, 4.0, t.tool_active);
+        ui.painter().rect_filled(rect, 4.0 * scale, t.tool_active);
     } else if resp.hovered() {
-        ui.painter().rect_filled(rect, 4.0, t.hover);
+        ui.painter().rect_filled(rect, 4.0 * scale, t.hover);
     }
-    crate::icons::paint(ui, entry.icon, rect.shrink(3.0), t.icon);
+    crate::icons::paint(ui, entry.icon, rect.shrink(3.0 * scale), t.icon);
     let tip = if entry.key.is_empty() { entry.label.to_string() } else { format!("{} ({})", entry.label, entry.key) };
-    resp.on_hover_text(tip).clicked()
+    (resp.on_hover_text(tip).clicked(), rect)
 }
 
 /// A group: its buttons in a row, its name and a dropdown under them.
-fn group(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, name: &str, buttons: &[Entry], list: &[Entry]) {
+fn group(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, scale: f32, name: &str, buttons: &[Entry], list: &[Entry]) {
     let mut chosen = None;
     ui.vertical(|ui| {
         ui.spacing_mut().item_spacing = vec2(2.0, 0.0);
         ui.horizontal(|ui| {
             for b in buttons {
-                if button(ui, t, b, active_act(app, b.act)) {
+                let (pressed, rect) = button(ui, t, b, active_act(app, b.act), scale);
+                if scale != 1.0 {
+                    // Only the scaled (Fusion) row reports hits: Classic never clears the list.
+                    app.ui.workbench.hits.push((format!("sketch-tool:{}", b.icon), rect));
+                }
+                if pressed {
                     chosen = Some(b.act);
                 }
             }
@@ -128,32 +134,61 @@ fn group(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, name: &str, buttons:
     }
 }
 
-/// Draw the sketch toolbar (a panel at the top of the window).
+/// Draw the sketch toolbar (a panel at the top of the window) at the Classic size.
 pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
+    show_scaled(app, ui, 1.0);
+}
+
+/// The sketch toolbar with its tool buttons and icons `scale` times the Classic size; the group
+/// names and chevrons keep their size and the panel grows to fit.
+pub fn show_scaled(app: &mut VectorcraftApp, ui: &mut Ui, scale: f32) {
     let t = Tokens::get(ui.ctx());
     egui::Panel::top("sketch_toolbar")
-        .exact_size(46.0)
+        .exact_size(46.0 + 24.0 * (scale - 1.0))
         .frame(egui::Frame::NONE.fill(t.panel).inner_margin(egui::Margin::symmetric(10, 2)).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
-            ui.horizontal_centered(|ui| {
-                ui.spacing_mut().item_spacing.x = 14.0;
-                let c = create();
-                group(app, ui, &t, tl!("CREATE"), &c[..], &c[..]);
-                ui.separator();
-                let m = modify();
-                group(app, ui, &t, tl!("MODIFY"), &m[1..], &m[..]);
-                ui.separator();
-                let k = constraints();
-                group(app, ui, &t, tl!("CONSTRAINTS"), &k[..], &k[..]);
-                ui.separator();
-                let d = [e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension))];
-                group(app, ui, &t, tl!("SKETCH DIMENSION"), &d[..], &[]);
+            if scale == 1.0 {
+                ui.horizontal_centered(|ui| {
+                    ui.spacing_mut().item_spacing.x = 14.0;
+                    groups(app, ui, &t, scale);
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        finish_button(app, ui);
+                        dof_label(app, ui, &t);
+                    });
+                });
+            } else {
+                // Bigger buttons can outgrow the window: FINISH SKETCH and the freedom count keep
+                // their place on the right, and the groups scroll sideways in what is left.
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    ui.spacing_mut().item_spacing.x = 14.0;
                     finish_button(app, ui);
                     dof_label(app, ui, &t);
+                    ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                        egui::ScrollArea::horizontal().id_salt("sketch-toolbar-scroll").show(ui, |ui| {
+                            ui.horizontal_centered(|ui| {
+                                ui.spacing_mut().item_spacing.x = 14.0;
+                                groups(app, ui, &t, scale);
+                            });
+                        });
+                    });
                 });
-            });
+            }
         });
+}
+
+/// The four groups of the row, left to right.
+fn groups(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, scale: f32) {
+    let c = create();
+    group(app, ui, t, scale, tl!("CREATE"), &c[..], &c[..]);
+    ui.separator();
+    let m = modify();
+    group(app, ui, t, scale, tl!("MODIFY"), &m[1..], &m[..]);
+    ui.separator();
+    let k = constraints();
+    group(app, ui, t, scale, tl!("CONSTRAINTS"), &k[..], &k[..]);
+    ui.separator();
+    let d = [e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension))];
+    group(app, ui, t, scale, tl!("SKETCH DIMENSION"), &d[..], &[]);
 }
 
 /// `Fully constrained`, or how many degrees of freedom are left.

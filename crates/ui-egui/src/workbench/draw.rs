@@ -15,6 +15,8 @@ const GROUP_CELL_HEIGHT: f32 = 54.0;
 const NAV_HEIGHT: f32 = 28.0;
 const BIG_BUTTON: f32 = 28.0;
 const GROUP_BUTTON: f32 = 30.0;
+/// The Fusion sketch row draws its tool buttons and icons at twice the Classic size.
+const WORKBENCH_ICON_SCALE: f32 = 2.0;
 const CARD_RADIUS: u8 = 14;
 const HEADER_HEIGHT: f32 = 22.0;
 const COLLAPSED_STRIP: f32 = 22.0;
@@ -67,7 +69,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         }
         if sketch::active(app) {
             // Sketch mode: the sketch toolbar takes the group row's place.
-            sketch::toolbar::show(app, ui);
+            sketch::toolbar::show_scaled(app, ui, WORKBENCH_ICON_SCALE);
         } else if chrome_on {
             group_row(app, ui, &t, tab.as_ref());
         }
