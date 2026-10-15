@@ -292,4 +292,12 @@ pub static ICONS: &[(&str, &[u8])] = &[
     ("wb-tl-prev", include_bytes!("../../../assets/icons/wb-tl-prev.svg")),
     ("wb-tl-next", include_bytes!("../../../assets/icons/wb-tl-next.svg")),
     ("wb-tl-last", include_bytes!("../../../assets/icons/wb-tl-last.svg")),
+    ("wb-image-trace", include_bytes!("../../../assets/icons/wb-image-trace.svg")),
+    ("wb-envelope", include_bytes!("../../../assets/icons/wb-envelope.svg")),
+    ("wb-shape-convert", include_bytes!("../../../assets/icons/wb-shape-convert.svg")),
+    ("wb-pattern", include_bytes!("../../../assets/icons/wb-pattern.svg")),
+    ("wb-repeat", include_bytes!("../../../assets/icons/wb-repeat.svg")),
+    ("wb-path-ops", include_bytes!("../../../assets/icons/wb-path-ops.svg")),
+    ("wb-type-ops", include_bytes!("../../../assets/icons/wb-type-ops.svg")),
+    ("wb-arrange", include_bytes!("../../../assets/icons/wb-arrange.svg")),
 ];

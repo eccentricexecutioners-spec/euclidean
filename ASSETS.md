@@ -121,6 +121,14 @@ Generated-in-code art is original and has no file to list. This covers the defau
 | `assets/icons/wb-tl-prev.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
 | `assets/icons/wb-tl-next.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
 | `assets/icons/wb-tl-last.svg` | Euclidean contributors | Original work, drawn for Euclidean (C1 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-image-trace.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-envelope.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-shape-convert.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-pattern.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-repeat.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-path-ops.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-type-ops.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
+| `assets/icons/wb-arrange.svg` | Euclidean contributors | Original work, drawn for Euclidean (C3 workbench) | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-crystallize.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-cube.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |
 | `assets/icons/dc-dash-align.svg` | VectorCraft contributors | Original work, drawn for VectorCraft | MIT OR Apache-2.0 |  |

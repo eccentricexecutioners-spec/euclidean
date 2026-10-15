@@ -108,6 +108,30 @@ pub fn step_icon(cmd: &str) -> &'static str {
         "object.move" | "object.transform" => crate::icons::tool_icon("tool-selection"),
         "object.rotate" => crate::icons::tool_icon("tool-rotate"),
         "object.scale" => crate::icons::tool_icon("tool-scale"),
+        "select.save" => "save",
+        "select.editSaved" => "dc-selection",
+        "file.print" => "printer",
+        "path.reverse" => "dc-reverse",
+        "path.removeAnchors" => "pen-tool-delete",
+        "path.join" | "path.average" => "wb-path-ops",
+        "object.group" => "group",
+        "object.ungroup" => "ungroup",
+        "object.expandShape" | "object.shape.convertToShape" => "wb-shape-convert",
+        "document.rasterEffectsSettings" => "dc-fx",
+        "text.areaOptions" | "type.convertToAreaType" => "dc-type-area",
+        "type.pathOptions" => "dc-type-path",
+        "type.orientation.vertical" => "dc-type-vertical",
+        "type.orientation.horizontal" => "type",
+        "text.thread.create" => "link",
+        "text.thread.releaseSelection" | "text.thread.remove" => "link-2-off",
+        c if (c.starts_with("text.") || c.starts_with("type.")) && step_tool(c).is_none() => "wb-type-ops",
+        c if c.starts_with("imageTrace.") => "wb-image-trace",
+        c if c.starts_with("livePaint.") && step_tool(c).is_none() => "dc-live-bucket",
+        c if c.starts_with("object.arrange.") => "wb-arrange",
+        c if c.starts_with("object.blend.") && step_tool(c).is_none() => "dc-blend",
+        c if c.starts_with("object.envelope.") => "wb-envelope",
+        c if c.starts_with("object.pattern.") => "wb-pattern",
+        c if c.starts_with("object.repeat.") => "wb-repeat",
         c if c.starts_with("paint.") && step_tool(c).is_none() => "palette",
         c if c.starts_with("object.path.") => crate::icons::tool_icon("tool-pen"),
         c if c.starts_with("sketch.") => "wb-sketch",
@@ -136,5 +160,83 @@ mod tests {
     fn mapped_steps_wear_their_tools_icon() {
         assert_eq!(step_icon("path.knife"), crate::icons::tool_icon(vectorcraft_tools::tool_info("knife").map_or("", |i| i.icon)));
         assert_eq!(step_icon("document.setup"), "wb-command");
+    }
+
+    /// Tools that record no journaled document command (selection-only and view tools).
+    const NO_STEP_TOOLS: &[&str] = &["magicWand", "lasso", "livePaintSelection", "measure", "hand", "zoom", "rotateView"];
+
+    /// Tools that record a step another tool also records, so no table row maps to them.
+    const SHARED_STEP_TOOLS: &[(&str, &str)] = &[
+        ("groupSelection", "object.transform"),
+        ("rotate", "object.transform"),
+        ("reflect", "object.transform"),
+        ("scale", "object.transform"),
+        ("shear", "object.transform"),
+        ("twirl", "object.liquify"),
+        ("pucker", "object.liquify"),
+        ("bloat", "object.liquify"),
+        ("scallop", "object.liquify"),
+        ("crystallize", "object.liquify"),
+        ("wrinkle", "object.liquify"),
+        ("symbolScruncher", "symbol.adjust"),
+        ("symbolSizer", "symbol.adjust"),
+        ("symbolSpinner", "symbol.adjust"),
+        ("symbolStainer", "symbol.adjust"),
+        ("symbolScreener", "symbol.adjust"),
+        ("symbolStyler", "symbol.adjust"),
+        ("sliceSelection", "object.slice.move"),
+        ("areaType", "text.create"),
+        ("verticalType", "text.create"),
+        ("verticalAreaType", "text.create"),
+        ("verticalTypeOnPath", "text.createInPath"),
+        ("typeOnPath", "text.createInPath"),
+    ];
+
+    fn generic(cmd: &str) -> bool {
+        let i = step_icon(cmd);
+        i == "wb-command" || i == "square-dashed" || !crate::icons::exists(i)
+    }
+
+    #[test]
+    fn every_step_the_default_layout_can_make_has_its_own_icon() {
+        let (lay, _) = super::super::resolve(&super::super::default_layout());
+        // `select.*` (except the two that store a saved selection in the document) change only the
+        // selection, which is no document change and so no step.
+        let never = |id: &str| {
+            (id.starts_with("select.") && !matches!(id, "select.save" | "select.editSaved"))
+                || id.starts_with("timeline.")
+                || matches!(id, "edit.undo" | "edit.redo" | "edit.undoTo" | "edit.redoTo" | "file.revert")
+        };
+        let mut bad: Vec<String> = vec![];
+        let items = lay.tabs.iter().flat_map(|t| t.groups.iter().flat_map(|g| g.items.iter())).chain(lay.nav.iter());
+        for it in items {
+            match it {
+                Item::Cmd { id, .. } => {
+                    let Some(spec) = vectorcraft_engine::cmd::find_command(id) else { continue };
+                    if spec.journal && !never(id) && generic(id) {
+                        bad.push(format!("cmd {id}"));
+                    }
+                }
+                Item::Tool(t) => {
+                    if NO_STEP_TOOLS.contains(&t.id) {
+                        continue;
+                    }
+                    let mut cmds: Vec<&str> = TOOL_OF_STEP.iter().filter(|(_, tool)| *tool == t.id).map(|(c, _)| *c).collect();
+                    cmds.extend(SHARED_STEP_TOOLS.iter().filter(|(tool, _)| *tool == t.id).map(|(_, c)| *c));
+                    if cmds.is_empty() {
+                        bad.push(format!("tool {} has no step command", t.id));
+                    }
+                    for c in cmds {
+                        if generic(c) {
+                            bad.push(format!("tool {} step {c}", t.id));
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        bad.sort();
+        bad.dedup();
+        assert!(bad.is_empty(), "{} generic steps:\n{}", bad.len(), bad.join("\n"));
     }
 }
