@@ -9,8 +9,9 @@
 #    lays it out (without vectorcraft-cli), and signs the whole bundle ad-hoc.
 # 3. Commits the bundle to a one-off git repo in the release folder and tags it v<version>: Cargo Bay's release tool
 #    zips with `git archive` from a tag, so the zip holds exactly one top-level Euclidean.app/ and nothing else.
-# 4. Has Cargo Bay's release tool build, sign (the Mini's release key) and check that zip (its --dry-run), and stops
-#    if the zip is 50 MB (52,428,800 bytes) or more, Supabase's upload limit.
+# 4. Has Cargo Bay's release tool build and sign (the Mini's release key) that zip (its --dry-run), then gates it:
+#    one top-level Euclidean.app; executable after unzip; codesign --verify --deep --strict; D3's uplink zip rules
+#    (run by crates/uplink itself); under 50 MB (52,428,800 bytes, Supabase's upload limit). Any failure sends nothing.
 # 5. Unless --dry-run: runs the release tool for real (POST /releases, upload, finalize), then tags euclidean-v<version>.
 #
 # Environment:
@@ -103,16 +104,93 @@ release_tool() { (cd "$CARGO_BAY_DIR" && node tools/release.mjs --repo "$STAGE" 
 release_tool --dry-run "$OUT/signed"
 ZIP="$OUT/signed/Euclidean.app-$VERSION.zip"
 BYTES="$(stat -f %z "$ZIP")"
-echo "release-mac: zip $BYTES bytes (limit $LIMIT); binary $(stat -f %z "$APP/Contents/MacOS/Euclidean") bytes; key $KEY_ID"
-[ "$BYTES" -lt "$LIMIT" ] || die "STOP: the zip is $BYTES bytes, at or over Cargo Bay's 50 MB limit; nothing sent"
+echo "release-mac: zip $BYTES bytes; binary $(stat -f %z "$APP/Contents/MacOS/Euclidean") bytes; key $KEY_ID"
+
+# The gate: five checks on the tool's own zip; any failure stops before anything is sent.
+gate() { echo "release-mac: GATE $1: PASS — $2"; }
+# 1. One top-level Euclidean.app, no __MACOSX (and no vectorcraft-cli).
 tops="$(zipinfo -1 "$ZIP" | cut -d/ -f1 | sort -u)"
-[ "$tops" = "Euclidean.app" ] || die "the zip's top level is not exactly Euclidean.app: $tops"
-zipinfo -1 "$ZIP" | grep -q -E '(^|/)(__MACOSX|vectorcraft-cli)(/|$)' && die "the zip holds __MACOSX or vectorcraft-cli"
-CHECK="$OUT/unzipped"
-mkdir -p "$CHECK"
-ditto -x -k "$ZIP" "$CHECK"
-codesign --verify --deep --strict "$CHECK/Euclidean.app" || die "the unzipped bundle's signature does not verify"
-echo "release-mac: unzipped bundle verifies (codesign --verify --deep --strict)"
+[ "$tops" = "Euclidean.app" ] || die "GATE 1 FAIL: the zip's top level is not exactly Euclidean.app: $tops"
+zipinfo -1 "$ZIP" | grep -q -E '(^|/)(__MACOSX|vectorcraft-cli)(/|$)' && die "GATE 1 FAIL: the zip holds __MACOSX or vectorcraft-cli"
+gate 1 "one top-level Euclidean.app, no __MACOSX, no vectorcraft-cli ($(zipinfo -1 "$ZIP" | wc -l | tr -d ' ') entries)"
+# 4. D3's uplink rules, run by the uplink crate itself: signature (the release key as a listed key), size, sha256,
+#    entry rules, then its own unzip and tree comparison (size, CRC-32, executable bit, nothing extra).
+CHECKER="$OUT/zipcheck"
+mkdir -p "$CHECKER/src"
+cat > "$CHECKER/Cargo.toml" <<TOML
+[package]
+name = "euclidean-zipcheck"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+vectorcraft-uplink = { path = "$ROOT/crates/uplink" }
+serde_json = "1"
+TOML
+cat > "$CHECKER/src/main.rs" <<'RUST'
+use std::path::Path;
+use vectorcraft_uplink::trust::{parse_spki_pem, Trust};
+use vectorcraft_uplink::zipcheck;
+
+fn read(p: &str) -> Result<String, String> {
+    std::fs::read_to_string(p).map_err(|e| format!("{p}: {e}"))
+}
+
+fn run() -> Result<String, String> {
+    let args: Vec<String> = std::env::args().collect();
+    let [_, zip, manifest, sig, public, dest] = args.as_slice() else {
+        return Err("usage: euclidean-zipcheck <zip> <manifest.json> <manifest.json.sig> <release .pub> <new dir>".into());
+    };
+    let key = parse_spki_pem(&read(public)?)?;
+    let trust = Trust { master: [0u8; 32], extra_masters: Vec::new(), release: vec![key] };
+    let manifest: serde_json::Value = serde_json::from_str(&read(manifest)?).map_err(|e| e.to_string())?;
+    let entries = zipcheck::verify_package(&trust, Path::new(zip), &manifest, read(sig)?.trim())?;
+    std::fs::create_dir_all(dest).map_err(|e| e.to_string())?;
+    zipcheck::extract(Path::new(zip), &entries, Path::new(dest))?;
+    zipcheck::tree_matches(&entries, &Path::new(dest).join("Euclidean.app"))?;
+    Ok(format!("signature, size, sha256 and entry rules pass ({} entries); unzipped tree matches the zip", entries.len()))
+}
+
+fn main() {
+    match run() {
+        Ok(line) => println!("{line}"),
+        Err(e) => {
+            eprintln!("euclidean-zipcheck: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+RUST
+UPLINK_UNZIP="$OUT/unzipped-uplink"
+line="$(CARGO_TARGET_DIR="$TARGET/zipcheck" cargo run -q --release --manifest-path "$CHECKER/Cargo.toml" -- \
+  "$ZIP" "$OUT/signed/manifest.json" "$OUT/signed/manifest.json.sig" "${CARGO_BAY_RELEASE_KEY%.key}.pub" "$UPLINK_UNZIP")" \
+  || die "GATE 4 FAIL: the zip fails D3's uplink rules"
+gate 4 "D3 uplink: $line"
+# 2. Contents/MacOS/Euclidean executable after unzip (the updater's unzip and ditto's).
+DITTO_UNZIP="$OUT/unzipped-ditto"
+mkdir -p "$DITTO_UNZIP"
+ditto -x -k "$ZIP" "$DITTO_UNZIP"
+for d in "$UPLINK_UNZIP" "$DITTO_UNZIP"; do
+  [ -f "$d/Euclidean.app/Contents/MacOS/Euclidean" ] && [ -x "$d/Euclidean.app/Contents/MacOS/Euclidean" ] \
+    || die "GATE 2 FAIL: Contents/MacOS/Euclidean is not executable after unzip in $d"
+done
+gate 2 "Contents/MacOS/Euclidean is executable after the uplink unzip and after ditto -x -k"
+# 3. The ad-hoc signature survives the zip.
+for d in "$UPLINK_UNZIP" "$DITTO_UNZIP"; do
+  codesign --verify --deep --strict "$d/Euclidean.app" || die "GATE 3 FAIL: codesign --verify --deep --strict fails in $d"
+done
+gate 3 "codesign --verify --deep --strict passes on both unzipped copies"
+# 5. Under Cargo Bay's 50 MB upload limit.
+[ "$BYTES" -lt "$LIMIT" ] || die "GATE 5 FAIL (STOP): the zip is $BYTES bytes, at or over $LIMIT; nothing sent"
+gate 5 "$BYTES bytes < $LIMIT"
+# The real run zips the same tag again: check git archive gives the same bytes, so the checked zip is the one sent.
+release_tool --dry-run "$OUT/signed-again" >/dev/null
+[ "$(shasum -a 256 < "$ZIP")" = "$(shasum -a 256 < "$OUT/signed-again/Euclidean.app-$VERSION.zip")" ] \
+  || die "the release tool's zip is not reproducible; the checked zip might not be the one sent"
+echo "release-mac: the release tool zips this tag to the same bytes again (sha256 $(shasum -a 256 < "$ZIP" | cut -c1-16)…)"
 
 if [ "$DRY" = 1 ]; then
   echo "release-mac: dry run: $ZIP ($BYTES bytes), manifest signed by $KEY_ID. Nothing sent, no tag made."
