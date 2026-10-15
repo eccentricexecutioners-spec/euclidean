@@ -441,7 +441,11 @@ fn left_column(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &Resolved
         .size_range(220.0..=600.0)
         .frame(egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
-            egui::ScrollArea::vertical().id_salt("wb-left-scroll").auto_shrink([false, false]).show(ui, |ui| {
+            // Both ways: a panel wider than the column (Parameters' table) scrolls inside it instead
+            // of widening the column (egui grows a side panel to its content).
+            let width = ui.available_width();
+            egui::ScrollArea::both().id_salt("wb-left-scroll").auto_shrink([false, false]).show(ui, |ui| {
+                ui.set_max_width(width);
                 let entries = lay.pinned_left.iter().chain(tab.iter().flat_map(|t| &t.left));
                 for id in entries {
                     left_entry(app, ui, t, lay, id);
@@ -552,7 +556,9 @@ fn tool_panel(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedL
         egui::Panel::right("wb_tool_panel").resizable(true).default_size(app.ui.workbench.right_width).size_range(220.0..=600.0).frame(frame).show(
             ui,
             |ui| {
-                egui::ScrollArea::vertical().id_salt("wb-tool-scroll").auto_shrink([false, false]).show(ui, |ui| {
+                let width = ui.available_width();
+                egui::ScrollArea::both().id_salt("wb-tool-scroll").auto_shrink([false, false]).show(ui, |ui| {
+                    ui.set_max_width(width);
                     let tool = app.session.tool_id().to_string();
                     ui.horizontal(|ui| {
                         let name = vectorcraft_tools::tool_info(&tool).map_or(tool.as_str(), |i| tr(i.label));
