@@ -394,6 +394,7 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
     ("help.checkForUpdates", "Check for Updates…", "", "{} look for a new version at Cargo Bay → {started}"),
     ("help.linkCargoBay", "Link to Cargo Bay…", "", "{} opens the dialog that links this copy to Cargo Bay for updates → {started}"),
     ("sketch.edit.new", "New Sketch", "", "{} make a new drawn sketch (sketch.new) and enter sketch mode on it → {id}"),
+    ("sketch.edit.open", "Edit Sketch", "", "{id?} re-enter sketch mode on a finished drawn sketch (default: the selected one) → {id}"),
     ("sketch.edit.finish", "Finish Sketch", "", "{} leave sketch mode: the sketch is selected again"),
     ("help.commandPalette", "Search Commands…", "Cmd+Shift+/", "{}"),
     ("app.quit", "Quit Euclidean", "Cmd+Q", "{}"),
@@ -1363,6 +1364,7 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
         "help.checkForUpdates" => Ok(crate::dialogs::cargo_bay::check(app)),
         "help.linkCargoBay" => Ok(crate::dialogs::cargo_bay::open_link(app)),
         "sketch.edit.new" => crate::sketch::new_sketch(app),
+        "sketch.edit.open" => crate::sketch::open(app, p),
         "sketch.edit.finish" => {
             crate::sketch::finish(app);
             Ok(Value::Null)
@@ -2112,6 +2114,7 @@ pub fn enabled(app: &VectorcraftApp, id: &str) -> bool {
             app.session.active().is_some() && crate::dialogs::perspective_presets::slot_preset(app, id).is_some()
         }
         "ui.perspectivePlane" => app.session.active().is_some(),
+        "sketch.edit.open" => crate::sketch::editable(app).is_some(),
         _ => true,
     }
 }
@@ -2849,7 +2852,11 @@ pub fn context_items(app: &VectorcraftApp) -> Vec<Item> {
     let roots: Vec<&vectorcraft_doc::Node> = st.selection.objects.iter().filter_map(|id| st.doc.node(*id)).collect();
     let any = |f: fn(&NodeKind) -> bool| roots.iter().any(|n| f(&n.kind));
     let several = roots.len() >= 2;
-    let mut v = vec![c("Undo", "edit.undo"), c("Redo", "edit.redo"), Sep];
+    let mut v = vec![];
+    if crate::sketch::editable(app).is_some() {
+        v.extend([c("Edit Sketch", "sketch.edit.open"), Sep]);
+    }
+    v.extend([c("Undo", "edit.undo"), c("Redo", "edit.redo"), Sep]);
     if st.isolation.is_some() {
         v.extend([c("Exit Isolation Mode", "object.exitIsolation"), Sep]);
     }

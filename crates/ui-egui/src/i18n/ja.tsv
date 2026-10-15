@@ -247,6 +247,7 @@
 	Attach to Active Plane	現在の面に配置
 	Release with Perspective	遠近を解除
 	Move Plane to Match Object	オブジェクトに合わせて面を移動
+	Edit Sketch	スケッチを編集
 	Edit Text	テキストを編集
 	Live Paint	ライブペイント
 	Merge	結合
@@ -4558,3 +4559,5 @@ lighting	Light	ライト
 @msg	Couldn't get the update ready — try again later.	アップデートを準備できませんでした — しばらくしてからもう一度お試しください。
 @msg	Updates are off in this copy.	このコピーではアップデートはオフです。
 @msg	Checking for updates…	アップデートを確認しています…
+@msg	select one sketch, or pass `id`	スケッチを1つ選択するか、`id` を指定してください
+@msg	object {_1} is not a drawn sketch	オブジェクト {_1} は描画スケッチではありません

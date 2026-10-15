@@ -215,6 +215,7 @@
 	Attach to Active Plane	Dołącz do aktywnej płaszczyzny
 	Release with Perspective	Uwolnij z perspektywą
 	Move Plane to Match Object	Przesuń płaszczyznę do obiektu
+	Edit Sketch	Edytuj szkic
 	Edit Text	Edytuj tekst
 	Live Paint	Aktywne malowanie
 	Merge	Scal
@@ -4837,3 +4838,5 @@ mark-style	Japanese	Japońskie
 @msg	Couldn't get the update ready — try again later.	Nie udało się przygotować aktualizacji — spróbuj ponownie później.
 @msg	Updates are off in this copy.	Aktualizacje są wyłączone w tej kopii.
 @msg	Checking for updates…	Sprawdzanie aktualizacji…
+@msg	select one sketch, or pass `id`	zaznacz jeden szkic lub podaj `id`
+@msg	object {_1} is not a drawn sketch	obiekt {_1} nie jest narysowanym szkicem

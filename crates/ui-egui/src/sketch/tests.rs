@@ -728,3 +728,123 @@ fn mirror_tool_mirrors_the_selection_about_a_clicked_line() {
     assert_eq!(r["entities"].as_array().unwrap().iter().filter(|e| e["kind"] == "line").count(), 3, "{r}");
     assert_eq!(r["constraints"].as_array().unwrap().iter().filter(|c| c["type"] == "symmetric" && c["line"] == axis).count(), 2);
 }
+
+// ---- Edit Sketch: re-entering a finished sketch from the context menu ----
+
+impl Rig {
+    fn right_click_px(&mut self, p: Pos2) -> String {
+        self.frame(vec![Event::PointerMoved(p)]);
+        let b = |pressed| Event::PointerButton { pos: p, button: PointerButton::Secondary, pressed, modifiers: Modifiers::NONE };
+        self.frame(vec![b(true)]);
+        self.frame(vec![b(false)]);
+        self.frame(vec![]);
+        self.frame(vec![])
+    }
+
+    /// A finished sketch with one line; the screen point on that line.
+    fn finished_sketch(&mut self) -> (NodeId, Pos2) {
+        let id = self.new_sketch();
+        self.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 40.0], "to": [60.0, 40.0], "length": "50"})).unwrap();
+        self.frame(vec![]);
+        let doc_pt = Xf::new(self.app.canvas_rect.unwrap(), self.app.view().unwrap()).to_doc(self.at([35.0, 40.0]));
+        finish(&mut self.app);
+        for _ in 0..3 {
+            self.frame(vec![]);
+        }
+        (id, Xf::new(self.app.canvas_rect.unwrap(), self.app.view().unwrap()).to_screen(doc_pt))
+    }
+
+    fn placement(&self, id: NodeId) -> (Option<NodeId>, Option<Vec<usize>>) {
+        let st = self.app.session.active().unwrap();
+        (st.doc.parent_of(id), st.doc.index_path(id))
+    }
+}
+
+fn first_label(app: &VectorcraftApp) -> String {
+    crate::menus::context_items(app).iter().find_map(|i| if let crate::menus::Item::Cmd(l, ..) = i { Some(l.to_string()) } else { None }).unwrap()
+}
+
+#[test]
+fn right_clicking_a_finished_sketch_offers_edit_sketch_first() {
+    let mut rig = Rig::new();
+    let (id, p) = rig.finished_sketch();
+    let text = rig.right_click_px(p);
+    assert_eq!(rig.app.session.active().unwrap().selection.objects, [id]);
+    assert_eq!(first_label(&rig.app), "Edit Sketch");
+    assert!(text.contains("Edit Sketch") && text.contains("Undo"), "{text}");
+}
+
+#[test]
+fn right_clicking_a_rectangle_does_not_offer_edit_sketch() {
+    let mut rig = Rig::new();
+    let r = rig.app.run("shape.rectangle", json!({"x": 50, "y": 50, "width": 100, "height": 100})).unwrap();
+    rig.app.run("select.set", json!({"ids": [r["id"].clone()]})).unwrap();
+    rig.frame(vec![]);
+    assert_ne!(first_label(&rig.app), "Edit Sketch");
+    // A plain group neither.
+    let r2 = rig.app.run("shape.rectangle", json!({"x": 200, "y": 50, "width": 50, "height": 50})).unwrap();
+    rig.app.run("select.set", json!({"ids": [r["id"].clone(), r2["id"].clone()]})).unwrap();
+    rig.app.run("object.group", json!({})).unwrap();
+    assert!(!crate::menus::context_items(&rig.app).iter().any(|i| matches!(i, crate::menus::Item::Cmd(l, ..) if *l == "Edit Sketch")));
+    assert!(crate::sketch::open(&mut rig.app, &json!({})).is_err());
+}
+
+#[test]
+fn edit_sketch_reopens_the_sketch_on_the_sketch_tab() {
+    let mut rig = Rig::new();
+    rig.app.ui.layout = crate::state::Layout::Fusion;
+    rig.app.ui.workbench.tab = "draw".into();
+    for _ in 0..4 {
+        rig.frame(vec![]);
+    }
+    let (id, _) = rig.finished_sketch();
+    assert_eq!(rig.app.ui.workbench.tab, "draw");
+    let before = rig.inspect(id);
+    crate::menus::invoke(&mut rig.app, "sketch.edit.open", json!({"id": id.0}));
+    for _ in 0..4 {
+        rig.frame(vec![]);
+    }
+    assert!(active(&rig.app));
+    assert_eq!(rig.app.sketch.as_ref().unwrap().id, id);
+    assert_eq!(rig.app.ui.workbench.tab, "sketch");
+    assert_eq!(rig.inspect(id), before);
+    assert!(!dims(&before).is_empty());
+}
+
+#[test]
+fn editing_and_finishing_a_sketch_keeps_its_layer_and_index() {
+    let mut rig = Rig::new();
+    rig.app.ui.layout = crate::state::Layout::Fusion;
+    rig.app.ui.workbench.tab = "draw".into();
+    for _ in 0..4 {
+        rig.frame(vec![]);
+    }
+    let (id, _) = rig.finished_sketch();
+    rig.app.run("shape.rectangle", json!({"x": 200, "y": 50, "width": 50, "height": 50})).unwrap();
+    rig.app.run("select.set", json!({"ids": [id.0]})).unwrap();
+    rig.app.run("shape.rectangle", json!({"x": 300, "y": 50, "width": 50, "height": 50})).unwrap();
+    let placed = rig.placement(id);
+    assert!(placed.1.as_ref().is_some_and(|p| p.last() == Some(&0)), "{placed:?}");
+    crate::menus::invoke(&mut rig.app, "sketch.edit.open", json!({"id": id.0}));
+    rig.frame(vec![]);
+    rig.app.run("sketch.addLine", json!({"id": id.0, "from": [10.0, 60.0], "to": [60.0, 60.0]})).unwrap();
+    rig.frame(vec![]);
+    crate::menus::invoke(&mut rig.app, "sketch.edit.finish", json!({}));
+    for _ in 0..4 {
+        rig.frame(vec![]);
+    }
+    assert_eq!(rig.placement(id), placed);
+    assert_eq!(kinds(&rig.inspect(id), "line"), 2);
+    assert!(!active(&rig.app));
+    assert_eq!(rig.app.ui.workbench.tab, "draw");
+}
+
+#[test]
+fn sketch_edit_open_works_through_the_control_channel() {
+    let mut rig = Rig::new();
+    let (id, _) = rig.finished_sketch();
+    crate::tests_synthetic::control(&mut rig.app, &rig.ctx, "ui.menu.invoke", json!({"command": "sketch.edit.open", "params": {"id": id.0}}));
+    drain(&mut rig);
+    assert!(active(&rig.app));
+    assert_eq!(rig.app.sketch.as_ref().unwrap().id, id);
+}

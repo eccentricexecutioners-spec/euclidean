@@ -856,6 +856,7 @@
 	Edit Freeform Point	Modifica punto libero
 	Edit Gradient	Modifica sfumatura
 	Edit Opacity Mask	Modifica maschera di opacità
+	Edit Sketch	Modifica schizzo
 	Edit or Apply Color Group	Modifica o applica gruppo colori
 	Edit or Apply Color Group…	Modifica o applica gruppo colori…
 	Edit or Apply Colors	Modifica o applica colori
@@ -4564,3 +4565,5 @@ lighting	Light	Luce
 @msg	Couldn't get the update ready — try again later.	Impossibile preparare l’aggiornamento — riprova più tardi.
 @msg	Updates are off in this copy.	Gli aggiornamenti sono disattivati in questa copia.
 @msg	Checking for updates…	Verifica degli aggiornamenti in corso…
+@msg	select one sketch, or pass `id`	selezionare uno schizzo o indicare `id`
+@msg	object {_1} is not a drawn sketch	l'oggetto {_1} non è uno schizzo disegnato

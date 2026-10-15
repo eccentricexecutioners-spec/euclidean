@@ -267,6 +267,40 @@ pub fn new_sketch(app: &mut VectorcraftApp) -> Result<Value, String> {
     Ok(json!({"id": id}))
 }
 
+/// Is `id` a finished drawn (v2) sketch group in the active document?
+fn is_sketch(app: &VectorcraftApp, id: NodeId) -> bool {
+    app.session.active().is_some_and(|st| st.doc.node(id).is_some_and(|n| n.extras().sketch.as_deref().is_some_and(Sketch::is_v2)))
+}
+
+/// The sketch group "Edit Sketch" offers: the one selected object, when it is a drawn sketch
+/// that sketch mode is not already on.
+pub fn editable(app: &VectorcraftApp) -> Option<NodeId> {
+    let st = app.session.active()?;
+    let [id] = st.selection.objects.as_slice() else { return None };
+    (is_sketch(app, *id) && !app.sketch.as_ref().is_some_and(|m| m.id == *id && valid(app, m))).then_some(*id)
+}
+
+/// `sketch.edit.open {id?}`: re-enter sketch mode on a finished sketch (the selected one when
+/// `id` is left out), exactly as the double-click does. A sketch being edited is finished first.
+pub fn open(app: &mut VectorcraftApp, params: &Value) -> Result<Value, String> {
+    let id = match params.get("id") {
+        Some(v) => NodeId(v.as_u64().ok_or("select one sketch, or pass `id`")?),
+        None => match app.session.active().map(|st| st.selection.objects.as_slice()) {
+            Some([one]) => *one,
+            _ => return Err("select one sketch, or pass `id`".into()),
+        },
+    };
+    if !is_sketch(app, id) {
+        return Err(format!("object {} is not a drawn sketch", id.0));
+    }
+    if active(app) && app.sketch.as_ref().is_some_and(|m| m.id == id) {
+        return Ok(json!({"id": id.0}));
+    }
+    finish(app);
+    enter(app, id)?;
+    Ok(json!({"id": id.0}))
+}
+
 /// After a pointer event ran in the engine: a double-click that isolated a drawn sketch enters
 /// sketch mode on it.
 pub fn after_dispatch(app: &mut VectorcraftApp, ev: &vectorcraft_tools::PointerEvent) {

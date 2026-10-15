@@ -1126,6 +1126,7 @@
 	Edit Freeform Point	Szabad formájú pont szerkesztése
 	Edit Gradient	Színátmenet szerkesztése
 	Edit Opacity Mask	Átlátszósági maszk szerkesztése
+	Edit Sketch	Vázlat szerkesztése
 	Edit or Apply Color Group	Színcsoport szerkesztése vagy alkalmazása
 	Edit or Apply Color Group…	Színcsoport szerkesztése vagy alkalmazása…
 	Edit or Apply Colors	Színek szerkesztése vagy alkalmazása
@@ -4961,3 +4962,5 @@ imageTrace	Outline	Körvonal
 @msg	Couldn't get the update ready — try again later.	A frissítést nem sikerült előkészíteni — próbálja újra később.
 @msg	Updates are off in this copy.	A frissítések ki vannak kapcsolva ebben a példányban.
 @msg	Checking for updates…	Frissítések keresése…
+@msg	select one sketch, or pass `id`	jelöljön ki egy vázlatot, vagy adja meg az `id`-t
+@msg	object {_1} is not a drawn sketch	a(z) {_1} objektum nem rajzolt vázlat

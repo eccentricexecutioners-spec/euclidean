@@ -212,6 +212,7 @@
 	Attach to Active Plane	Připojit k aktivní rovině
 	Release with Perspective	Uvolnit s perspektivou
 	Move Plane to Match Object	Posunout rovinu k objektu
+	Edit Sketch	Upravit náčrt
 	Edit Text	Upravit text
 	Live Paint	Živá malba
 	Merge	Sloučit
@@ -4994,3 +4995,5 @@ mark-style	Japanese	Japonské
 @msg	Couldn't get the update ready — try again later.	Aktualizaci se nepodařilo připravit — zkuste to později.
 @msg	Updates are off in this copy.	Aktualizace jsou v této kopii vypnuty.
 @msg	Checking for updates…	Kontrolují se aktualizace…
+@msg	select one sketch, or pass `id`	vyberte jeden náčrt nebo zadejte `id`
+@msg	object {_1} is not a drawn sketch	objekt {_1} není nakreslený náčrt

@@ -850,6 +850,7 @@
 	Edit Freeform Point	Редагувати довільну точку
 	Edit Gradient	Редагувати градієнт
 	Edit Opacity Mask	Редагувати маску непрозорості
+	Edit Sketch	Редагувати ескіз
 	Edit or Apply Color Group	Редагувати або застосувати групу кольорів
 	Edit or Apply Color Group…	Редагувати або застосувати групу кольорів…
 	Edit or Apply Colors	Редагувати або застосувати кольори
@@ -4544,3 +4545,5 @@ lighting	Light	Світло
 @msg	Couldn't get the update ready — try again later.	Не вдалося підготувати оновлення — спробуйте пізніше.
 @msg	Updates are off in this copy.	У цій копії оновлення вимкнено.
 @msg	Checking for updates…	Перевірка оновлень…
+@msg	select one sketch, or pass `id`	виберіть один ескіз або вкажіть `id`
+@msg	object {_1} is not a drawn sketch	об'єкт {_1} не є намальованим ескізом

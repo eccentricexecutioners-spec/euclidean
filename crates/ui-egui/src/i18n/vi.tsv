@@ -1009,6 +1009,7 @@
 	Edit Freeform Point	Chỉnh sửa điểm tự do
 	Edit Gradient	Chỉnh sửa chuyển sắc
 	Edit Opacity Mask	Chỉnh sửa mặt nạ độ mờ
+	Edit Sketch	Chỉnh sửa phác thảo
 	Edit or Apply Color Group	Chỉnh sửa hoặc áp dụng nhóm màu
 	Edit or Apply Color Group…	Chỉnh sửa hoặc áp dụng nhóm màu…
 	Edit or Apply Colors	Chỉnh sửa hoặc áp dụng màu sắc
@@ -4546,3 +4547,5 @@ theme	Appearance	Giao diện
 @msg	Couldn't get the update ready — try again later.	Không thể chuẩn bị bản cập nhật — hãy thử lại sau.
 @msg	Updates are off in this copy.	Bản cập nhật đang tắt trong bản này.
 @msg	Checking for updates…	Đang kiểm tra bản cập nhật…
+@msg	select one sketch, or pass `id`	chọn một phác thảo hoặc cung cấp `id`
+@msg	object {_1} is not a drawn sketch	đối tượng {_1} không phải là phác thảo đã vẽ

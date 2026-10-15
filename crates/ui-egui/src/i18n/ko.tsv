@@ -243,6 +243,7 @@
 	Attach to Active Plane	활성 평면에 붙이기
 	Release with Perspective	원근 해제
 	Move Plane to Match Object	평면을 개체에 맞추기
+	Edit Sketch	스케치 편집
 	Edit Text	문자 편집
 	Live Paint	라이브 페인트
 	Merge	병합
@@ -4528,3 +4529,5 @@ lighting	Light	광원
 @msg	Couldn't get the update ready — try again later.	업데이트를 준비하지 못했습니다 — 나중에 다시 시도하세요.
 @msg	Updates are off in this copy.	이 복사본에서는 업데이트가 꺼져 있습니다.
 @msg	Checking for updates…	업데이트를 확인하는 중…
+@msg	select one sketch, or pass `id`	스케치를 하나 선택하거나 `id`를 지정하세요
+@msg	object {_1} is not a drawn sketch	개체 {_1}은(는) 그린 스케치가 아닙니다

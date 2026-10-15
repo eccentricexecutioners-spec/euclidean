@@ -842,6 +842,7 @@
 	Edit Freeform Point	Freiformpunkt bearbeiten
 	Edit Gradient	Verlauf bearbeiten
 	Edit Opacity Mask	Deckkraftmaske bearbeiten
+	Edit Sketch	Skizze bearbeiten
 	Edit or Apply Color Group	Farbgruppe bearbeiten oder anwenden
 	Edit or Apply Color Group…	Farbgruppe bearbeiten oder anwenden…
 	Edit or Apply Colors	Farben bearbeiten oder anwenden
@@ -4519,3 +4520,5 @@ theme	Appearance	Erscheinungsbild
 @msg	Couldn't get the update ready — try again later.	Das Update konnte nicht vorbereitet werden — versuchen Sie es später erneut.
 @msg	Updates are off in this copy.	Updates sind in dieser Kopie deaktiviert.
 @msg	Checking for updates…	Es wird nach Updates gesucht…
+@msg	select one sketch, or pass `id`	Wählen Sie eine Skizze aus oder geben Sie `id` an
+@msg	object {_1} is not a drawn sketch	Objekt {_1} ist keine gezeichnete Skizze

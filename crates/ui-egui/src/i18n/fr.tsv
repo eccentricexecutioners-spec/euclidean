@@ -858,6 +858,7 @@
 	Edit Freeform Point	Modifier le point libre
 	Edit Gradient	Modifier le dégradé
 	Edit Opacity Mask	Modifier le masque d’opacité
+	Edit Sketch	Modifier l'esquisse
 	Edit or Apply Color Group	Modifier ou appliquer le groupe de couleurs
 	Edit or Apply Color Group…	Modifier ou appliquer le groupe de couleurs…
 	Edit or Apply Colors	Modifier ou appliquer les couleurs
@@ -4994,3 +4995,5 @@ theme	Appearance	Apparence
 @msg	Couldn't get the update ready — try again later.	Impossible de préparer la mise à jour — réessayez plus tard.
 @msg	Updates are off in this copy.	Les mises à jour sont désactivées dans cette copie.
 @msg	Checking for updates…	Recherche de mises à jour…
+@msg	select one sketch, or pass `id`	sélectionnez une esquisse ou indiquez `id`
+@msg	object {_1} is not a drawn sketch	l'objet {_1} n'est pas une esquisse dessinée

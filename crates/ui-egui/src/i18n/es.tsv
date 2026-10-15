@@ -856,6 +856,7 @@
 	Edit Freeform Point	Editar punto libre
 	Edit Gradient	Editar degradado
 	Edit Opacity Mask	Editar máscara de opacidad
+	Edit Sketch	Editar boceto
 	Edit or Apply Color Group	Editar o aplicar grupo de colores
 	Edit or Apply Color Group…	Editar o aplicar grupo de colores…
 	Edit or Apply Colors	Editar o aplicar colores
@@ -4935,3 +4936,5 @@ mark-style	Japanese	Japonesas
 @msg	Couldn't get the update ready — try again later.	No se pudo preparar la actualización — vuelve a intentarlo más tarde.
 @msg	Updates are off in this copy.	Las actualizaciones están desactivadas en esta copia.
 @msg	Checking for updates…	Buscando actualizaciones…
+@msg	select one sketch, or pass `id`	seleccione un boceto o indique `id`
+@msg	object {_1} is not a drawn sketch	el objeto {_1} no es un boceto dibujado
