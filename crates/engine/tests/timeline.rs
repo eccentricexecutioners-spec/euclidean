@@ -110,7 +110,7 @@ fn editing_a_rectangles_width_replays_the_offset_after_it() {
     assert!((width_of(&s, rect) - 120.0).abs() < 1e-6);
     // The offset path follows the new width: 120 + 2 × 5.
     assert!((width_of(&s, offset) - 130.0).abs() < 0.5, "{}", width_of(&s, offset));
-    assert_eq!(steps(&mut s)[0]["label"], "Rectangle 40 × 120");
+    assert_eq!(steps(&mut s)[0]["label"], "Rectangle 120 × 40");
     assert_eq!(cmds(&mut s).len(), 4);
 }
 

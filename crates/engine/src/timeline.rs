@@ -205,7 +205,14 @@ pub fn label_for(cmd: &str, params: &Value) -> String {
 /// `name` and the first two plain values of `params` (`Rectangle 50 × 40`).
 fn with_values(name: &str, params: &Value) -> String {
     let mut vals = vec![];
-    for (k, v) in params.as_object().into_iter().flatten() {
+    // Width before height (`Rectangle 200 × 140`), then the rest in key order.
+    let mut entries: Vec<(&String, &Value)> = params.as_object().into_iter().flatten().collect();
+    entries.sort_by_key(|(k, _)| match k.as_str() {
+        "width" => 0,
+        "height" => 1,
+        _ => 2,
+    });
+    for (k, v) in entries {
         if matches!(k.as_str(), "ids" | "id" | "created" | "x" | "y") {
             continue;
         }
@@ -466,7 +473,7 @@ mod tests {
     #[test]
     fn labels_name_the_command_and_its_values() {
         assert_eq!(with_values("Offset Path", &json!({"offset": 5})), "Offset Path 5");
-        assert_eq!(with_values("Rectangle", &json!({"x": 1, "y": 2, "width": 50, "height": 40.25})), "Rectangle 40.25 × 50");
+        assert_eq!(with_values("Rectangle", &json!({"x": 1, "y": 2, "width": 50, "height": 40.25})), "Rectangle 50 × 40.25");
         assert_eq!(with_values("Move", &json!({"ids": [2]})), "Move");
     }
 }
