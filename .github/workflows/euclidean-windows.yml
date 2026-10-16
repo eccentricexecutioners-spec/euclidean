@@ -1,0 +1,93 @@
+# Euclidean for Windows x64, built for scripts/release-windows.sh on the Mac Mini. See docs/releasing.md § Euclidean
+# for Windows.
+#
+# GitHub only compiles. No environment, no secrets beyond the default GITHUB_TOKEN (read-only here), no craft-fonts
+# checkout, nothing published to GitHub Releases. The Mini downloads the artifact, checks it, signs the manifest with
+# its own release key and releases it through Cargo Bay; no key ever reaches GitHub.
+name: Euclidean Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit to build"
+        required: true
+        default: euclidean
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+
+jobs:
+  windows-x64:
+    name: Euclidean Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      TARGET: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: euclidean-windows-x64
+      - name: Uplink tests
+        shell: bash
+        run: cargo test --locked -p vectorcraft-uplink
+      - name: Build (release-slim)
+        shell: bash
+        env:
+          # As packaging/windows/package.ps1: the C runtime linked in, so the exe needs no VC++ redistributable.
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: "-C target-feature=+crt-static"
+          # The icon and version resource are required, not best-effort.
+          VECTORCRAFT_REQUIRE_WINRES: "1"
+        run: |
+          export VECTORCRAFT_BUILD_SHA="$(git rev-parse --short HEAD)"
+          cargo build --locked --profile release-slim -p vectorcraft --target "$TARGET"
+      - name: Check the exe (x64, GUI subsystem)
+        shell: pwsh
+        run: |
+          $exe = "target\$env:TARGET\release-slim\vectorcraft.exe"
+          $bytes = [System.IO.File]::ReadAllBytes($exe)
+          $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+          $machine = [BitConverter]::ToUInt16($bytes, $pe + 4)
+          $subsystem = [BitConverter]::ToUInt16($bytes, $pe + 0x5C)
+          if ($machine -ne 0x8664) { throw ("machine is 0x{0:X}, not x64 (0x8664)" -f $machine) }
+          if ($subsystem -ne 2) { throw "subsystem is $subsystem, not GUI (2)" }
+          Write-Output ("{0}: {1} bytes, x64, GUI subsystem" -f $exe, $bytes.Length)
+      - name: Package
+        shell: bash
+        run: |
+          version="$(sed -n '/^\[workspace.package\]/,/^\[/{s/^version *= *"\(.*\)"/\1/p;}' Cargo.toml)"
+          [ -n "$version" ] || { echo "no [workspace.package] version in Cargo.toml" >&2; exit 1; }
+          mkdir -p dist/Euclidean
+          cp "target/$TARGET/release-slim/vectorcraft.exe" dist/Euclidean/Euclidean.exe
+          zip="Euclidean-$version-windows-x64.zip"
+          (cd dist && 7z a -tzip -bd "$zip" Euclidean)
+          {
+            echo "sha=$(git rev-parse HEAD)"
+            echo "version=$version"
+            echo "rustc=$(rustc --version)"
+            echo "target=$TARGET"
+            echo "profile=release-slim"
+            echo "run=$GITHUB_RUN_ID"
+          } > dist/build-info.txt
+          cat dist/build-info.txt
+          ls -l dist "dist/$zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: euclidean-windows-x64
+          path: |
+            dist/Euclidean-*-windows-x64.zip
+            dist/build-info.txt
+          if-no-files-found: error
+          retention-days: 14
