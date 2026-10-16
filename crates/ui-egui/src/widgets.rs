@@ -892,12 +892,15 @@ pub fn opacity_blend(
     opacity: Option<f32>,
     blend: Option<BlendMode>,
     enabled: bool,
+    blend_width: Option<f32>,
 ) -> Option<TransparencyEdit> {
     let t = Tokens::get(ui.ctx());
     let mut edit = None;
     ui.horizontal(|ui| {
+        // The blend menu is 104 wide in a popup; a panel passes the width its row leaves (E1).
+        let blend_w = blend_width.unwrap_or(104.0).max(104.0);
         ui.add_enabled_ui(enabled, |ui| {
-            if let Some(m) = blend_dropdown(ui, (id, "blend"), blend, 104.0) {
+            if let Some(m) = blend_dropdown(ui, (id, "blend"), blend, blend_w) {
                 edit = Some(TransparencyEdit::Blend(m));
             }
         });

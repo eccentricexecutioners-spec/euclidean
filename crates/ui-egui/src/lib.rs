@@ -101,6 +101,8 @@ mod tests_overprint;
 #[cfg(test)]
 mod tests_paintchips;
 #[cfg(test)]
+mod tests_panel_widths;
+#[cfg(test)]
 mod tests_pastechords;
 #[cfg(test)]
 mod tests_pathtype;

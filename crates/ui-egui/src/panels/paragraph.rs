@@ -202,7 +202,8 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         }
     });
     ui.add_space(4.0);
-    let fw = ((ui.available_width() - 66.0) / 2.0).clamp(60.0, 100.0);
+    // The two fields of a row share what the labels leave (E1: they grow with the panel).
+    let fw = ((ui.available_width() - 66.0) / 2.0).max(60.0);
     // Indents and paragraph spacing are distances (General); type sizes follow Units ▸ Type.
     let unit = app.session.general_unit();
     let label = |ui: &mut Ui, s: &str, tip: &str| {

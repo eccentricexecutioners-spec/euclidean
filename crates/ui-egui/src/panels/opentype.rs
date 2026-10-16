@@ -42,7 +42,8 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
             (false, true) => 2,
             (true, true) => 3,
         };
-        if let Some(i) = widgets::dropdown(ui, "ot-figure", FIGURES[fig], &FIGURES, 170.0) {
+        let w = (ui.available_width() - 4.0).max(120.0);
+        if let Some(i) = widgets::dropdown(ui, "ot-figure", FIGURES[fig], &FIGURES, w) {
             next.tabular_figures = i == 1 || i == 3;
             next.oldstyle_figures = i >= 2;
         }

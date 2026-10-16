@@ -135,17 +135,19 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
     // Two or more objects, or anchor points, which may all be on one path.
     let distributes = n >= 2 || has_anchors(app);
     widgets::subheader(ui, tl!("Align Objects:"));
+    // Seven buttons across the panel: 32 pt when there is room, smaller in a narrow panel (E1).
+    let size = ((ui.available_width() - 6.0 * 5.0 - 12.0) / 7.0).clamp(22.0, 32.0);
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 5.0;
         for (i, (icon, tip, axis, v)) in ALIGN.iter().enumerate() {
             if i == 3 {
                 ui.add_space(6.0);
-                if widgets::icon_button_enabled(ui, "dc-al-center", tl!("Horizontal & Vertical Align Center"), false, n >= 1, 32.0).clicked() {
+                if widgets::icon_button_enabled(ui, "dc-al-center", tl!("Horizontal & Vertical Align Center"), false, n >= 1, size).clicked() {
                     app.run("object.align", with_align_to(app, json!({"horizontal": "center", "vertical": "center"}))).ok();
                 }
                 ui.add_space(6.0);
             }
-            if widgets::icon_button_enabled(ui, icon, tl!(tip), false, n >= 1, 32.0).clicked() {
+            if widgets::icon_button_enabled(ui, icon, tl!(tip), false, n >= 1, size).clicked() {
                 app.run("object.align", with_align_to(app, json!({*axis: v}))).ok();
             }
         }
@@ -158,7 +160,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
             if i == 3 {
                 ui.add_space(6.0);
             }
-            if widgets::icon_button_enabled(ui, icon, tl!(tip), false, distributes, 32.0).clicked() {
+            if widgets::icon_button_enabled(ui, icon, tl!(tip), false, distributes, size).clicked() {
                 app.run("object.distribute", json!({*axis: v})).ok();
             }
         }
@@ -167,7 +169,10 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         return;
     }
     widgets::divider(ui);
-    ui.horizontal(|ui| {
+    // Side by side when there is room, else one under the other (E1: a 280 pt panel).
+    let side_by_side = ui.available_width() >= 300.0;
+    let layout = if side_by_side { egui::Layout::left_to_right(egui::Align::Min) } else { egui::Layout::top_down(egui::Align::Min) };
+    ui.with_layout(layout, |ui| {
         ui.vertical(|ui| {
             widgets::subheader(ui, tl!("Distribute Spacing:"));
             let spacing: f64 = pstate::<Option<f64>>(ui.ctx(), "align-spacing").unwrap_or(0.0);
@@ -188,7 +193,9 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
                 });
             });
         });
-        ui.separator();
+        if side_by_side {
+            ui.separator();
+        }
         ui.vertical(|ui| {
             widgets::subheader(ui, tl!("Align To:"));
             // With one object selected the buttons align it to the artboard, and Align To shows Artboard.

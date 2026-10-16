@@ -99,7 +99,8 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         widgets::label_row(ui, tl!("Image Map:"), LABEL_W, |ui| {
             ui.add_enabled_ui(has, |ui| {
                 let labels = ImageMap::ALL.map(ImageMap::label);
-                if let Some(i) = widgets::dropdown(ui, "attr-map", info.image_map.map_or("", ImageMap::label), &labels, 100.0) {
+                let w = (ui.available_width() - 76.0).clamp(60.0, 200.0);
+                if let Some(i) = widgets::dropdown(ui, "attr-map", info.image_map.map_or("", ImageMap::label), &labels, w) {
                     set(app, json!({ "imageMap": ImageMap::ALL[i] }));
                 }
             });

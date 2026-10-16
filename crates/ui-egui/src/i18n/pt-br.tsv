@@ -3769,9 +3769,6 @@ axis	Both	Ambos
 	Parametric Sketch	Esboço paramétrico
 	Favorite	Favorito
 	No favorites yet. Star a parameter below.	Ainda não há favoritos. Marque um parâmetro com uma estrela abaixo.
-	follows a formula · edit it below	segue uma fórmula · edite-a abaixo
-	Decrease	Diminuir
-	Increase	Aumentar
 	Unit	Unidade
 	Expression	Expressão
 	Value	Valor
@@ -3782,7 +3779,6 @@ axis	Both	Ambos
 	Delete Parameter	Excluir parâmetro
 	Copy Parameters as CSV	Copiar parâmetros como CSV
 	Selected Sketch	Esboço selecionado
-	Select a parametric sketch to see what drives it.	Selecione um esboço paramétrico para ver o que o controla.
 	Remove Shape	Remover forma
 	Add Rectangle	Adicionar retângulo
 	Add Circle	Adicionar círculo
@@ -3848,7 +3844,6 @@ axis	Both	Ambos
 	Move the mouse off the line or type a distance	Afaste o mouse da linha ou digite uma distância
 	Offset from line	Deslocamento da linha
 	Parallel	Paralela
-	Parameter	Parâmetro
 	Perpendicular	Perpendicular
 	Point on circle	Ponto no círculo
 	Point on line	Ponto na linha

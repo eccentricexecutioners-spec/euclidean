@@ -55,7 +55,8 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
         None if has => (info.opacity.map(|o| (o / 100.0) as f32), info.blend),
         None => (Some(1.0), Some(BlendMode::Normal)),
     };
-    match widgets::opacity_blend(ui, "tr", op, blend, has) {
+    let blend_w = ui.available_width() - 150.0;
+    match widgets::opacity_blend(ui, "tr", op, blend, has, Some(blend_w)) {
         Some(TransparencyEdit::Blend(b)) => {
             app.run("transparency.set", json!({"blend": b.label()})).ok();
         }
