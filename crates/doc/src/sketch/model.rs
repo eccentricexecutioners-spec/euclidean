@@ -115,8 +115,15 @@ pub enum Constraint {
     Midpoint { p: u32, line: u32 },
     /// Two circles/arcs share a centre.
     Concentric { a: u32, b: u32 },
-    /// The distance between two points, mm.
-    Distance { a: u32, b: u32, param: String },
+    /// The distance between two points, mm: direct, or (E1) horizontal / vertical only (`along`;
+    /// `b` is to the right of / below `a`, so the value is positive).
+    Distance {
+        a: u32,
+        b: u32,
+        #[serde(default, skip_serializing_if = "Along::is_direct")]
+        along: Along,
+        param: String,
+    },
     /// The length of a line, mm.
     Length { line: u32, param: String },
     /// A line's angle from horizontal, degrees counter-clockwise on screen.
@@ -131,6 +138,26 @@ pub enum Constraint {
     DistancePointLine { p: u32, line: u32, param: String },
     /// Points `a` and `b` are mirror images about the line `line`.
     Symmetric { a: u32, b: u32, line: u32 },
+}
+
+/// How a point-to-point distance is measured (E1: Fusion's horizontal, vertical and aligned
+/// dimensions).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Along {
+    /// The straight-line (aligned) distance.
+    #[default]
+    Direct,
+    /// The horizontal offset only.
+    X,
+    /// The vertical offset only.
+    Y,
+}
+
+impl Along {
+    pub fn is_direct(&self) -> bool {
+        *self == Along::Direct
+    }
 }
 
 /// The points and entities a constraint refers to.
@@ -227,7 +254,14 @@ pub fn measure(sketch: &Sketch, c: &Constraint) -> Option<f64> {
         _ => None,
     };
     let v = match c {
-        Constraint::Distance { a, b, .. } => dist(pos(*a)?, pos(*b)?),
+        Constraint::Distance { a, b, along, .. } => {
+            let (p, q) = (pos(*a)?, pos(*b)?);
+            match along {
+                Along::Direct => dist(p, q),
+                Along::X => (q.0 - p.0).abs(),
+                Along::Y => (q.1 - p.1).abs(),
+            }
+        }
         Constraint::Length { line: l, .. } => {
             let (p, q) = line(*l)?;
             dist(p, q)
@@ -315,7 +349,22 @@ impl Sketch {
 
     /// Remove constraint number `i`, returning it.
     pub fn remove_constraint(&mut self, i: usize) -> Option<Constraint> {
-        (i < self.constraints.len()).then(|| self.constraints.remove(i))
+        let c = (i < self.constraints.len()).then(|| self.constraints.remove(i))?;
+        self.forget_dimension_extras();
+        Some(c)
+    }
+
+    /// Drop the placements and driven flags of dimensions the recipe no longer has.
+    pub fn forget_dimension_extras(&mut self) {
+        let names: BTreeSet<String> = self.constraints.iter().filter_map(Constraint::param).map(str::to_string).collect();
+        self.places.retain(|k, _| names.contains(k));
+        self.driven.retain(|k| names.contains(k));
+    }
+
+    /// Is the dimension `c` driven (a reference dimension: it reads the geometry and does not
+    /// constrain it)?
+    pub fn is_driven(&self, c: &Constraint) -> bool {
+        c.param().is_some_and(|p| self.driven.contains(p))
     }
 
     /// Remove entities `ids`, the constraints that refer to them and the points only they used
@@ -334,6 +383,7 @@ impl Sketch {
             let r = c.refs();
             !r.entities.iter().any(|e| gone.contains(e)) && !r.points.iter().any(|p| orphans.contains(p))
         });
+        self.forget_dimension_extras();
     }
 
     /// The current value of dimension `c`'s quantity (see [`measure`]).
@@ -385,6 +435,8 @@ impl Sketch {
             let r = c.refs();
             r.points.iter().all(|p| points.contains(p)) && r.entities.iter().all(|e| entities.contains(e))
         });
+        self.places.retain(|_, at| at.iter().all(|v| v.is_finite()));
+        self.forget_dimension_extras();
     }
 
     /// Round the corner point `corner`, where exactly two non-parallel, non-construction lines
@@ -466,7 +518,7 @@ impl Sketch {
                 } else {
                     continue;
                 };
-                *con = Constraint::Distance { a: corner, b: far, param: std::mem::take(param) };
+                *con = Constraint::Distance { a: corner, b: far, along: Along::Direct, param: std::mem::take(param) };
             }
         }
         self.constraints.extend([

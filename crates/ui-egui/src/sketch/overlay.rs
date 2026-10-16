@@ -3,7 +3,7 @@
 
 use egui::epaint::{PathShape, Shape};
 use egui::{Align2, Color32, FontId, Painter, Pos2, Rect, Stroke, Vec2, pos2, vec2};
-use vectorcraft_doc::sketch::model::{Constraint, Entity};
+use vectorcraft_doc::sketch::model::{Along, Constraint, Entity};
 
 use super::hud::{BoxUnit, Hud, HudBox};
 use super::tools::{arc_center, arc_polyline, corner_points, length_angle, rect_corners, start_pos, typed};
@@ -21,8 +21,9 @@ const DIM_INK: Color32 = Color32::from_rgb(0x4a, 0x4a, 0x4a);
 /// The value chip's fill and text.
 const CHIP: Color32 = Color32::from_rgb(0xf4, 0xf4, 0xf4);
 const CHIP_TEXT: Color32 = Color32::from_rgb(0x1a, 0x1a, 0x1a);
-/// Distance of a dimension line from the geometry it measures, in screen points.
-const DIM_OFFSET: f32 = 16.0;
+/// Distance of a dimension line from the geometry it measures, in screen points (past the
+/// constraint glyphs, which sit 12 pt off the line: E1, was 16).
+const DIM_OFFSET: f32 = 30.0;
 const ARC_RADIUS: f32 = 30.0;
 
 /// One dimension, laid out in screen space.
@@ -70,10 +71,47 @@ fn screen_angle(v: Vec2) -> f32 {
     (-v.y).atan2(v.x).to_degrees()
 }
 
-/// Every dimension of the sketch, laid out for the view.
+/// Every dimension of the sketch, laid out for the view, each at its stored place.
 pub fn dimension_geoms(cache: &Cache, xf: &Xf) -> Vec<DimGeom> {
+    dimension_geoms_dragging(cache, xf, None)
+}
+
+/// [`dimension_geoms`] with dimension `drag.0` at `drag.1` instead (a value being dragged).
+pub fn dimension_geoms_dragging(cache: &Cache, xf: &Xf, drag: Option<(usize, super::Mm)>) -> Vec<DimGeom> {
+    let sk = &cache.sketch;
+    let mut out = vec![];
+    for (index, c) in sk.constraints.iter().enumerate() {
+        let Some(param) = c.param() else { continue };
+        let driven = sk.driven.contains(param);
+        let value = if driven { sk.measure(c) } else { cache.params.value(param).or_else(|| sk.measure(c)) };
+        let number = value.map_or_else(|| "?".to_string(), trim2);
+        let place = match drag {
+            Some((i, at)) if i == index => Some(at),
+            _ => sk.places.get(param).copied(),
+        };
+        let Some(mut g) = layout(cache, xf, index, c, place, &number) else { continue };
+        if driven {
+            g.text = format!("({})", g.text);
+        }
+        g.error = cache.errors.get(&index).cloned();
+        out.push(g);
+    }
+    out
+}
+
+/// The dimension the Sketch Dimension tool is making, laid out at `place` (the cursor, or where
+/// it was clicked), with its measured value.
+pub fn preview_geom(cache: &Cache, xf: &Xf, c: &Constraint, place: Option<super::Mm>) -> Option<DimGeom> {
+    let number = cache.sketch.measure(c).map_or_else(|| "?".to_string(), trim2);
+    layout(cache, xf, usize::MAX, c, place, &number)
+}
+
+/// Lay out dimension `c` (constraint `index`) with its value `number`, its value at `place`
+/// (sketch mm) or, with none, beside its geometry.
+fn layout(cache: &Cache, xf: &Xf, index: usize, c: &Constraint, place: Option<super::Mm>, number: &str) -> Option<DimGeom> {
     let sk = &cache.sketch;
     let pt = |id: u32| sk.point(id).map(|p| to_screen(xf, sk, [p.x, p.y]));
+    let at = place.map(|p| to_screen(xf, sk, p));
     let line_ends = |id: u32| match sk.entity(id)? {
         Entity::Line { a, b, .. } => Some((pt(*a)?, pt(*b)?)),
         _ => None,
@@ -87,86 +125,124 @@ pub fn dimension_geoms(cache: &Cache, xf: &Xf) -> Vec<DimGeom> {
         }
         _ => None,
     };
-    let mut out = vec![];
-    for (index, c) in sk.constraints.iter().enumerate() {
-        let Some(param) = c.param() else { continue };
-        let value = cache.params.value(param).or_else(|| sk.measure(c));
-        let number = value.map_or_else(|| "?".to_string(), trim2);
-        let mut g = DimGeom {
-            index,
-            segments: vec![],
-            arrows: vec![],
-            arc: vec![],
-            label: Pos2::ZERO,
-            text: String::new(),
-            error: cache.errors.get(&index).cloned(),
-        };
-        let laid = match c {
-            Constraint::Length { line, .. } => line_ends(*line).map(|(p, q)| linear(&mut g, p, q)),
-            Constraint::Distance { a, b, .. } => pt(*a).zip(pt(*b)).map(|(p, q)| linear(&mut g, p, q)),
-            Constraint::Angle { line, .. } => line_ends(*line).map(|(p, q)| {
-                let theta = sk.measure(c).unwrap_or(0.0) as f32;
-                let _ = q;
-                g.segments.push([p, p + vec2(ARC_RADIUS + 10.0, 0.0)]);
-                g.arc = arc_points(p, ARC_RADIUS, 0.0, theta);
-                g.label = on_circle(p, ARC_RADIUS + 16.0, theta / 2.0);
-            }),
-            Constraint::AngleBetween { a, b, .. } => line_ends(*a).zip(line_ends(*b)).map(|((p1, q1), (p2, q2))| {
-                let theta = sk.measure(c).unwrap_or(0.0) as f32;
-                let at = intersection(p1, q1, p2, q2).unwrap_or(p1);
-                let from = screen_angle(q1 - p1);
-                g.arc = arc_points(at, ARC_RADIUS, from, theta);
-                g.label = on_circle(at, ARC_RADIUS + 16.0, from + theta / 2.0);
-            }),
-            Constraint::DistancePointLine { p, line, .. } => pt(*p).zip(line_ends(*line)).map(|(q, (a, b))| {
-                let d = b - a;
-                let len2 = d.length_sq();
-                let foot = if len2 > 1e-6 { a + d * ((q - a).dot(d) / len2) } else { a };
-                linear(&mut g, foot, q);
-            }),
-            Constraint::Radius { e, .. } => round(*e).map(|(centre, r)| {
-                let tip = on_circle(centre, r, 45.0);
-                g.segments.push([centre, tip]);
-                g.arrows.push((tip, centre - tip));
-                g.label = on_circle(centre, r + 14.0, 45.0);
-            }),
-            Constraint::Diameter { e, .. } => round(*e).map(|(centre, r)| {
-                let (tip, tail) = (on_circle(centre, r, 45.0), on_circle(centre, r, 225.0));
-                g.segments.push([tail, tip]);
-                g.arrows.push((tip, tail - tip));
-                g.arrows.push((tail, tip - tail));
-                g.label = on_circle(centre, r + 16.0, 45.0);
-            }),
-            _ => None,
-        };
-        if laid.is_none() {
-            continue;
-        }
-        g.text = match c {
-            Constraint::Angle { .. } | Constraint::AngleBetween { .. } => format!("{number}\u{b0}"),
-            Constraint::Radius { .. } => format!("R{number}"),
-            Constraint::Diameter { .. } => format!("\u{d8}{number}"),
-            _ => number,
-        };
-        out.push(g);
-    }
-    out
+    let mut g = DimGeom { index, segments: vec![], arrows: vec![], arc: vec![], label: Pos2::ZERO, text: String::new(), error: None };
+    let laid = match c {
+        Constraint::Length { line, .. } => line_ends(*line).map(|(p, q)| linear(&mut g, p, q, at)),
+        Constraint::Distance { a, b, along, .. } => pt(*a).zip(pt(*b)).map(|(p, q)| match along {
+            Along::Direct => linear(&mut g, p, q, at),
+            Along::X => axis_linear(&mut g, p, q, at, true),
+            Along::Y => axis_linear(&mut g, p, q, at, false),
+        }),
+        Constraint::Angle { line, .. } => line_ends(*line).map(|(p, _)| {
+            let theta = sk.measure(c).unwrap_or(0.0) as f32;
+            let r = at.map_or(ARC_RADIUS, |a| a.distance(p).max(12.0));
+            g.segments.push([p, p + vec2(r + 10.0, 0.0)]);
+            g.arc = arc_points(p, r, 0.0, theta);
+            g.label = at.unwrap_or_else(|| on_circle(p, r + 16.0, theta / 2.0));
+        }),
+        Constraint::AngleBetween { a, b, .. } => line_ends(*a).zip(line_ends(*b)).map(|((p1, q1), (p2, q2))| {
+            let theta = sk.measure(c).unwrap_or(0.0) as f32;
+            let vertex = intersection(p1, q1, p2, q2).unwrap_or(p1);
+            let from = screen_angle(q1 - p1);
+            let r = at.map_or(ARC_RADIUS, |a| a.distance(vertex).max(12.0));
+            g.arc = arc_points(vertex, r, from, theta);
+            g.label = at.unwrap_or_else(|| on_circle(vertex, r + 16.0, from + theta / 2.0));
+        }),
+        Constraint::DistancePointLine { p, line, .. } => pt(*p).zip(line_ends(*line)).map(|(q, (a, b))| {
+            let d = b - a;
+            let len2 = d.length_sq();
+            let foot = if len2 > 1e-6 { a + d * ((q - a).dot(d) / len2) } else { a };
+            linear(&mut g, foot, q, at);
+        }),
+        Constraint::Radius { e, .. } => round(*e).map(|(centre, r)| {
+            let theta = at.map_or(45.0, |a| screen_angle(a - centre));
+            let tip = on_circle(centre, r, theta);
+            let label = at.unwrap_or_else(|| on_circle(centre, r + 14.0, theta));
+            g.segments.push([centre, tip]);
+            if label.distance(centre) > r {
+                g.segments.push([tip, label]);
+            }
+            g.arrows.push((tip, centre - tip));
+            g.label = label;
+        }),
+        Constraint::Diameter { e, .. } => round(*e).map(|(centre, r)| {
+            let theta = at.map_or(45.0, |a| screen_angle(a - centre));
+            let (tip, tail) = (on_circle(centre, r, theta), on_circle(centre, r, theta + 180.0));
+            let label = at.unwrap_or_else(|| on_circle(centre, r + 16.0, theta));
+            g.segments.push([tail, tip]);
+            if label.distance(centre) > r {
+                g.segments.push([tip, label]);
+            }
+            g.arrows.push((tip, tail - tip));
+            g.arrows.push((tail, tip - tail));
+            g.label = label;
+        }),
+        _ => None,
+    };
+    laid?;
+    g.text = match c {
+        Constraint::Angle { .. } | Constraint::AngleBetween { .. } => format!("{number}\u{b0}"),
+        Constraint::Radius { .. } => format!("R{number}"),
+        Constraint::Diameter { .. } => format!("\u{d8}{number}"),
+        _ => number.to_string(),
+    };
+    Some(g)
 }
 
-/// A length dimension between `p` and `q`: extension lines, an offset dimension line with
-/// arrowheads, the value centred on it.
-fn linear(g: &mut DimGeom, p: Pos2, q: Pos2) {
+/// A length dimension between `p` and `q`: extension lines, a dimension line offset to the side
+/// `at` is on (or 16 pt to the left), arrowheads, the value centred on it.
+fn linear(g: &mut DimGeom, p: Pos2, q: Pos2, at: Option<Pos2>) {
     let d = q - p;
     let len = d.length();
     let u = if len > 1e-3 { d / len } else { vec2(1.0, 0.0) };
     let n = vec2(u.y, -u.x);
-    let (p2, q2) = (p + n * DIM_OFFSET, q + n * DIM_OFFSET);
-    g.segments.push([p, p + n * (DIM_OFFSET + 4.0)]);
-    g.segments.push([q, q + n * (DIM_OFFSET + 4.0)]);
+    let offset = at.map_or(DIM_OFFSET, |a| (a - p).dot(n));
+    let ext = offset + 4.0 * offset.signum();
+    let (p2, q2) = (p + n * offset, q + n * offset);
+    g.segments.push([p, p + n * ext]);
+    g.segments.push([q, q + n * ext]);
     g.segments.push([p2, q2]);
     g.arrows.push((p2, u));
     g.arrows.push((q2, -u));
     g.label = p2 + (q2 - p2) * 0.5;
+    if let Some(a) = at {
+        // Along the line, the value sits where it was put (clamped to the dimension line).
+        let t = ((a - p2).dot(u) / len.max(1e-3)).clamp(0.0, 1.0);
+        g.label = p2 + u * (t * len);
+    }
+}
+
+/// A horizontal (`horizontal`) or vertical distance between `p` and `q`: the dimension line runs
+/// along the axis at the level of `at` (or 16 pt above / left of the pair), extension lines reach
+/// it from each point.
+fn axis_linear(g: &mut DimGeom, p: Pos2, q: Pos2, at: Option<Pos2>, horizontal: bool) {
+    if horizontal {
+        let y = at.map_or(p.y.min(q.y) - DIM_OFFSET, |a| a.y);
+        let (p2, q2) = (pos2(p.x, y), pos2(q.x, y));
+        for (from, to) in [(p, p2), (q, q2)] {
+            let dir = (to.y - from.y).signum();
+            g.segments.push([from, pos2(to.x, to.y + 4.0 * dir)]);
+        }
+        let u = vec2((q.x - p.x).signum(), 0.0);
+        g.segments.push([p2, q2]);
+        g.arrows.push((p2, u));
+        g.arrows.push((q2, -u));
+        let x = at.map_or((p.x + q.x) * 0.5, |a| a.x.clamp(p.x.min(q.x), p.x.max(q.x)));
+        g.label = pos2(x, y);
+    } else {
+        let x = at.map_or(p.x.min(q.x) - DIM_OFFSET, |a| a.x);
+        let (p2, q2) = (pos2(x, p.y), pos2(x, q.y));
+        for (from, to) in [(p, p2), (q, q2)] {
+            let dir = (to.x - from.x).signum();
+            g.segments.push([from, pos2(to.x + 4.0 * dir, to.y)]);
+        }
+        let u = vec2(0.0, (q.y - p.y).signum());
+        g.segments.push([p2, q2]);
+        g.arrows.push((p2, u));
+        g.arrows.push((q2, -u));
+        let y = at.map_or((p.y + q.y) * 0.5, |a| a.y.clamp(p.y.min(q.y), p.y.max(q.y)));
+        g.label = pos2(x, y);
+    }
 }
 
 /// What a constraint glyph draws.
@@ -404,8 +480,9 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
     painter.line_segment([origin - vec2(6.0, 0.0), origin + vec2(6.0, 0.0)], cross);
     painter.line_segment([origin - vec2(0.0, 6.0), origin + vec2(0.0, 6.0)], cross);
 
-    // Dimensions.
-    let geoms = dimension_geoms(cache, xf);
+    // Dimensions (at the place a drag is taking one to).
+    let drag = m.drag_dim.as_ref().and_then(|d| d.at.map(|at| (d.index, at)));
+    let geoms = if m.show_dims { dimension_geoms_dragging(cache, xf, drag) } else { vec![] };
     for g in &geoms {
         let pick = Pick::Dim(g.index);
         let color = if g.error.is_some() {
@@ -417,28 +494,12 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
         } else {
             DIM_INK
         };
-        let stroke = Stroke::new(1.0, color);
-        for s in &g.segments {
-            painter.line_segment(*s, stroke);
-        }
-        if g.arc.len() > 1 {
-            painter.add(PathShape::line(g.arc.clone(), stroke));
-        }
-        for (tip, axis) in &g.arrows {
-            let axis = if axis.length() > 1e-3 { axis.normalized() } else { vec2(1.0, 0.0) };
-            let perp = vec2(axis.y, -axis.x);
-            let base = *tip + axis * 8.0;
-            painter.add(Shape::convex_polygon(vec![*tip, base + perp * 3.0, base - perp * 3.0], color, Stroke::NONE));
-        }
-        let rect = g.label_rect();
-        painter.rect_filled(rect, 4.0, CHIP);
-        painter.rect_stroke(rect, 4.0, Stroke::new(1.0, color), egui::StrokeKind::Inside);
-        painter.text(g.label, Align2::CENTER_CENTER, &g.text, FontId::proportional(12.0), if g.error.is_some() { t.error } else { CHIP_TEXT });
+        paint_dim(painter, g, color, t.error, false);
     }
 
     // Constraint glyphs.
     let mut tip = None;
-    for g in glyph_geoms(cache, xf) {
+    for g in if m.show_dims { glyph_geoms(cache, xf) } else { vec![] } {
         let pick = Pick::Glyph(g.index);
         let color = if selected(pick) {
             t.accent_strong
@@ -465,10 +526,21 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
     // What the modify tools would do.
     modify_preview(painter, xf, cache, t, m);
 
-    // A new dimension's box.
+    // The dimension being made: it follows the cursor until placed; then its box opens on it.
     if let Some((c, hud)) = &m.new_dim {
-        let at = refs_centre(cache, xf, c) + vec2(0.0, -34.0);
-        paint_hud(painter, t, hud, &[at], cache);
+        let place = m.dim_place.or(m.rubber);
+        match preview_geom(cache, xf, c, place) {
+            Some(g) => {
+                paint_dim(painter, &g, t.accent, t.error, m.dim_place.is_none());
+                if m.dim_place.is_some() {
+                    paint_hud(painter, t, hud, &[g.label], cache);
+                }
+            }
+            None => {
+                let at = refs_centre(cache, xf, c) + vec2(0.0, -34.0);
+                paint_hud(painter, t, hud, &[at], cache);
+            }
+        }
     }
 
     // The shape being drawn.
@@ -487,6 +559,30 @@ pub fn paint(app: &VectorcraftApp, painter: &Painter, xf: &Xf, cache: &Cache, t:
     {
         paint_hud(painter, t, hud, &[g.label], cache);
     }
+}
+
+/// One dimension: its lines, arrowheads and arc, and the value on a chip (`ghost`: the chip has
+/// no border, for the dimension still following the cursor).
+fn paint_dim(painter: &Painter, g: &DimGeom, color: Color32, error: Color32, ghost: bool) {
+    let stroke = Stroke::new(1.0, color);
+    for s in &g.segments {
+        painter.line_segment(*s, stroke);
+    }
+    if g.arc.len() > 1 {
+        painter.add(PathShape::line(g.arc.clone(), stroke));
+    }
+    for (tip, axis) in &g.arrows {
+        let axis = if axis.length() > 1e-3 { axis.normalized() } else { vec2(1.0, 0.0) };
+        let perp = vec2(axis.y, -axis.x);
+        let base = *tip + axis * 8.0;
+        painter.add(Shape::convex_polygon(vec![*tip, base + perp * 3.0, base - perp * 3.0], color, Stroke::NONE));
+    }
+    let rect = g.label_rect();
+    painter.rect_filled(rect, 4.0, CHIP);
+    if !ghost {
+        painter.rect_stroke(rect, 4.0, Stroke::new(1.0, color), egui::StrokeKind::Inside);
+    }
+    painter.text(g.label, Align2::CENTER_CENTER, &g.text, FontId::proportional(12.0), if g.error.is_some() { error } else { CHIP_TEXT });
 }
 
 /// The Trim, Offset and Mirror previews: the piece Trim would remove (red, dashed), the copy

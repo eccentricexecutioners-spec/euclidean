@@ -579,13 +579,160 @@ fn the_d_tool_on_a_line_adds_a_length_dimension() {
     rig.type_text("d");
     assert_eq!(rig.app.sketch.as_ref().unwrap().tool, SketchTool::Dimension);
     rig.click([50.0, 20.0]);
-    let (_, hud) = rig.app.sketch.as_ref().unwrap().new_dim.clone().expect("the box is up");
-    assert_eq!(hud.boxes[0].text, "60");
+    // Picked: the dimension follows the cursor, no box yet.
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(m.new_dim.is_some() && m.dim_place.is_none(), "follows the cursor");
+    rig.mv([50.0, 5.0]);
+    rig.click([50.0, 5.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    let (_, hud) = m.new_dim.clone().expect("the box is up");
+    assert_eq!(hud.boxes[0].text, "60", "prefilled with the measured value");
+    assert!(m.dim_place.is_some_and(|p| near(p[0], 50.0) && near(p[1], 5.0)), "{:?}", m.dim_place);
     rig.type_text("45");
     rig.key(Key::Enter);
     let r = rig.inspect(id);
     assert!(dims(&r).iter().any(|(_, v)| near(*v, 45.0)), "{r}");
+    let c = r["constraints"].as_array().unwrap().last().unwrap();
+    assert!(near(c["at"][0].as_f64().unwrap(), 50.0) && near(c["at"][1].as_f64().unwrap(), 5.0), "placed where clicked: {c}");
     assert!(rig.app.sketch.as_ref().unwrap().new_dim.is_none());
+}
+
+#[test]
+fn two_points_measure_horizontal_vertical_or_aligned_by_where_the_dimension_is_placed() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (_, a, b) = rig.line(id, [20.0, 20.0], [80.0, 60.0]);
+    rig.type_text("d");
+    rig.click([20.0, 20.0]);
+    assert_eq!(rig.app.sketch.as_ref().unwrap().selected, [Pick::Point(a)]);
+    rig.click([80.0, 60.0]);
+    // Above the pair: horizontal.
+    rig.mv([50.0, 5.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(matches!(m.new_dim, Some((Constraint::Distance { along: Along::X, .. }, _))), "{:?}", m.new_dim);
+    assert_eq!(m.new_dim.as_ref().unwrap().1.boxes[0].text, "60");
+    // Beside it: vertical.
+    rig.mv([5.0, 40.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(matches!(m.new_dim, Some((Constraint::Distance { along: Along::Y, .. }, _))), "{:?}", m.new_dim);
+    assert_eq!(m.new_dim.as_ref().unwrap().1.boxes[0].text, "40");
+    // Off a corner: aligned.
+    rig.mv([100.0, 80.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(matches!(m.new_dim, Some((Constraint::Distance { along: Along::Direct, .. }, _))), "{:?}", m.new_dim);
+    assert_eq!(m.new_dim.as_ref().unwrap().1.boxes[0].text, "72.11");
+    // Place it above as a horizontal one and type 100: b moves right.
+    rig.mv([50.0, 5.0]);
+    rig.click([50.0, 5.0]);
+    rig.type_text("100");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    let c = r["constraints"].as_array().unwrap().last().unwrap();
+    assert_eq!((c["type"].as_str(), c["along"].as_str()), (Some("distance"), Some("x")), "{c}");
+    let pts = r["points"].as_array().unwrap();
+    let at = |n: u32| pts.iter().find(|p| p["id"] == n).map(|p| (p["x"].as_f64().unwrap(), p["y"].as_f64().unwrap())).unwrap();
+    assert!(near(at(b).0 - at(a).0, 100.0), "{:?} {:?}", at(a), at(b));
+    assert!(near(at(b).1 - at(a).1, 40.0), "the vertical offset is untouched");
+}
+
+#[test]
+fn a_point_and_a_line_measure_the_offset_and_a_circle_its_diameter_or_radius_with_shift() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (l, ..) = rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    let c = rig.app.run("sketch.addCircle", json!({"id": id.0, "center": [50.0, 50.0], "r": 10.0})).unwrap();
+    let centre = c["center"].as_u64().unwrap() as u32;
+    rig.frame(vec![]);
+    rig.type_text("d");
+    // Hole centre, then the edge: the offset (Fusion's "10 mm from the edge").
+    rig.click([50.0, 50.0]);
+    rig.click([40.0, 20.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(matches!(m.new_dim, Some((Constraint::DistancePointLine { p, line, .. }, _)) if p == centre && line == l), "{:?}", m.new_dim);
+    assert_eq!(m.new_dim.as_ref().unwrap().1.boxes[0].text, "30");
+    rig.click([5.0, 35.0]);
+    rig.type_text("25");
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    assert_eq!(r["constraints"].as_array().unwrap().last().unwrap()["type"], "distancePointLine");
+    assert!(dims(&r).iter().any(|(_, v)| near(*v, 25.0)), "{r}");
+    // The circle's rim: a diameter; with Shift, a radius.
+    rig.click([60.0, 45.0]);
+    assert!(matches!(rig.app.sketch.as_ref().unwrap().new_dim, Some((Constraint::Diameter { .. }, _))));
+    rig.click([75.0, 75.0]);
+    rig.key(Key::Enter);
+    assert_eq!(rig.inspect(id)["constraints"].as_array().unwrap().last().unwrap()["type"], "diameter");
+    let xf = rig.xf();
+    let rim = rig.at([40.0, 45.0]);
+    handle_pointer(&mut rig.app, &xf, PointerInput { pos: Some(rim), clicked: true, shift: true, ..Default::default() });
+    assert!(matches!(rig.app.sketch.as_ref().unwrap().new_dim, Some((Constraint::Radius { .. }, _))), "Shift: radius");
+    rig.key(Key::Escape);
+    assert!(rig.app.sketch.as_ref().unwrap().new_dim.is_none(), "Esc before placing drops it");
+    assert_eq!(dims(&rig.inspect(id)).len(), 2);
+}
+
+#[test]
+fn two_lines_give_their_angle_and_esc_after_placing_keeps_the_measured_value() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    rig.line(id, [20.0, 20.0], [60.0, 50.0]);
+    rig.type_text("d");
+    rig.click([50.0, 20.0]);
+    rig.click([40.0, 35.0]);
+    let m = rig.app.sketch.as_ref().unwrap();
+    assert!(matches!(m.new_dim, Some((Constraint::AngleBetween { .. }, _))), "{:?}", m.new_dim);
+    rig.click([70.0, 32.0]);
+    rig.type_text("99");
+    rig.key(Key::Escape);
+    let r = rig.inspect(id);
+    let c = r["constraints"].as_array().unwrap().last().unwrap();
+    assert_eq!(c["type"], "angleBetween");
+    assert!(near(c["value"].as_f64().unwrap(), 36.87), "the measured angle, not the typed 99: {c}");
+    assert!(rig.app.sketch.as_ref().unwrap().new_dim.is_none());
+}
+
+#[test]
+fn a_value_can_be_dragged_to_a_new_place_in_the_select_tool() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    rig.app.run("sketch.addDimension", json!({"id": id.0, "constraint": {"type": "length", "line": 0}, "at": [50.0, 10.0]})).unwrap();
+    rig.frame(vec![]);
+    let xf = rig.xf();
+    let label = overlay::dimension_geoms(&rig.cache(), &xf)[0].label;
+    let target = rig.at([50.0, 40.0]);
+    rig.frame(vec![Event::PointerMoved(label)]);
+    let down = rig.button(label, true);
+    rig.frame(vec![down]);
+    rig.frame(vec![Event::PointerMoved(label + (target - label) * 0.5)]);
+    assert!(rig.app.sketch.as_ref().unwrap().drag_dim.as_ref().is_some_and(|d| d.at.is_some()), "dragging");
+    rig.frame(vec![Event::PointerMoved(target)]);
+    let up = rig.button(target, false);
+    rig.frame(vec![up]);
+    let c = rig.inspect(id)["constraints"].as_array().unwrap().last().unwrap().clone();
+    assert!(near(c["at"][0].as_f64().unwrap(), 50.0) && near(c["at"][1].as_f64().unwrap(), 40.0), "{c}");
+    assert!(rig.app.sketch.as_ref().unwrap().drag_dim.is_none());
+    let moved = overlay::dimension_geoms(&rig.cache(), &xf)[0].label;
+    assert!(moved.y > label.y + 20.0, "the value sits below the line now: {label:?} → {moved:?}");
+    // A plain click on the value still selects it.
+    rig.click_px(moved);
+    assert_eq!(rig.app.sketch.as_ref().unwrap().selected, [Pick::Dim(1)]);
+}
+
+#[test]
+fn the_eye_hides_the_dimensions_and_glyphs() {
+    let mut rig = Rig::new();
+    let id = rig.new_sketch();
+    let (l, ..) = rig.line(id, [20.0, 20.0], [80.0, 20.0]);
+    rig.app.run("sketch.addDimension", json!({"id": id.0, "constraint": {"type": "length", "line": l}, "expression": "61"})).unwrap();
+    let shown = rig.frame(vec![]);
+    assert!(shown.contains("61"), "{shown}");
+    toggle_dims(&mut rig.app);
+    let hidden = rig.frame(vec![]);
+    assert!(!hidden.contains("61"), "{hidden}");
+    toggle_dims(&mut rig.app);
+    assert!(rig.frame(vec![]).contains("61"));
 }
 
 #[test]
@@ -629,11 +776,31 @@ fn an_over_constraining_dimension_is_refused_with_a_status_message() {
     let id = rig.new_sketch();
     rig.app.run("sketch.addLine", json!({"id": id.0, "from": [20.0, 20.0], "to": [60.0, 20.0], "length": 40})).unwrap();
     rig.frame(vec![]);
+    let dof = rig.inspect(id)["dof"].clone();
     rig.type_text("d");
     rig.click([40.0, 20.0]);
+    rig.click([40.0, 5.0]);
     rig.key(Key::Enter);
     assert_eq!(rig.app.ui.status, "This would over-constrain the sketch");
     assert_eq!(dims(&rig.inspect(id)).len(), 1, "nothing changed");
+    // Fusion's offer: keep it as a driven dimension. Esc drops it; Enter keeps it.
+    let text = rig.frame(vec![]);
+    assert!(text.contains("Driven dimension"), "{text}");
+    assert!(rig.app.sketch.as_ref().unwrap().driven_offer.is_some());
+    rig.key(Key::Escape);
+    assert!(rig.app.sketch.as_ref().unwrap().driven_offer.is_none());
+    assert_eq!(dims(&rig.inspect(id)).len(), 1);
+    rig.click([40.0, 20.0]);
+    rig.click([40.0, 5.0]);
+    rig.key(Key::Enter);
+    rig.key(Key::Enter);
+    let r = rig.inspect(id);
+    let c = r["constraints"].as_array().unwrap().last().unwrap();
+    assert_eq!((c["type"].as_str(), c["driven"].as_bool(), c["value"].as_f64()), (Some("length"), Some(true), Some(40.0)), "{c}");
+    assert_eq!(r["dof"], dof, "a driven dimension takes no freedom");
+    let text = rig.frame(vec![]);
+    assert!(text.contains("(40)"), "shown in brackets: {text}");
+    assert!(rig.app.sketch.as_ref().unwrap().driven_offer.is_none());
 }
 
 #[test]

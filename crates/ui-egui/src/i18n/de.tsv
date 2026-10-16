@@ -4544,3 +4544,18 @@ theme	Appearance	Erscheinungsbild
 	Apply Look	Look anwenden
 	Delete Look	Look löschen
 	List Looks	Looks auflisten
+	Enter keeps it as a driven dimension · Esc drops it	Enter behält sie als getriebene Bemaßung · Esc verwirft sie
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Wert, Ausdruck oder Parameternamen eingeben, Enter übernimmt · Esc behält den gemessenen Wert
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Bemaßung an ihren Platz bewegen und klicken · weitere Linie für den Winkel, Punkt für den Abstand
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Linie, Kreis, Bogen oder Punkt anklicken · Wert ziehen zum Verschieben, Doppelklick zum Bearbeiten · Esc verlässt das Werkzeug
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Zweiten Punkt (waagerecht, senkrecht oder ausgerichtet, je nach Ablage) oder Linie anklicken · Esc beginnt neu
+	Driven dimension added: it reads the geometry	Getriebene Bemaßung hinzugefügt: sie liest die Geometrie
+	This dimension would over-constrain the sketch.	Diese Bemaßung würde die Skizze überbestimmen.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Als getriebene Bemaßung behalten? Sie liest die Geometrie und steht in Klammern.
+	Driven dimension	Getriebene Bemaßung
+	Show Dimensions	Bemaßungen anzeigen
+	Horizontal distance between points	Waagerechter Abstand zwischen Punkten
+	Vertical distance between points	Senkrechter Abstand zwischen Punkten
+	Driven	Getrieben
+	Move Sketch Dimension	Skizzenbemaßung verschieben
+	Set Sketch Dimension Driven	Skizzenbemaßung getrieben setzen

@@ -397,17 +397,21 @@ pub(crate) fn grouped(st: &DocState, rows: Vec<Row>) -> (Vec<Row>, Vec<SketchGro
 
 /// What a dimension of `sketch` named `param` measures: `Length of line 3`, `Radius of arc 7`…
 pub(crate) fn drives(sketch: &sketch::Sketch, param: &str) -> Option<String> {
-    use vectorcraft_doc::sketch::model::{Constraint, Entity};
+    use vectorcraft_doc::sketch::model::{Along, Constraint, Entity};
     let c = sketch.constraints.iter().find(|c| c.param() == Some(param))?;
     let radius_of = |e: u32, what: &str| match sketch.entities.iter().find(|x| x.id() == e) {
         Some(Entity::Arc { .. }) => format!("{what} {} {}", tl!("arc"), e + 1),
         _ => format!("{what} {} {}", tl!("circle"), e + 1),
     };
-    Some(match c {
+    let driven = if sketch.is_driven(c) { format!("{} · ", tl!("Driven")) } else { String::new() };
+    Some(driven
+        + &match c {
         Constraint::Length { line, .. } => format!("{} {}", tl!("Length of line"), line + 1),
         Constraint::Angle { line, .. } => format!("{} {}", tl!("Angle of line"), line + 1),
         Constraint::AngleBetween { a, b, .. } => format!("{} {} {} {}", tl!("Angle between lines"), a + 1, tl!("and"), b + 1),
-        Constraint::Distance { a, b, .. } => format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1),
+        Constraint::Distance { a, b, along: Along::Direct, .. } => format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1),
+        Constraint::Distance { a, b, along: Along::X, .. } => format!("{} {} {} {}", tl!("Horizontal distance between points"), a + 1, tl!("and"), b + 1),
+        Constraint::Distance { a, b, along: Along::Y, .. } => format!("{} {} {} {}", tl!("Vertical distance between points"), a + 1, tl!("and"), b + 1),
         Constraint::DistancePointLine { line, .. } => format!("{} {}", tl!("Offset from line"), line + 1),
         Constraint::Radius { e, .. } => radius_of(*e, tl!("Radius of")),
         Constraint::Diameter { e, .. } => radius_of(*e, tl!("Diameter of")),

@@ -4553,3 +4553,18 @@ lighting	Light	광원
 	Apply Look	룩 적용
 	Delete Look	룩 삭제
 	List Looks	룩 목록
+	Enter keeps it as a driven dimension · Esc drops it	Enter를 누르면 종속 치수로 유지 · Esc로 취소
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	값, 수식 또는 매개변수 이름을 입력하고 Enter로 적용 · Esc는 측정값 유지
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	치수를 놓을 위치로 옮겨 클릭 · 각도는 다른 선, 간격은 점을 클릭
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	선, 원, 호 또는 점을 클릭 · 값을 드래그해 이동, 더블클릭으로 편집 · Esc로 도구 종료
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	두 번째 점(놓는 위치에 따라 수평, 수직 또는 정렬) 또는 선을 클릭 · Esc로 다시 시작
+	Driven dimension added: it reads the geometry	종속 치수를 추가했습니다: 형상을 읽습니다
+	This dimension would over-constrain the sketch.	이 치수는 스케치를 과도하게 구속합니다.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	종속 치수로 유지할까요? 형상을 읽으며 괄호로 표시됩니다.
+	Driven dimension	종속 치수
+	Show Dimensions	치수 표시
+	Horizontal distance between points	점 사이 수평 거리
+	Vertical distance between points	점 사이 수직 거리
+	Driven	종속
+	Move Sketch Dimension	스케치 치수 이동
+	Set Sketch Dimension Driven	스케치 치수를 종속으로 설정

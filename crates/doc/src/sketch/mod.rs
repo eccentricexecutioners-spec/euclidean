@@ -104,6 +104,14 @@ pub struct Sketch {
     /// v2: geometric constraints and dimensions.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub constraints: Vec<model::Constraint>,
+    /// E1: where each dimension's value was placed (sketch millimetres), by parameter name. A
+    /// dimension with no entry is laid out beside its geometry. Older builds ignore the key.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub places: BTreeMap<String, [f64; 2]>,
+    /// E1: the driven (reference) dimensions, by parameter name: they read the geometry and do
+    /// not constrain it. Older builds ignore the key and treat them as driving.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeSet::is_empty")]
+    pub driven: std::collections::BTreeSet<String>,
 }
 
 fn is_zero(o: &[f64; 2]) -> bool {
@@ -130,6 +138,12 @@ impl Sketch {
         }
         for c in &mut self.constraints {
             c.rename_param(from, to);
+        }
+        if let Some(at) = self.places.remove(from) {
+            self.places.insert(to.to_string(), at);
+        }
+        if self.driven.remove(from) {
+            self.driven.insert(to.to_string());
         }
     }
 

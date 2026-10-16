@@ -4571,3 +4571,18 @@ theme	Appearance	Giao diện
 	Apply Look	Áp dụng look
 	Delete Look	Xoá look
 	List Looks	Liệt kê look
+	Enter keeps it as a driven dimension · Esc drops it	Enter giữ làm kích thước phụ thuộc · Esc bỏ
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Nhập giá trị, biểu thức hoặc tên tham số, Enter áp dụng · Esc giữ giá trị đo
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Di chuyển kích thước tới chỗ đặt và nhấp · nhấp đường khác để đo góc, điểm để đo khoảng cách
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Nhấp đường, đường tròn, cung hoặc điểm · kéo giá trị để di chuyển, nhấp đúp để sửa · Esc thoát công cụ
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Nhấp điểm thứ hai (ngang, dọc hoặc thẳng hàng tuỳ chỗ đặt) hoặc một đường · Esc bắt đầu lại
+	Driven dimension added: it reads the geometry	Đã thêm kích thước phụ thuộc: nó đọc hình học
+	This dimension would over-constrain the sketch.	Kích thước này sẽ ràng buộc quá mức bản phác.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Giữ làm kích thước phụ thuộc? Nó đọc hình học và hiển thị trong ngoặc.
+	Driven dimension	Kích thước phụ thuộc
+	Show Dimensions	Hiện kích thước
+	Horizontal distance between points	Khoảng cách ngang giữa các điểm
+	Vertical distance between points	Khoảng cách dọc giữa các điểm
+	Driven	Phụ thuộc
+	Move Sketch Dimension	Di chuyển kích thước phác thảo
+	Set Sketch Dimension Driven	Đặt kích thước phác thảo phụ thuộc

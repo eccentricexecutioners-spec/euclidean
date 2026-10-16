@@ -5019,3 +5019,18 @@ mark-style	Japanese	Japonské
 	Apply Look	Použít vzhled
 	Delete Look	Smazat vzhled
 	List Looks	Seznam vzhledů
+	Enter keeps it as a driven dimension · Esc drops it	Enter ji ponechá jako řízenou kótu · Esc ji zahodí
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Zadejte hodnotu, výraz nebo název parametru, Enter použije · Esc ponechá naměřenou hodnotu
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Přesuňte kótu na místo a klikněte · klikněte na další čáru pro úhel, na bod pro odsazení
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Klikněte na čáru, kružnici, oblouk nebo bod · hodnotu přetáhněte, dvojklikem upravte · Esc opustí nástroj
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Klikněte na druhý bod (vodorovně, svisle nebo zarovnaně podle umístění) nebo čáru · Esc začne znovu
+	Driven dimension added: it reads the geometry	Přidána řízená kóta: odečítá geometrii
+	This dimension would over-constrain the sketch.	Tato kóta by skicu předefinovala.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Ponechat jako řízenou kótu? Odečítá geometrii a zobrazuje se v závorkách.
+	Driven dimension	Řízená kóta
+	Show Dimensions	Zobrazit kóty
+	Horizontal distance between points	Vodorovná vzdálenost mezi body
+	Vertical distance between points	Svislá vzdálenost mezi body
+	Driven	Řízená
+	Move Sketch Dimension	Přesunout kótu skici
+	Set Sketch Dimension Driven	Nastavit kótu skici jako řízenou

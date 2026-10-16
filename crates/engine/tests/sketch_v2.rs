@@ -449,3 +449,109 @@ fn mirror_copies_with_symmetric_constraints() {
 fn circle_id(v: &Value) -> u64 {
     v["entities"].as_array().unwrap().iter().find(|e| e["kind"] == "circle").unwrap()["id"].as_u64().unwrap()
 }
+
+// ---- E1 Part D: Fusion-style dimensions (horizontal / vertical, placement, driven) ----
+
+fn dim_rows(s: &mut Session) -> Vec<(String, String)> {
+    let list = s.execute("parameters.list", &json!({})).unwrap();
+    list["rows"].as_array().unwrap().iter().map(|r| (r["name"].as_str().unwrap().to_string(), r["expression"].as_str().unwrap().to_string())).collect()
+}
+
+#[test]
+fn a_horizontal_distance_holds_the_x_offset_and_a_vertical_the_y() {
+    let mut s = session();
+    let id = new_sketch(&mut s);
+    // A free line from (10, 10) to (40, 30): points 1 and 2.
+    s.execute("sketch.addLine", &json!({"id": id.0, "from": [10.0, 10.0], "to": [40.0, 30.0]})).unwrap();
+    // Picked right to left: the engine turns it round so the value is positive.
+    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 2, "b": 1, "along": "x"}, "expression": "50"})).unwrap();
+    assert_eq!(r["name"], "d1");
+    let v = inspect(&mut s);
+    let (a, b) = (point(&v, 1), point(&v, 2));
+    assert!((b.0 - a.0 - 50.0).abs() < 1e-6, "x offset 50: {a:?} {b:?}");
+    assert_eq!(v["constraints"][1]["along"], "x");
+    assert_eq!((v["constraints"][1]["a"].as_u64(), v["constraints"][1]["b"].as_u64()), (Some(1), Some(2)), "turned round");
+    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 1, "b": 2, "along": "y"}, "expression": "20"})).unwrap();
+    assert_eq!(r["value"], 20.0);
+    let v = inspect(&mut s);
+    let (a, b) = (point(&v, 1), point(&v, 2));
+    assert!((b.1 - a.1 - 20.0).abs() < 1e-6 && (b.0 - a.0 - 50.0).abs() < 1e-6, "y offset 20 below, x kept: {a:?} {b:?}");
+    // The recipe measures them too.
+    assert_eq!(v["constraints"][2]["value"], 20.0);
+    // A third, aligned, over-constrains.
+    let e = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 1, "b": 2}})).unwrap_err().to_string();
+    assert!(e.contains("over-constrain"), "{e}");
+}
+
+#[test]
+fn a_dimension_is_placed_moved_renamed_and_the_place_survives_save_and_open() {
+    let mut s = session();
+    let id = new_sketch(&mut s);
+    s.execute("sketch.addLine", &json!({"id": id.0, "from": [10.0, 10.0], "to": [40.0, 10.0]})).unwrap();
+    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}, "at": [25.0, -8.0]})).unwrap();
+    assert_eq!(r["name"], "d1");
+    assert_eq!(inspect(&mut s)["constraints"][1]["at"], json!([25.0, -8.0]));
+    let n = undo_len(&s);
+    s.execute("sketch.placeDimension", &json!({"id": id.0, "name": "d1", "at": [25.0, 20.0]})).unwrap();
+    assert_eq!(undo_len(&s), n + 1, "moving a dimension is one undo step");
+    assert_eq!(inspect(&mut s)["constraints"][1]["at"], json!([25.0, 20.0]));
+    s.execute("parameters.rename", &json!({"from": "d1", "to": "width"})).unwrap();
+    let v = inspect(&mut s);
+    assert_eq!((v["constraints"][1]["param"].as_str(), v["constraints"][1]["at"].clone()), (Some("width"), json!([25.0, 20.0])), "the place follows the name");
+    let doc = s.doc().unwrap().doc.clone();
+    let bytes = vectorcraft_format::save_file(&doc);
+    let back = vectorcraft_format::load_file(&bytes).unwrap().doc;
+    let sketch = back.node(id).unwrap().extras().sketch.as_deref().unwrap().clone();
+    assert_eq!(sketch.places.get("width"), Some(&[25.0, 20.0]));
+    s.execute("sketch.placeDimension", &json!({"id": id.0, "index": 1, "at": null})).unwrap();
+    assert!(inspect(&mut s)["constraints"][1]["at"].is_null(), "null lets it sit beside its line again");
+    assert!(s.execute("sketch.placeDimension", &json!({"id": id.0, "index": 0, "at": [1.0, 1.0]})).is_err(), "a geometric constraint has no place");
+    // Deleting the dimension forgets its place.
+    s.execute("sketch.placeDimension", &json!({"id": id.0, "index": 1, "at": [1.0, 1.0]})).unwrap();
+    s.execute("sketch.removeConstraint", &json!({"id": id.0, "index": 1})).unwrap();
+    let sketch = s.doc().unwrap().doc.node(id).unwrap().extras().sketch.as_deref().unwrap().clone();
+    assert!(sketch.places.is_empty());
+}
+
+#[test]
+fn a_driven_dimension_reads_the_geometry_and_can_become_driving_when_room_allows() {
+    let mut s = session();
+    let id = new_sketch(&mut s);
+    // A line whose length is already dimensioned (d1 = 40).
+    s.execute("sketch.addLine", &json!({"id": id.0, "from": [10.0, 10.0], "to": [50.0, 10.0], "length": 40, "horizontal": true})).unwrap();
+    let dof_before = inspect(&mut s)["dof"].clone();
+    let e = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}})).unwrap_err().to_string();
+    assert!(e.contains("over-constrain"), "{e}");
+    // The same, driven: accepted, in brackets, and it reads 40.
+    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}, "expression": "99", "driven": true})).unwrap();
+    assert_eq!((r["name"].as_str(), r["driven"].as_bool(), r["value"].as_f64()), (Some("d2"), Some(true), Some(40.0)), "a driven dimension ignores a typed value");
+    let v = inspect(&mut s);
+    assert_eq!(v["constraints"].as_array().unwrap().last().unwrap()["driven"], true);
+    assert_eq!(v["dof"], dof_before, "a driven dimension takes no freedom");
+    assert!(dim_rows(&mut s).contains(&("d2".into(), "40 mm".into())), "{:?}", dim_rows(&mut s));
+    // Change d1: the driven d2 follows the geometry.
+    s.execute("sketch.setDimension", &json!({"id": id.0, "name": "d1", "expression": "60"})).unwrap();
+    assert!(dim_rows(&mut s).contains(&("d2".into(), "60 mm".into())), "{:?}", dim_rows(&mut s));
+    // And through a parameter edit outside the sketch commands too.
+    s.execute("parameters.set", &json!({"name": "d1", "expression": "70 mm"})).unwrap();
+    assert!(dim_rows(&mut s).contains(&("d2".into(), "70 mm".into())), "{:?}", dim_rows(&mut s));
+    // A driven dimension cannot be typed over.
+    let e = s.execute("sketch.setDimension", &json!({"id": id.0, "name": "d2", "expression": "10"})).unwrap_err().to_string();
+    assert!(e.contains("driven"), "{e}");
+    // Driving again is refused while d1 holds the length; after d1 goes it drives.
+    let e = s.execute("sketch.setDriven", &json!({"id": id.0, "name": "d2", "driven": false})).unwrap_err().to_string();
+    assert!(e.contains("over-constrain"), "{e}");
+    let d1 = inspect(&mut s)["constraints"].as_array().unwrap().iter().position(|c| c["param"] == "d1").unwrap();
+    s.execute("sketch.removeConstraint", &json!({"id": id.0, "index": d1})).unwrap();
+    let r = s.execute("sketch.setDriven", &json!({"id": id.0, "name": "d2", "driven": false})).unwrap();
+    assert_eq!(r["driven"], false);
+    s.execute("sketch.setDimension", &json!({"id": id.0, "name": "d2", "expression": "25"})).unwrap();
+    let v = inspect(&mut s);
+    let (a, b) = (point(&v, 1), point(&v, 2));
+    assert!(((b.0 - a.0).hypot(b.1 - a.1) - 25.0).abs() < 1e-6, "d2 drives now: {a:?} {b:?}");
+    // Back to driven is always allowed and survives save and open.
+    s.execute("sketch.setDriven", &json!({"id": id.0, "name": "d2", "driven": true})).unwrap();
+    let doc = s.doc().unwrap().doc.clone();
+    let back = vectorcraft_format::load_file(&vectorcraft_format::save_file(&doc)).unwrap().doc;
+    assert!(back.node(id).unwrap().extras().sketch.as_deref().unwrap().driven.contains("d2"));
+}

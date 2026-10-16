@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use sketch_solver as ss;
 
 use super::Sketch;
-use super::model::{Constraint, Entity};
+use super::model::{Along, Constraint, Entity};
 use crate::expr::Solved;
 
 /// The solver refuses sketches with more unknowns than this (its cost grows with the cube).
@@ -91,6 +91,10 @@ fn build(sketch: &Sketch, params: &Solved) -> Option<Built> {
     let mut b = Built { s, points, entities, added: vec![None; sketch.constraints.len()], errors: BTreeMap::new() };
     let mut horizontal: Option<ss::EntityId> = None;
     for (i, c) in sketch.constraints.iter().enumerate() {
+        // A driven dimension reads the geometry: it is not an equation.
+        if sketch.is_driven(c) {
+            continue;
+        }
         let value = if c.is_dimension() {
             match dimension(c, params) {
                 Ok(v) => Some(v),
@@ -150,7 +154,12 @@ fn convert(b: &Built, sketch: &Sketch, c: &Constraint, value: Option<f64>, horiz
         Constraint::Fix { p: pt, x, y } => ss::Constraint::Fix { entity: p(pt)?, at: Some([*x, flip(*y)]) },
         Constraint::Midpoint { p: pt, line } => ss::Constraint::Midpoint { point: p(pt)?, line: e(line)? },
         Constraint::Concentric { a, b } => ss::Constraint::Coincident(p(&centre_of(sketch, *a)?)?, p(&centre_of(sketch, *b)?)?),
-        Constraint::Distance { a, b, .. } => ss::Constraint::Distance { a: p(a)?, b: p(b)?, value: v, along: ss::Along::Direct },
+        // The recipe's y points down and the solver's up: a vertical offset flips sign.
+        Constraint::Distance { a, b, along, .. } => match along {
+            Along::Direct => ss::Constraint::Distance { a: p(a)?, b: p(b)?, value: v, along: ss::Along::Direct },
+            Along::X => ss::Constraint::Distance { a: p(a)?, b: p(b)?, value: v, along: ss::Along::X },
+            Along::Y => ss::Constraint::Distance { a: p(a)?, b: p(b)?, value: -v, along: ss::Along::Y },
+        },
         Constraint::DistancePointLine { p: pt, line, .. } => ss::Constraint::Distance { a: p(pt)?, b: e(line)?, value: v, along: ss::Along::Direct },
         Constraint::Symmetric { a, b, line } => ss::Constraint::Symmetric { a: p(a)?, b: p(b)?, about: e(line)? },
         Constraint::Length { line, .. } => ss::Constraint::Length { line: e(line)?, value: v },
@@ -337,7 +346,7 @@ mod tests {
         assert!(on(1) && on(2));
         assert!(s.constraints.iter().any(|k| matches!(k, Constraint::Radius { e, .. } if *e == arc)));
         // L1's length dimension now measures to the sharp corner.
-        assert!(s.constraints.contains(&Constraint::Distance { a: 2, b: 1, param: "d2".into() }));
+        assert!(s.constraints.contains(&Constraint::Distance { a: 2, b: 1, along: Along::Direct, param: "d2".into() }));
         // It runs counter-clockwise on screen with a short sweep: the points are ordered T2 -> T1.
         assert_eq!((a, b), (p2, p1));
         // And the solver agrees with it.

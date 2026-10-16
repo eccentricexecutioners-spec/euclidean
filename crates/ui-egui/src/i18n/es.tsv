@@ -4960,3 +4960,18 @@ mark-style	Japanese	Japonesas
 	Apply Look	Aplicar aspecto
 	Delete Look	Eliminar aspecto
 	List Looks	Listar aspectos
+	Enter keeps it as a driven dimension · Esc drops it	Intro la conserva como cota conducida · Esc la descarta
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Escriba un valor, una expresión o un nombre de parámetro, Intro aplica · Esc conserva el valor medido
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Mueva la cota a su sitio y haga clic · otra línea para el ángulo, un punto para la distancia
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Haga clic en una línea, círculo, arco o punto · arrastre un valor para moverlo, doble clic para editar · Esc sale de la herramienta
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Haga clic en un segundo punto (horizontal, vertical o alineada según dónde la coloque) o una línea · Esc empieza de nuevo
+	Driven dimension added: it reads the geometry	Cota conducida añadida: lee la geometría
+	This dimension would over-constrain the sketch.	Esta cota sobrerrestringiría el boceto.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	¿Conservarla como cota conducida? Lee la geometría y se muestra entre paréntesis.
+	Driven dimension	Cota conducida
+	Show Dimensions	Mostrar cotas
+	Horizontal distance between points	Distancia horizontal entre puntos
+	Vertical distance between points	Distancia vertical entre puntos
+	Driven	Conducida
+	Move Sketch Dimension	Mover cota de boceto
+	Set Sketch Dimension Driven	Hacer conducida la cota de boceto

@@ -4125,3 +4125,18 @@ lighting	Light	光源
 	Apply Look	应用外观
 	Delete Look	删除外观
 	List Looks	列出外观
+	Enter keeps it as a driven dimension · Esc drops it	Enter 保留为从动尺寸 · Esc 放弃
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	输入数值、表达式或参数名，Enter 应用 · Esc 保留测量值
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	移动到放置位置并点击 · 点另一条线测角度，点一个点测偏移
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	点击线、圆、圆弧或点 · 拖动数值可移动，双击可编辑 · Esc 退出工具
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	点击第二个点（按放置位置决定水平、垂直或对齐）或一条线 · Esc 重新开始
+	Driven dimension added: it reads the geometry	已添加从动尺寸：它读取几何
+	This dimension would over-constrain the sketch.	此尺寸会使草图过约束。
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	保留为从动尺寸？它读取几何并以括号显示。
+	Driven dimension	从动尺寸
+	Show Dimensions	显示尺寸
+	Horizontal distance between points	点之间的水平距离
+	Vertical distance between points	点之间的垂直距离
+	Driven	从动
+	Move Sketch Dimension	移动草图尺寸
+	Set Sketch Dimension Driven	设置草图尺寸为从动

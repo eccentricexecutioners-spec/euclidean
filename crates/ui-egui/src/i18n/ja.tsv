@@ -4583,3 +4583,18 @@ lighting	Light	ライト
 	Apply Look	ルックを適用
 	Delete Look	ルックを削除
 	List Looks	ルックの一覧
+	Enter keeps it as a driven dimension · Esc drops it	Enter で従動寸法として保持 · Esc で破棄
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	値、式、またはパラメータ名を入力し Enter で適用 · Esc で計測値を保持
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	寸法を置く位置へ動かしてクリック · 角度は別の線を、オフセットは点をクリック
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	線、円、円弧、または点をクリック · 値をドラッグで移動、ダブルクリックで編集 · Esc でツール終了
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	2 点目（置く位置で水平・垂直・平行）または線をクリック · Esc でやり直し
+	Driven dimension added: it reads the geometry	従動寸法を追加しました：形状の値を読み取ります
+	This dimension would over-constrain the sketch.	この寸法はスケッチを過剰拘束します。
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	従動寸法として保持しますか？形状の値を読み取り、括弧付きで表示されます。
+	Driven dimension	従動寸法
+	Show Dimensions	寸法を表示
+	Horizontal distance between points	点間の水平距離
+	Vertical distance between points	点間の垂直距離
+	Driven	従動
+	Move Sketch Dimension	スケッチ寸法を移動
+	Set Sketch Dimension Driven	スケッチ寸法を従動に設定

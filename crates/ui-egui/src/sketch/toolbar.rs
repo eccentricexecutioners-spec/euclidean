@@ -15,6 +15,8 @@ enum Act {
     Constrain(&'static str),
     Params,
     Construction,
+    /// Show / hide dimensions and constraint glyphs.
+    ShowDims,
 }
 
 /// A button or a dropdown row.
@@ -73,11 +75,16 @@ fn run(app: &mut VectorcraftApp, act: Act) {
         Act::Params => {
             app.ui.change_parameters = true;
         }
+        Act::ShowDims => super::toggle_dims(app),
     }
 }
 
 fn active_act(app: &VectorcraftApp, act: Act) -> bool {
-    matches!(act, Act::Tool(t) if app.sketch.as_ref().is_some_and(|m| m.tool == t))
+    match act {
+        Act::Tool(t) => app.sketch.as_ref().is_some_and(|m| m.tool == t),
+        Act::ShowDims => app.sketch.as_ref().is_some_and(|m| m.show_dims),
+        _ => false,
+    }
 }
 
 /// An icon button of the row; returns whether it was pressed.
@@ -187,7 +194,10 @@ fn groups(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, scale: f32) {
     let k = constraints();
     group(app, ui, t, scale, tl!("CONSTRAINTS"), &k[..], &k[..]);
     ui.separator();
-    let d = [e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension))];
+    let d = [
+        e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension)),
+        e("eye", tl!("Show Dimensions"), "", Act::ShowDims),
+    ];
     group(app, ui, t, scale, tl!("SKETCH DIMENSION"), &d[..], &[]);
 }
 

@@ -131,9 +131,27 @@ pub fn specs() -> Vec<CommandSpec> {
             "Add Sketch Dimension",
             [],
             None,
-            "{id?, constraint: {type: distance|length|angle|angleBetween|radius|diameter|distancePointLine, …refs: a, b, p, line, e}, expression?} without expression the current measured value is used; creates a model parameter dN → {id, index, name, value}",
+            "{id?, constraint: {type: distance|length|angle|angleBetween|radius|diameter|distancePointLine, …refs: a, b, p, line, e, along?: direct|x|y (distance: aligned, horizontal or vertical)}, expression?, at?: [x, y] (mm, where the value sits), driven?: bool (a reference dimension: it reads the geometry and does not constrain it; shown in brackets)} without expression the current measured value is used; creates a model parameter dN → {id, index, name, value, driven}",
             has_doc,
             add_dimension
+        ),
+        cmd!(
+            "sketch.placeDimension",
+            "Move Sketch Dimension",
+            [],
+            None,
+            "{id?, name? | index?, at: [x, y] | null} puts the dimension's value at `at` (sketch mm); null lets it sit beside its geometry again → {id, name, at}",
+            has_doc,
+            place_dimension
+        ),
+        cmd!(
+            "sketch.setDriven",
+            "Set Sketch Dimension Driven",
+            [],
+            None,
+            "{id?, name? | index?, driven: bool} a driven (reference) dimension reads the geometry; making it driving again is refused when that would over-constrain the sketch → {id, name, driven, value}",
+            has_doc,
+            set_driven
         ),
         cmd!(
             "sketch.setDimension",
@@ -498,6 +516,12 @@ pub(crate) fn refresh(before: &Document, doc: &mut Document) {
                 if let Some(n) = doc.node_mut(id) {
                     n.extras_mut().sketch = Some(Box::new(sketch.clone()));
                 }
+                if !sketch.driven.is_empty() {
+                    let mut rows = params::rows(doc);
+                    if read_driven(&sketch, id, &mut rows) {
+                        params::store(doc, &rows);
+                    }
+                }
             }
             rebuild(doc, id, &sketch, &solved);
             continue;
@@ -594,11 +618,30 @@ fn solve_work(w: &mut Work, cmd: &str) -> Result<()> {
 
 /// Store the parameter rows and the recipe together: one undo step.
 fn save(s: &mut Session, w: Work, label: &str) -> Result<()> {
-    let Work { id, sketch, rows } = w;
+    let Work { id, sketch, mut rows } = w;
+    read_driven(&sketch, id, &mut rows);
     s.edit(label, |d, _| {
         params::store(d, &rows);
         set_recipe(d, id, sketch)
     })
+}
+
+/// Driven dimensions read the geometry: their rows take the measured value. Returns whether a row
+/// changed.
+pub(crate) fn read_driven(sketch: &Sketch, id: NodeId, rows: &mut [ParamRow]) -> bool {
+    let mut changed = false;
+    for c in sketch.constraints.iter().filter(|c| sketch.is_driven(c)) {
+        let (Some(name), Some(v)) = (c.param(), sketch.measure(c)) else { continue };
+        let unit = if c.is_angular() { "deg" } else { "mm" };
+        let expression = params::plain_expression(v, unit);
+        if let Some(row) = rows.iter_mut().find(|r| r.name == name && r.sketch == Some(id.0))
+            && row.expression != expression
+        {
+            row.expression = expression;
+            changed = true;
+        }
+    }
+    changed
 }
 
 /// Solve, then store (the usual end of a command that adds something).
@@ -1005,13 +1048,17 @@ fn add_dimension(s: &mut Session, p: &Value) -> Result<Value> {
     let mut obj = constraint_object(p, &DIMENSIONS, C)?;
     let name = params::next_model_name(&w.rows);
     obj.insert("param".into(), json!(name));
-    let c: Constraint = serde_json::from_value(Value::Object(obj)).map_err(|e| bad(C, format!("bad constraint: {e}")))?;
+    let mut c: Constraint = serde_json::from_value(Value::Object(obj)).map_err(|e| bad(C, format!("bad constraint: {e}")))?;
     check_refs(&w.sketch, &c).map_err(|e| bad(C, e))?;
+    orient_distance(&w.sketch, &mut c);
+    let at = xy(p, "at", C)?;
+    let driven = p.get("driven").and_then(Value::as_bool).unwrap_or(false);
     let kind = if c.is_angular() { Kind::Angle } else { Kind::Length };
+    let measured = w.sketch.measure(&c);
     let t = match typed(&w, p, "expression", kind, C)? {
-        Some(t) => t,
-        None => {
-            let v = w.sketch.measure(&c).ok_or_else(|| bad(C, "cannot measure this yet"))?;
+        Some(t) if !driven => t,
+        _ => {
+            let v = measured.ok_or_else(|| bad(C, "cannot measure this yet"))?;
             if kind == Kind::Length && v <= 1e-9 {
                 return Err(bad(C, "there is no length to measure here; give an `expression`"));
             }
@@ -1020,11 +1067,103 @@ fn add_dimension(s: &mut Session, p: &Value) -> Result<Value> {
     };
     add_param(&mut w, kind, &t.expression);
     check_caps(&w.sketch, C)?;
-    let solved = params::solve(&w.rows);
-    w.sketch = solve::try_add(&w.sketch, c, &solved).map_err(|e| solve_error(e, C))?.sketch;
+    if let Some(at) = at {
+        w.sketch.places.insert(name.clone(), [at.0, at.1]);
+    }
+    if driven {
+        // A reference dimension: no equation, so nothing to refuse.
+        w.sketch.driven.insert(name.clone());
+        w.sketch.constraints.push(c);
+    } else {
+        let solved = params::solve(&w.rows);
+        w.sketch = solve::try_add(&w.sketch, c, &solved).map_err(|e| solve_error(e, C))?.sketch;
+    }
     let (id, index) = (w.id, w.sketch.constraints.len() - 1);
     save(s, w, "Add Sketch Dimension")?;
-    Ok(json!({"id": id.0, "index": index, "name": name, "value": t.value}))
+    Ok(json!({"id": id.0, "index": index, "name": name, "value": t.value, "driven": driven}))
+}
+
+/// A horizontal or vertical distance runs from `a` to `b` rightwards / downwards: swap the points
+/// when they were picked the other way, so the value is positive.
+fn orient_distance(sketch: &Sketch, c: &mut Constraint) {
+    use sketch::model::Along;
+    if let Constraint::Distance { a, b, along, .. } = c
+        && let (Some(p), Some(q)) = (sketch.point(*a), sketch.point(*b))
+    {
+        let backwards = match along {
+            Along::Direct => false,
+            Along::X => q.x < p.x,
+            Along::Y => q.y < p.y,
+        };
+        if backwards {
+            std::mem::swap(a, b);
+        }
+    }
+}
+
+/// The dimension `name` or `index` of `p`: its index and parameter name.
+fn find_dimension(w: &Work, p: &Value, cmd: &str) -> Result<(usize, String)> {
+    let found = match (str_param(p, "name"), p.get("index").and_then(Value::as_u64)) {
+        (Some(name), _) => w.sketch.constraints.iter().position(|c| c.param() == Some(name)),
+        (None, Some(i)) => usize::try_from(i).ok().filter(|i| w.sketch.constraints.get(*i).is_some_and(Constraint::is_dimension)),
+        (None, None) => return Err(bad(cmd, "give the dimension's `name` or `index`")),
+    };
+    let index = found.ok_or_else(|| bad(cmd, "no such dimension in this sketch"))?;
+    let name = w.sketch.constraints[index].param().unwrap_or_default().to_string();
+    Ok((index, name))
+}
+
+fn place_dimension(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.placeDimension";
+    let mut w = work(s, p, C)?;
+    let (_, name) = find_dimension(&w, p, C)?;
+    let at = match p.get("at") {
+        Some(Value::Null) => None,
+        _ => Some(xy(p, "at", C)?.ok_or_else(|| bad(C, "missing `at`: [x, y] in mm, or null"))?),
+    };
+    match at {
+        Some((x, y)) => {
+            w.sketch.places.insert(name.clone(), [x, y]);
+        }
+        None => {
+            w.sketch.places.remove(&name);
+        }
+    }
+    let id = w.id;
+    save(s, w, "Move Sketch Dimension")?;
+    Ok(json!({"id": id.0, "name": name, "at": at.map(|(x, y)| json!([x, y]))}))
+}
+
+fn set_driven(s: &mut Session, p: &Value) -> Result<Value> {
+    const C: &str = "sketch.setDriven";
+    let mut w = work(s, p, C)?;
+    let (index, name) = find_dimension(&w, p, C)?;
+    let driven = p.get("driven").and_then(Value::as_bool).ok_or_else(|| bad(C, "missing `driven`: true or false"))?;
+    let id = w.id;
+    if driven == w.sketch.driven.contains(&name) {
+        let value = params::solve(&w.rows).value(&name);
+        return Ok(json!({"id": id.0, "name": name, "driven": driven, "value": value}));
+    }
+    if driven {
+        w.sketch.driven.insert(name.clone());
+        tidy(&mut w);
+    } else {
+        // Back to driving: the dimension's equation joins the sketch, which may over-constrain it.
+        let c = w.sketch.constraints[index].clone();
+        let mut without = w.sketch.clone();
+        without.constraints.remove(index);
+        without.driven.remove(&name);
+        let solved = params::solve(&w.rows);
+        let sol = solve::try_add(&without, c, &solved).map_err(|e| solve_error(e, C))?;
+        let mut sketch = w.sketch.clone();
+        sketch.driven.remove(&name);
+        sketch.points = sol.sketch.points;
+        sketch.entities = sol.sketch.entities;
+        w.sketch = sketch;
+    }
+    save(s, w, if driven { "Make Sketch Dimension Driven" } else { "Make Sketch Dimension Driving" })?;
+    let value = s.doc().ok().and_then(|d| params::solve(&params::rows(&d.doc)).value(&name));
+    Ok(json!({"id": id.0, "name": name, "driven": driven, "value": value}))
 }
 
 fn set_dimension(s: &mut Session, p: &Value) -> Result<Value> {
@@ -1040,6 +1179,9 @@ fn set_dimension(s: &mut Session, p: &Value) -> Result<Value> {
         Some((n, false)) => (n, Kind::Length),
         None => return Err(bad(C, "no such dimension in this sketch")),
     };
+    if w.sketch.driven.contains(&name) {
+        return Err(bad(C, format!("`{name}` is a driven dimension: it reads the geometry; sketch.setDriven {{driven: false}} makes it driving")));
+    }
     let expression = typed(&w, p, "expression", kind, C)?.ok_or_else(|| bad(C, "missing `expression`"))?.expression;
     let before = w.rows.clone();
     let row = w
@@ -1363,6 +1505,8 @@ fn inspect_v2(sketch: &Sketch, rows: &[ParamRow], params_solved: &expr::Solved) 
             if let Some(o) = v.as_object_mut() {
                 o.insert("index".into(), json!(i));
                 if let Some(param) = c.param() {
+                    o.insert("driven".into(), json!(sketch.driven.contains(param)));
+                    o.insert("at".into(), json!(sketch.places.get(param)));
                     let expression = rows.iter().find(|r| r.name == param).map(|r| r.expression.clone());
                     let error = errors.get(&i).cloned().or_else(|| params_solved.error(param).map(str::to_string));
                     o.insert("expression".into(), json!(expression));

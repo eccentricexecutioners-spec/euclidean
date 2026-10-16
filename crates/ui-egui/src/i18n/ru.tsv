@@ -4585,3 +4585,18 @@ lighting	Light	Свет
 	Apply Look	Применить образ
 	Delete Look	Удалить образ
 	List Looks	Список образов
+	Enter keeps it as a driven dimension · Esc drops it	Enter оставит его как управляемый размер · Esc отменит
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Введите значение, выражение или имя параметра, Enter применит · Esc оставит измеренное значение
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Переместите размер на место и щёлкните · другая линия для угла, точка для отступа
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Щёлкните линию, окружность, дугу или точку · перетащите значение, двойной щелчок правит · Esc выходит из инструмента
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Щёлкните вторую точку (горизонтально, вертикально или вдоль — по месту размещения) или линию · Esc начнёт заново
+	Driven dimension added: it reads the geometry	Добавлен управляемый размер: он читает геометрию
+	This dimension would over-constrain the sketch.	Этот размер переопределит эскиз.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Оставить как управляемый размер? Он читает геометрию и показан в скобках.
+	Driven dimension	Управляемый размер
+	Show Dimensions	Показать размеры
+	Horizontal distance between points	Горизонтальное расстояние между точками
+	Vertical distance between points	Вертикальное расстояние между точками
+	Driven	Управляемый
+	Move Sketch Dimension	Переместить размер эскиза
+	Set Sketch Dimension Driven	Сделать размер эскиза управляемым

@@ -4589,3 +4589,18 @@ lighting	Light	Luce
 	Apply Look	Applica look
 	Delete Look	Elimina look
 	List Looks	Elenca look
+	Enter keeps it as a driven dimension · Esc drops it	Invio la tiene come quota guidata · Esc la scarta
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Digita un valore, un’espressione o il nome di un parametro, Invio applica · Esc tiene il valore misurato
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Sposta la quota dove va e fai clic · un’altra linea per l’angolo, un punto per la distanza
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Fai clic su una linea, un cerchio, un arco o un punto · trascina un valore per spostarlo, doppio clic per modificarlo · Esc lascia lo strumento
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Fai clic su un secondo punto (orizzontale, verticale o allineata secondo dove la posi) o una linea · Esc ricomincia
+	Driven dimension added: it reads the geometry	Quota guidata aggiunta: legge la geometria
+	This dimension would over-constrain the sketch.	Questa quota vincolerebbe eccessivamente lo schizzo.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Tenerla come quota guidata? Legge la geometria ed è mostrata tra parentesi.
+	Driven dimension	Quota guidata
+	Show Dimensions	Mostra quote
+	Horizontal distance between points	Distanza orizzontale tra punti
+	Vertical distance between points	Distanza verticale tra punti
+	Driven	Guidata
+	Move Sketch Dimension	Sposta quota schizzo
+	Set Sketch Dimension Driven	Imposta quota schizzo guidata

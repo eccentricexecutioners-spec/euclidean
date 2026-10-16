@@ -26,7 +26,7 @@ use egui::{Event, Key, Pos2};
 use serde_json::{Value, json};
 use vectorcraft_doc::expr::Solved;
 use vectorcraft_doc::params::{self, ParamRow};
-use vectorcraft_doc::sketch::model::{Constraint, Entity};
+use vectorcraft_doc::sketch::model::{Along, Constraint, Entity};
 use vectorcraft_doc::sketch::{Sketch, solve};
 use vectorcraft_doc::{NodeId, Unit};
 use vectorcraft_geom::Point;
@@ -112,9 +112,18 @@ pub struct SketchMode {
     pub selected: Vec<Pick>,
     /// A dimension being edited in place: its constraint index and the box.
     pub edit_dim: Option<(usize, Hud)>,
-    /// A dimension being placed by the Sketch Dimension tool: what it measures (its parameter
+    /// A dimension being made by the Sketch Dimension tool: what it measures (its parameter
     /// name is empty until the engine makes it) and the box, prefilled with the measured value.
+    /// It follows the cursor until [`SketchMode::dim_place`] is set.
     pub new_dim: Option<(Constraint, Hud)>,
+    /// Where the new dimension's value was placed (sketch mm): a click set it and the box opened.
+    pub dim_place: Option<Mm>,
+    /// A dimension's value being dragged to a new place.
+    pub drag_dim: Option<DimDrag>,
+    /// The engine refused the new dimension as over-constraining: offer it as a driven one.
+    pub driven_offer: Option<DrivenOffer>,
+    /// Show dimensions and constraint glyphs (the eye in the toolbar).
+    pub show_dims: bool,
     pub snap: Snap,
     /// The lines (or shapes, for Mirror) Offset and Mirror work on.
     pub modify: Vec<u32>,
@@ -141,6 +150,10 @@ impl SketchMode {
             selected: vec![],
             edit_dim: None,
             new_dim: None,
+            dim_place: None,
+            drag_dim: None,
+            driven_offer: None,
+            show_dims: true,
             snap: Snap::None,
             modify: vec![],
             side: 1.0,
@@ -148,6 +161,22 @@ impl SketchMode {
             cache: None,
         }
     }
+}
+
+/// A dimension's value being dragged: the constraint, where the press was (screen), and where the
+/// value is now (sketch mm) once the pointer has moved.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DimDrag {
+    pub index: usize,
+    pub from: Pos2,
+    pub at: Option<Mm>,
+}
+
+/// A refused dimension the user may keep as a driven (reference) one.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DrivenOffer {
+    pub constraint: Constraint,
+    pub at: Option<Mm>,
 }
 
 /// The sketch's recipe with its parameters and solver verdicts, solved again only when either
@@ -325,6 +354,8 @@ pub fn set_tool(app: &mut VectorcraftApp, tool: SketchTool) {
     tools::end_chain(m);
     m.edit_dim = None;
     m.new_dim = None;
+    m.dim_place = None;
+    m.driven_offer = None;
     if tool == SketchTool::Dimension || was == SketchTool::Dimension {
         m.selected.clear();
     }
@@ -352,11 +383,17 @@ pub fn hint(app: &VectorcraftApp) -> Option<&'static str> {
         (SketchTool::Arc3, true, true) => tl!("Click to set the bulge, or type a radius, Enter · Esc cancels"),
         (SketchTool::Fillet, false, _) => tl!("Click a corner where two lines meet · Esc cancels"),
         (SketchTool::Fillet, true, _) => tl!("Type a radius, Enter · Esc cancels"),
-        (SketchTool::Dimension, ..) if m.new_dim.is_some() => {
-            tl!("Type a value, Enter places the dimension · click another line for the angle · Esc cancels")
+        (SketchTool::Dimension, ..) if m.driven_offer.is_some() => tl!("Enter keeps it as a driven dimension · Esc drops it"),
+        (SketchTool::Dimension, ..) if m.new_dim.is_some() && m.dim_place.is_some() => {
+            tl!("Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value")
         }
-        (SketchTool::Dimension, ..) if m.selected.is_empty() => tl!("Click a line, circle or arc, or a point · Esc leaves the tool"),
-        (SketchTool::Dimension, ..) => tl!("Click a second point for the distance · Esc leaves the tool"),
+        (SketchTool::Dimension, ..) if m.new_dim.is_some() => {
+            tl!("Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset")
+        }
+        (SketchTool::Dimension, ..) if m.selected.is_empty() => {
+            tl!("Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool")
+        }
+        (SketchTool::Dimension, ..) => tl!("Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over"),
         (SketchTool::Trim, ..) => tl!("Click the part of a line to remove · Esc leaves the tool"),
         (SketchTool::Offset, ..) if m.modify.is_empty() => tl!("Click a line to offset its whole chain · Esc leaves the tool"),
         (SketchTool::Offset, ..) => tl!("Move the mouse to the side you want, or type a distance, Enter · Esc cancels"),
@@ -446,6 +483,18 @@ fn key_press(app: &mut VectorcraftApp, key: Key, repeat: bool) {
     if app.sketch.is_none() {
         return;
     }
+    if app.sketch.as_ref().is_some_and(|m| m.driven_offer.is_some()) {
+        match key {
+            Key::Enter if !repeat => accept_driven(app),
+            Key::Escape if !repeat => {
+                if let Some(m) = app.sketch.as_mut() {
+                    m.driven_offer = None;
+                }
+            }
+            _ => {}
+        }
+        return;
+    }
     match key {
         Key::Escape if !repeat => escape(app),
         Key::Enter if !repeat => {
@@ -463,7 +512,13 @@ fn key_press(app: &mut VectorcraftApp, key: Key, repeat: bool) {
 /// the tool, the sketch.
 fn escape(app: &mut VectorcraftApp) {
     let Some(m) = app.sketch.as_mut() else { return };
+    // A placed dimension is kept at its measured value (Fusion): Esc only closes the box.
+    if m.new_dim.is_some() && m.dim_place.is_some() {
+        commit_new_dim(app, true);
+        return;
+    }
     if m.edit_dim.take().is_some() || m.new_dim.take().is_some() {
+        m.dim_place = None;
         return;
     }
     if m.tool == SketchTool::Dimension && !m.selected.is_empty() {
@@ -518,10 +573,11 @@ pub(super) fn feed(app: &mut VectorcraftApp, ev: HudEvent) -> bool {
             HudOutcome::None => {}
         },
         Fed::New(out) => match out {
-            HudOutcome::Commit(_) => commit_new_dim(app),
+            HudOutcome::Commit(_) => commit_new_dim(app, false),
             HudOutcome::Cancel => {
                 if let Some(m) = app.sketch.as_mut() {
                     m.new_dim = None;
+                    m.dim_place = None;
                 }
             }
             HudOutcome::Blocked(e) => app.status(e),
@@ -728,13 +784,14 @@ fn fix_toggle(app: &mut VectorcraftApp, cache: &Cache, points: &[u32], entities:
     }
 }
 
-// ---- the Sketch Dimension tool ----
+// ---- the Sketch Dimension tool (E1 Part D: Fusion's Sketch Dimension) ----
 
 /// The dimension `c` as `sketch.addDimension` takes it (the engine names the parameter).
 fn dim_json(c: &Constraint) -> Value {
     match c {
         Constraint::Length { line, .. } => json!({"type": "length", "line": line}),
-        Constraint::Distance { a, b, .. } => json!({"type": "distance", "a": a, "b": b}),
+        Constraint::Distance { a, b, along, .. } => json!({"type": "distance", "a": a, "b": b, "along": along}),
+        Constraint::DistancePointLine { p, line, .. } => json!({"type": "distancePointLine", "p": p, "line": line}),
         Constraint::AngleBetween { a, b, .. } => json!({"type": "angleBetween", "a": a, "b": b}),
         Constraint::Radius { e, .. } => json!({"type": "radius", "e": e}),
         Constraint::Diameter { e, .. } => json!({"type": "diameter", "e": e}),
@@ -742,40 +799,84 @@ fn dim_json(c: &Constraint) -> Value {
     }
 }
 
-/// Open the box for the new dimension `c`, prefilled with what it measures and selected.
-fn open_dim(app: &mut VectorcraftApp, cache: &Cache, c: Constraint) {
-    let (label, unit) = match &c {
-        Constraint::AngleBetween { .. } => ("angle", hud::BoxUnit::Deg),
+/// The box for a dimension of kind `c`: label and unit.
+fn dim_box(c: &Constraint) -> (&'static str, hud::BoxUnit) {
+    match c {
+        Constraint::Angle { .. } | Constraint::AngleBetween { .. } => ("angle", hud::BoxUnit::Deg),
         Constraint::Radius { .. } => ("radius", hud::BoxUnit::Mm),
         Constraint::Diameter { .. } => ("diameter", hud::BoxUnit::Mm),
+        Constraint::Distance { along: Along::X, .. } => ("horizontal", hud::BoxUnit::Mm),
+        Constraint::Distance { along: Along::Y, .. } => ("vertical", hud::BoxUnit::Mm),
+        Constraint::Distance { .. } | Constraint::DistancePointLine { .. } => ("distance", hud::BoxUnit::Mm),
         _ => ("length", hud::BoxUnit::Mm),
-    };
+    }
+}
+
+/// Start making the dimension `c`: it follows the cursor until a click places it.
+fn start_dim(app: &mut VectorcraftApp, cache: &Cache, c: Constraint) {
+    let (label, unit) = dim_box(&c);
     let mut hud = Hud::new(&[(label, unit)]);
     hud.boxes[0].text = overlay::trim2(cache.sketch.measure(&c).unwrap_or(0.0));
     if let Some(m) = app.sketch.as_mut() {
         m.new_dim = Some((c, hud));
+        m.dim_place = None;
     }
 }
 
-/// Enter in a new dimension's box: `sketch.addDimension` with the box's text.
-fn commit_new_dim(app: &mut VectorcraftApp) {
+/// Which way a point-to-point dimension measures, from where the cursor is (Fusion): above or
+/// below the pair gives the horizontal distance, beside it the vertical, anywhere else the
+/// aligned one. Points on one horizontal or vertical always measure along it.
+pub fn along_for(sk: &Sketch, a: u32, b: u32, cursor: Mm) -> Along {
+    let (Some(p), Some(q)) = (sk.point(a), sk.point(b)) else { return Along::Direct };
+    let (dx, dy) = ((q.x - p.x).abs(), (q.y - p.y).abs());
+    if dy < 1e-6 {
+        return Along::X;
+    }
+    if dx < 1e-6 {
+        return Along::Y;
+    }
+    let (x0, x1) = (p.x.min(q.x), p.x.max(q.x));
+    let (y0, y1) = (p.y.min(q.y), p.y.max(q.y));
+    let in_x = (x0..=x1).contains(&cursor[0]);
+    let in_y = (y0..=y1).contains(&cursor[1]);
+    match (in_x, in_y) {
+        (true, false) => Along::X,
+        (false, true) => Along::Y,
+        _ => Along::Direct,
+    }
+}
+
+/// Enter in a new dimension's box (or Esc, `measured`: the box's text is ignored):
+/// `sketch.addDimension` with the box's text and the place. A dimension the solver refuses is
+/// offered as a driven one.
+fn commit_new_dim(app: &mut VectorcraftApp, measured: bool) {
     let Some(m) = app.sketch.as_ref() else { return };
     let Some((c, hud)) = m.new_dim.as_ref() else { return };
-    let (constraint, text, id) = (dim_json(c), hud.boxes[0].text.clone(), m.id.0);
-    match app.run("sketch.addDimension", json!({"id": id, "constraint": constraint, "expression": text})) {
+    let (constraint, text, id, at) = (dim_json(c), hud.boxes[0].text.clone(), m.id.0, m.dim_place);
+    let mut params = json!({"id": id, "constraint": constraint});
+    if !measured && hud.boxes[0].typed {
+        params["expression"] = json!(text);
+    }
+    if let Some(at) = at {
+        params["at"] = json!(at);
+    }
+    match app.run("sketch.addDimension", params) {
         Ok(_) => {
             if let Some(m) = app.sketch.as_mut() {
                 m.new_dim = None;
+                m.dim_place = None;
                 m.selected.clear();
             }
         }
         Err(e) => {
             let e = refusal(e);
-            // A refused sketch changes nothing: the box goes, a bad number stays to be fixed.
+            // A refused sketch changes nothing. Over-constrained: offer a driven dimension; a bad
+            // number stays in the box to be fixed.
             if e == tl!("This would over-constrain the sketch")
                 && let Some(m) = app.sketch.as_mut()
+                && let Some((c, _)) = m.new_dim.take()
             {
-                m.new_dim = None;
+                m.driven_offer = Some(DrivenOffer { constraint: c, at: m.dim_place.take() });
                 m.selected.clear();
             }
             app.status(e);
@@ -783,38 +884,134 @@ fn commit_new_dim(app: &mut VectorcraftApp) {
     }
 }
 
-/// The Sketch Dimension tool: a line gives its length (a click on a second line turns that into
-/// the angle between them), a circle its diameter, an arc its radius, two points their distance.
-fn dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
-    let pick = hit::pick(cache, xf, pos, false);
+/// Keep the refused dimension as a driven (reference) one: it reads the geometry, in brackets.
+pub fn accept_driven(app: &mut VectorcraftApp) {
     let Some(m) = app.sketch.as_mut() else { return };
-    m.hover = pick;
-    if !input.clicked {
+    let Some(offer) = m.driven_offer.take() else { return };
+    let id = m.id.0;
+    let mut params = json!({"id": id, "constraint": dim_json(&offer.constraint), "driven": true});
+    if let Some(at) = offer.at {
+        params["at"] = json!(at);
+    }
+    match app.run("sketch.addDimension", params) {
+        Ok(_) => app.status(tl!("Driven dimension added: it reads the geometry")),
+        Err(e) => app.status(refusal(e)),
+    }
+}
+
+/// Dragging a dimension's value (the Dimension and Select tools): a press on a value starts it,
+/// the value follows while the button is down, the release runs `sketch.placeDimension`. Returns
+/// whether the pointer was a drag's (a press and release that did not move fall through as a
+/// click).
+fn drag_dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) -> bool {
+    let Some(m) = app.sketch.as_mut() else { return false };
+    let id = m.id.0;
+    if let Some(d) = m.drag_dim.as_mut() {
+        if input.down {
+            if d.at.is_some() || pos.distance(d.from) > 3.0 {
+                d.at = Some(to_mm(xf, &cache.sketch, pos));
+            }
+            return true;
+        }
+        let d = m.drag_dim.take().unwrap_or(DimDrag { index: 0, from: pos, at: None });
+        if let Some(at) = d.at {
+            if let Err(e) = app.run("sketch.placeDimension", json!({"id": id, "index": d.index, "at": at})) {
+                app.status(e);
+            }
+            return true;
+        }
+        return false;
+    }
+    // A press that is still held starts a drag (a press and release in one frame, or a
+    // double-click, is a click).
+    if input.pressed
+        && input.down
+        && !input.double
+        && m.show_dims
+        && let Some(i) = hit::dim_at(cache, xf, pos)
+    {
+        m.drag_dim = Some(DimDrag { index: i, from: pos, at: None });
+        return true;
+    }
+    false
+}
+
+/// The Sketch Dimension tool. Pick a line for its length (a second line turns that into the angle
+/// between them, a point into the point's offset from the line), a circle for its diameter (Shift:
+/// radius), an arc for its radius, two points for their distance (horizontal, vertical or aligned
+/// by where the cursor goes), a point and a line for the offset. The dimension follows the cursor;
+/// a click places it and opens its box. A value can be dragged, and double-clicked to edit.
+fn dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, input: PointerInput) {
+    if drag_dim_pointer(app, cache, xf, pos, input) {
         return;
     }
     let sk = &cache.sketch;
-    let kind = |pick: Pick| match pick {
-        Pick::Entity(e) => sk.entity(e),
-        _ => None,
-    };
-    let none = String::new;
-    if let Some((Constraint::Length { line, .. }, _)) = &m.new_dim {
-        if let Some(Pick::Entity(b)) = pick
-            && b != *line
-            && matches!(kind(Pick::Entity(b)), Some(Entity::Line { .. }))
-        {
-            let c = Constraint::AngleBetween { a: *line, b, param: none() };
-            m.selected = vec![Pick::Entity(*line), Pick::Entity(b)];
-            open_dim(app, cache, c);
-            return;
+    let cursor = to_mm(xf, sk, pos);
+    let Some(m) = app.sketch.as_mut() else { return };
+    m.rubber = Some(cursor);
+    // The box is open on a placed dimension: a click elsewhere applies it as it stands.
+    if m.new_dim.is_some() && m.dim_place.is_some() {
+        if input.clicked {
+            commit_new_dim(app, false);
         }
-        m.new_dim = None;
-        m.selected.clear();
         return;
     }
-    if m.new_dim.is_some() {
-        m.new_dim = None;
-        m.selected.clear();
+    if input.double {
+        if let Some(i) = hit::dim_at(cache, xf, pos) {
+            begin_edit(app, i);
+        }
+        return;
+    }
+    let pick = hit::pick(cache, xf, pos, false);
+    m.hover = pick;
+    // A point-to-point dimension changes kind with the cursor until it is placed.
+    if let Some((Constraint::Distance { a, b, along, .. }, hud)) = m.new_dim.as_mut() {
+        let now = along_for(sk, *a, *b, cursor);
+        if now != *along {
+            *along = now;
+            let c = Constraint::Distance { a: *a, b: *b, along: now, param: String::new() };
+            let (label, unit) = dim_box(&c);
+            *hud = Hud::new(&[(label, unit)]);
+            hud.boxes[0].text = overlay::trim2(sk.measure(&c).unwrap_or(0.0));
+        }
+    }
+    if !input.clicked {
+        return;
+    }
+    let kind = |e: u32| sk.entity(e);
+    let is_line = |e: u32| matches!(kind(e), Some(Entity::Line { .. }));
+    let none = String::new;
+    if let Some((c, _)) = m.new_dim.as_ref() {
+        // Following the cursor: a second pick refines the kind; anything else places it.
+        let refined = match (c, pick) {
+            (Constraint::Length { line, .. }, Some(Pick::Entity(b))) if b != *line && is_line(b) => {
+                // The angle is read the way round that makes it positive (Fusion shows the
+                // interior angle).
+                let mut c = Constraint::AngleBetween { a: *line, b, param: none() };
+                if sk.measure(&c).is_some_and(|v| v < 0.0) {
+                    c = Constraint::AngleBetween { a: b, b: *line, param: none() };
+                }
+                Some((c, vec![Pick::Entity(*line), Pick::Entity(b)]))
+            }
+            (Constraint::Length { line, .. }, Some(Pick::Point(p))) => {
+                Some((Constraint::DistancePointLine { p, line: *line, param: none() }, vec![Pick::Point(p), Pick::Entity(*line)]))
+            }
+            _ => None,
+        };
+        match refined {
+            Some((c, selected)) => {
+                m.selected = selected;
+                start_dim(app, cache, c);
+            }
+            None => {
+                m.dim_place = Some(cursor);
+                let measured = sk.measure(c).unwrap_or(0.0);
+                if let Some((_, hud)) = m.new_dim.as_mut() {
+                    hud.boxes[0].text = overlay::trim2(measured);
+                    hud.boxes[0].typed = false;
+                }
+            }
+        }
         return;
     }
     let first = match m.selected.as_slice() {
@@ -822,9 +1019,11 @@ fn dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, inpu
         _ => None,
     };
     let made = match (first, pick) {
-        (Some(a), Some(Pick::Point(b))) if a != b => Some(Constraint::Distance { a, b, param: none() }),
-        (_, Some(Pick::Entity(e))) => match kind(Pick::Entity(e)) {
+        (Some(a), Some(Pick::Point(b))) if a != b => Some(Constraint::Distance { a, b, along: along_for(sk, a, b, cursor), param: none() }),
+        (Some(a), Some(Pick::Entity(l))) if is_line(l) => Some(Constraint::DistancePointLine { p: a, line: l, param: none() }),
+        (_, Some(Pick::Entity(e))) => match kind(e) {
             Some(Entity::Line { .. }) => Some(Constraint::Length { line: e, param: none() }),
+            Some(Entity::Circle { .. }) if input.shift => Some(Constraint::Radius { e, param: none() }),
             Some(Entity::Circle { .. }) => Some(Constraint::Diameter { e, param: none() }),
             Some(Entity::Arc { .. }) => Some(Constraint::Radius { e, param: none() }),
             None => None,
@@ -833,11 +1032,11 @@ fn dim_pointer(app: &mut VectorcraftApp, cache: &Cache, xf: &Xf, pos: Pos2, inpu
     };
     match (made, pick) {
         (Some(c), Some(p)) => {
-            m.selected = match (&c, first) {
-                (Constraint::Distance { .. }, Some(a)) => vec![Pick::Point(a), p],
+            m.selected = match first {
+                Some(a) if matches!(c, Constraint::Distance { .. } | Constraint::DistancePointLine { .. }) => vec![Pick::Point(a), p],
                 _ => vec![p],
             };
-            open_dim(app, cache, c);
+            start_dim(app, cache, c);
         }
         (None, Some(p @ Pick::Point(_))) => m.selected = vec![p],
         _ => m.selected.clear(),
@@ -860,6 +1059,8 @@ fn line_span(sketch: &Sketch, line: u32) -> (f64, f64) {
 pub struct PointerInput {
     pub pos: Option<Pos2>,
     pub pressed: bool,
+    /// The primary button is held.
+    pub down: bool,
     pub released: bool,
     pub clicked: bool,
     pub double: bool,
@@ -874,11 +1075,12 @@ pub fn pointer(app: &mut VectorcraftApp, ui: &egui::Ui, resp: &egui::Response, r
     }
     // The pointer's own facts, not the canvas response's: a press and release that arrive in one
     // frame (a double-click from automation, a fast trackpad) never register on a response.
-    let (pos, pressed, released, clicked, double, shift) = ui.input(|i| {
+    let (pos, pressed, down, released, clicked, double, shift) = ui.input(|i| {
         let b = egui::PointerButton::Primary;
         (
             i.pointer.hover_pos().or_else(|| i.pointer.interact_pos()),
             i.pointer.button_pressed(b),
+            i.pointer.button_down(b),
             i.pointer.button_released(b),
             i.pointer.button_clicked(b),
             i.pointer.button_double_clicked(b),
@@ -889,7 +1091,7 @@ pub fn pointer(app: &mut VectorcraftApp, ui: &egui::Ui, resp: &egui::Response, r
     // Over the canvas itself: the response says so, and so does nothing floating above the point
     // (a dialog or popup would take the click).
     let over = resp.hovered() || resp.dragged() || pos.is_some_and(|p| ui.ctx().layer_id_at(p) == Some(ui.layer_id()));
-    let input = PointerInput { pos, pressed: pressed && over, released: released && over, clicked: clicked && over, double: double && over, shift };
+    let input = PointerInput { pos, pressed: pressed && over, down, released: released && over, clicked: clicked && over, double: double && over, shift };
     handle_pointer(app, xf, input);
     if pos.is_some() {
         ui.ctx().request_repaint();
@@ -909,7 +1111,11 @@ pub fn handle_pointer(app: &mut VectorcraftApp, xf: &Xf, input: PointerInput) {
     };
     match m.tool {
         SketchTool::Line => tools::line_pointer(app, &cache, xf, pos, input),
-        SketchTool::None => select_pointer(app, &cache, xf, pos, input),
+        SketchTool::None => {
+            if !drag_dim_pointer(app, &cache, xf, pos, input) {
+                select_pointer(app, &cache, xf, pos, input);
+            }
+        }
         SketchTool::Rect2 | SketchTool::RectCenter | SketchTool::Circle | SketchTool::Arc3 => tools::shape_pointer(app, &cache, xf, pos, input),
         SketchTool::Fillet => tools::fillet_pointer(app, &cache, xf, pos, input),
         SketchTool::Dimension => dim_pointer(app, &cache, xf, pos, input),
@@ -956,4 +1162,39 @@ pub fn overlay(app: &mut VectorcraftApp, painter: &egui::Painter, xf: &Xf, ui: &
     let Some(cache) = snapshot(app) else { return };
     let t = crate::theme::Tokens::get(ui.ctx());
     overlay::paint(app, painter, xf, &cache, &t);
+    driven_offer_ui(app, ui, xf, &cache);
+}
+
+/// The over-constraint prompt (Fusion's): the refused dimension can be kept as a driven one.
+fn driven_offer_ui(app: &mut VectorcraftApp, ui: &egui::Ui, xf: &Xf, cache: &Cache) {
+    let Some(offer) = app.sketch.as_ref().and_then(|m| m.driven_offer.clone()) else { return };
+    let at = overlay::preview_geom(cache, xf, &offer.constraint, offer.at).map_or_else(|| ui.max_rect().center(), |g| g.label);
+    let mut keep = false;
+    let mut drop = false;
+    egui::Area::new(egui::Id::new("sketch-driven-offer"))
+        .order(egui::Order::Foreground)
+        .fixed_pos(at + egui::vec2(12.0, 12.0))
+        .show(ui.ctx(), |ui| {
+            egui::Frame::popup(ui.style()).show(ui, |ui| {
+                ui.set_max_width(260.0);
+                ui.label(tl!("This dimension would over-constrain the sketch."));
+                ui.label(egui::RichText::new(tl!("Keep it as a driven dimension? It reads the geometry and is shown in brackets.")).small());
+                ui.horizontal(|ui| {
+                    keep = ui.button(tl!("Driven dimension")).clicked();
+                    drop = ui.button(tl!("Cancel")).clicked();
+                });
+            });
+        });
+    if keep {
+        accept_driven(app);
+    } else if drop && let Some(m) = app.sketch.as_mut() {
+        m.driven_offer = None;
+    }
+}
+
+/// The eye: show or hide the dimensions and constraint glyphs.
+pub fn toggle_dims(app: &mut VectorcraftApp) {
+    if let Some(m) = app.sketch.as_mut() {
+        m.show_dims = !m.show_dims;
+    }
 }

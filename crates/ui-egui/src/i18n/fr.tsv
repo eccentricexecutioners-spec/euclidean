@@ -5019,3 +5019,18 @@ theme	Appearance	Apparence
 	Apply Look	Appliquer le look
 	Delete Look	Supprimer le look
 	List Looks	Lister les looks
+	Enter keeps it as a driven dimension · Esc drops it	Entrée la garde comme cote pilotée · Échap l’abandonne
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Saisissez une valeur, une expression ou un nom de paramètre, Entrée applique · Échap garde la valeur mesurée
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Déplacez la cote à sa place et cliquez · une autre ligne pour l’angle, un point pour l’écart
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Cliquez une ligne, un cercle, un arc ou un point · glissez une valeur pour la déplacer, double-clic pour modifier · Échap quitte l’outil
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Cliquez un second point (horizontale, verticale ou alignée selon où vous la placez) ou une ligne · Échap recommence
+	Driven dimension added: it reads the geometry	Cote pilotée ajoutée : elle lit la géométrie
+	This dimension would over-constrain the sketch.	Cette cote surcontraindrait l’esquisse.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	La garder comme cote pilotée ? Elle lit la géométrie et s’affiche entre parenthèses.
+	Driven dimension	Cote pilotée
+	Show Dimensions	Afficher les cotes
+	Horizontal distance between points	Distance horizontale entre points
+	Vertical distance between points	Distance verticale entre points
+	Driven	Pilotée
+	Move Sketch Dimension	Déplacer la cote d’esquisse
+	Set Sketch Dimension Driven	Rendre la cote d’esquisse pilotée

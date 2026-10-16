@@ -4862,3 +4862,18 @@ mark-style	Japanese	Japońskie
 	Apply Look	Zastosuj look
 	Delete Look	Usuń look
 	List Looks	Lista looków
+	Enter keeps it as a driven dimension · Esc drops it	Enter zachowuje jako wymiar zależny · Esc odrzuca
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Wpisz wartość, wyrażenie lub nazwę parametru, Enter zatwierdza · Esc zachowuje zmierzoną wartość
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Przesuń wymiar na miejsce i kliknij · inna linia dla kąta, punkt dla odsunięcia
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Kliknij linię, okrąg, łuk lub punkt · przeciągnij wartość, aby ją przesunąć, dwuklik edytuje · Esc opuszcza narzędzie
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Kliknij drugi punkt (poziomo, pionowo lub wzdłuż, zależnie od miejsca) albo linię · Esc zaczyna od nowa
+	Driven dimension added: it reads the geometry	Dodano wymiar zależny: odczytuje geometrię
+	This dimension would over-constrain the sketch.	Ten wymiar przewymiarowałby szkic.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Zachować jako wymiar zależny? Odczytuje geometrię i jest pokazany w nawiasach.
+	Driven dimension	Wymiar zależny
+	Show Dimensions	Pokaż wymiary
+	Horizontal distance between points	Odległość pozioma między punktami
+	Vertical distance between points	Odległość pionowa między punktami
+	Driven	Zależny
+	Move Sketch Dimension	Przesuń wymiar szkicu
+	Set Sketch Dimension Driven	Ustaw wymiar szkicu jako zależny

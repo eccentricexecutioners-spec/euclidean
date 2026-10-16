@@ -4986,3 +4986,18 @@ imageTrace	Outline	Körvonal
 	Apply Look	Megjelenés alkalmazása
 	Delete Look	Megjelenés törlése
 	List Looks	Megjelenések listázása
+	Enter keeps it as a driven dimension · Esc drops it	Enter vezérelt méretként megtartja · Esc eldobja
+	Type a value, an expression or a parameter name, Enter applies · Esc keeps the measured value	Írjon be értéket, kifejezést vagy paraméternevet, Enter alkalmazza · Esc megtartja a mért értéket
+	Move to where the dimension goes and click to place it · click another line for the angle, a point for an offset	Vigye a méretet a helyére és kattintson · másik vonal a szöghöz, pont az eltoláshoz
+	Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool	Kattintson vonalra, körre, ívre vagy pontra · az értéket húzással mozgathatja, dupla kattintással szerkesztheti · Esc kilép
+	Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over	Kattintson egy második pontra (vízszintes, függőleges vagy igazított, az elhelyezéstől függően) vagy vonalra · Esc újrakezdi
+	Driven dimension added: it reads the geometry	Vezérelt méret hozzáadva: a geometriát olvassa
+	This dimension would over-constrain the sketch.	Ez a méret túlhatározná a vázlatot.
+	Keep it as a driven dimension? It reads the geometry and is shown in brackets.	Megtartja vezérelt méretként? A geometriát olvassa, zárójelben jelenik meg.
+	Driven dimension	Vezérelt méret
+	Show Dimensions	Méretek megjelenítése
+	Horizontal distance between points	Vízszintes távolság pontok között
+	Vertical distance between points	Függőleges távolság pontok között
+	Driven	Vezérelt
+	Move Sketch Dimension	Vázlatméret mozgatása
+	Set Sketch Dimension Driven	Vázlatméret vezéreltre állítása
