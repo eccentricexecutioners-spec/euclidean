@@ -21,7 +21,40 @@ pub enum Kind {
     Link(String),
 }
 
-/// One checked zip entry. `path` starts with `Euclidean.app` and has no trailing slash.
+/// The folder a Windows release zip holds, and the program inside it.
+pub const WINDOWS_FOLDER: &str = "Euclidean";
+pub const WINDOWS_EXE: &str = "Euclidean.exe";
+
+/// Which entry rules a release zip is held to, chosen by the signed manifest's `platform`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Layout {
+    /// One top-level `Euclidean.app/` (D3's rules); also a manifest with no `platform`.
+    Mac,
+    /// One top-level `Euclidean/` holding the file `Euclidean/Euclidean.exe`; no symlinks.
+    Windows,
+}
+
+impl Layout {
+    /// The rules for a manifest: `"mac"` or no `platform` → Mac, `"windows"` → Windows, anything else → none.
+    pub fn of_manifest(manifest: &Value) -> Result<Layout, String> {
+        match manifest.get("platform") {
+            None => Ok(Layout::Mac),
+            Some(Value::String(p)) if p == "mac" => Ok(Layout::Mac),
+            Some(Value::String(p)) if p == "windows" => Ok(Layout::Windows),
+            Some(other) => Err(format!("no entry rules for platform {other}")),
+        }
+    }
+
+    /// The one top-level folder.
+    pub fn root(self) -> &'static str {
+        match self {
+            Layout::Mac => BUNDLE_NAME,
+            Layout::Windows => WINDOWS_FOLDER,
+        }
+    }
+}
+
+/// One checked zip entry. `path` starts with the layout's root (`Euclidean.app`) and has no trailing slash.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Entry {
     pub path: String,
@@ -36,8 +69,8 @@ fn is_absolute(name: &str) -> bool {
     name.starts_with('/') || (b.len() >= 2 && b[0].is_ascii_alphabetic() && b[1] == b':')
 }
 
-/// Where a link at `link_path` (inside the bundle) points, if that stays inside the bundle.
-fn link_stays_inside(link_path: &str, target: &str) -> bool {
+/// Where a link at `link_path` (inside `root`) points, if that stays inside `root`.
+fn link_stays_inside(link_path: &str, target: &str, root: &str) -> bool {
     if target.is_empty() || target.contains('\\') || target.contains('\0') || is_absolute(target) {
         return false;
     }
@@ -55,11 +88,17 @@ fn link_stays_inside(link_path: &str, target: &str) -> bool {
             p => stack.push(p),
         }
     }
-    stack.first() == Some(&BUNDLE_NAME)
+    stack.first() == Some(&root)
 }
 
-/// Read and check every entry of the zip.
+/// Read and check every entry of the zip (Mac rules).
 pub fn read_entries(zip_path: &Path) -> Result<Vec<Entry>, String> {
+    read_entries_in(zip_path, Layout::Mac)
+}
+
+/// Read and check every entry of the zip against `layout`'s rules.
+pub fn read_entries_in(zip_path: &Path, layout: Layout) -> Result<Vec<Entry>, String> {
+    let root = layout.root();
     let file = File::open(zip_path).map_err(|e| format!("cannot open the download: {e}"))?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("not a zip: {e}"))?;
     if archive.is_empty() {
@@ -86,11 +125,11 @@ pub fn read_entries(zip_path: &Path) -> Result<Vec<Entry>, String> {
         if parts.iter().any(|p| *p == "." || *p == ".." || p.is_empty()) {
             return Err(format!("dot entry: {name}"));
         }
-        if parts[0] != BUNDLE_NAME {
-            return Err(format!("entry outside {BUNDLE_NAME}/: {name}"));
+        if parts[0] != root {
+            return Err(format!("entry outside {root}/: {name}"));
         }
         if parts.len() == 1 && !is_dir {
-            return Err(format!("{BUNDLE_NAME} is not a folder in the zip"));
+            return Err(format!("{root} is not a folder in the zip"));
         }
         if !seen.insert(trimmed.to_string()) {
             return Err(format!("duplicate entry: {name}"));
@@ -106,10 +145,13 @@ pub fn read_entries(zip_path: &Path) -> Result<Vec<Entry>, String> {
             }
         }
         let kind = if f.is_symlink() {
+            if layout == Layout::Windows {
+                return Err(format!("symlink entry in a Windows zip: {name}"));
+            }
             let mut target = String::new();
             f.by_ref().take(4097).read_to_string(&mut target).map_err(|e| format!("bad symlink entry: {e}"))?;
-            if target.len() > 4096 || !link_stays_inside(trimmed, &target) {
-                return Err(format!("symlink entry leaves {BUNDLE_NAME}: {name}"));
+            if target.len() > 4096 || !link_stays_inside(trimmed, &target, root) {
+                return Err(format!("symlink entry leaves {root}: {name}"));
             }
             links.insert(trimmed.to_string());
             Kind::Link(target)
@@ -120,13 +162,36 @@ pub fn read_entries(zip_path: &Path) -> Result<Vec<Entry>, String> {
         };
         entries.push(Entry { path: trimmed.to_string(), kind, size: f.size(), crc: f.crc32(), mode: f.unix_mode() });
     }
+    if layout == Layout::Windows {
+        let exe = format!("{WINDOWS_FOLDER}/{WINDOWS_EXE}");
+        if !entries.iter().any(|e| e.path == exe && e.kind == Kind::File) {
+            return Err(format!("no {exe} in the zip"));
+        }
+    }
     Ok(entries)
 }
 
-/// Signature, size, sha256, then the entries: the full check of a downloaded release.
+/// Signature, size, sha256, then the entries under the rules the signed `platform` names: the
+/// full check of a downloaded release.
 pub fn verify_package(trust: &Trust, zip_path: &Path, manifest: &Value, signature: &str) -> Result<Vec<Entry>, String> {
+    verify_package_checked(trust, zip_path, manifest, signature, None)
+}
+
+/// [`verify_package`] that also refuses a release signed for another layout (the Mac updater
+/// takes only Mac releases).
+pub fn verify_package_as(trust: &Trust, zip_path: &Path, manifest: &Value, signature: &str, want: Layout) -> Result<Vec<Entry>, String> {
+    verify_package_checked(trust, zip_path, manifest, signature, Some(want))
+}
+
+fn verify_package_checked(trust: &Trust, zip_path: &Path, manifest: &Value, signature: &str, want: Option<Layout>) -> Result<Vec<Entry>, String> {
     if !trust.verify_manifest(manifest, signature) {
         return Err("signature does not verify".into());
+    }
+    let layout = Layout::of_manifest(manifest)?;
+    if let Some(want) = want
+        && want != layout
+    {
+        return Err(format!("the release is for {layout:?}, not {want:?}"));
     }
     let want_size = manifest.get("size").and_then(Value::as_u64).ok_or("manifest has no size")?;
     let want_sha = manifest.get("sha256").and_then(Value::as_str).ok_or("manifest has no sha256")?;
@@ -147,7 +212,7 @@ pub fn verify_package(trust: &Trust, zip_path: &Path, manifest: &Value, signatur
     if format!("{:x}", hasher.finalize()) != want_sha {
         return Err("sha256 does not match the manifest".into());
     }
-    read_entries(zip_path)
+    read_entries_in(zip_path, layout)
 }
 
 /// Unzip into `dest_parent` (so the bundle lands at `dest_parent/Euclidean.app`), keeping unix
@@ -225,8 +290,13 @@ fn crc_of(path: &Path) -> std::io::Result<u32> {
 }
 
 /// True when the tree at `bundle` is exactly what `entries` describe: same paths, file sizes,
-/// crc32s and executable bits, same symlink targets, nothing extra.
+/// crc32s and executable bits, same symlink targets, nothing extra (Mac layout).
 pub fn tree_matches(entries: &[Entry], bundle: &Path) -> Result<(), String> {
+    tree_matches_in(entries, bundle, Layout::Mac)
+}
+
+/// [`tree_matches`] for a tree unzipped under `layout`'s root (`bundle` is that root folder).
+pub fn tree_matches_in(entries: &[Entry], bundle: &Path, layout: Layout) -> Result<(), String> {
     let by_path: BTreeMap<&str, &Entry> = entries.iter().map(|e| (e.path.as_str(), e)).collect();
     let mut implied = BTreeSet::new();
     for e in entries {
@@ -241,8 +311,8 @@ pub fn tree_matches(entries: &[Entry], bundle: &Path) -> Result<(), String> {
         return Err("staged app is not a folder".into());
     }
     let mut seen = BTreeSet::new();
-    seen.insert(BUNDLE_NAME.to_string());
-    walk(bundle, BUNDLE_NAME, &by_path, &implied, &mut seen)?;
+    seen.insert(layout.root().to_string());
+    walk(bundle, layout.root(), &by_path, &implied, &mut seen)?;
     for e in entries {
         if !seen.contains(&e.path) {
             return Err(format!("staged app is missing {}", e.path));

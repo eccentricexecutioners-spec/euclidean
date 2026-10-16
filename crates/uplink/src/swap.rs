@@ -111,7 +111,7 @@ pub fn finish_pending_with(
         return StartOutcome::NothingPending;
     }
 
-    let entries = match zipcheck::verify_package(trust, &zip, &manifest, &signature) {
+    let entries = match zipcheck::verify_package_as(trust, &zip, &manifest, &signature, zipcheck::Layout::Mac) {
         Ok(e) => e,
         Err(why) => return StartOutcome::VerifyFailed(why),
     };

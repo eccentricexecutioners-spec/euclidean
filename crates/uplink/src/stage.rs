@@ -151,7 +151,7 @@ pub fn stage_watched(
     // Already staged and still good?
     let zip_first = first.join(&file);
     if zip_first.exists()
-        && let Ok(entries) = zipcheck::verify_package(trust, &zip_first, manifest, &offer.signature)
+        && let Ok(entries) = zipcheck::verify_package_as(trust, &zip_first, manifest, &offer.signature, zipcheck::Layout::Mac)
         && tree_matches(&entries, &first.join(BUNDLE_NAME)).is_ok()
     {
         write_pending(state, &record(&first, &zip_first))?;
@@ -182,7 +182,7 @@ pub fn stage_watched(
         return Err(bad(format!("download is larger than the manifest size {size}")));
     }
 
-    let entries = zipcheck::verify_package(trust, &zip_path, manifest, &offer.signature).map_err(bad)?;
+    let entries = zipcheck::verify_package_as(trust, &zip_path, manifest, &offer.signature, zipcheck::Layout::Mac).map_err(bad)?;
     zipcheck::extract(&zip_path, &entries, &dir).map_err(StageError::Failed)?;
     let saved = json!({"manifest": manifest, "signature": offer.signature});
     let bytes = serde_json::to_vec_pretty(&saved).map_err(|e| StageError::Failed(e.to_string()))?;

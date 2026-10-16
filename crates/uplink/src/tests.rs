@@ -827,3 +827,120 @@ fn updater_view_carries_offer_progress_and_errors() {
     assert_eq!((v.offered.as_deref(), v.elsewhere.as_deref()), (Some("2.0.0"), Some("2.0.0")));
     assert_eq!((v.received, v.ready), (0, None));
 }
+
+// ---- D7: Windows ----
+
+#[test]
+#[cfg(target_os = "macos")]
+fn platform_is_mac_on_macos() {
+    assert_eq!(crate::client::platform(), "mac");
+}
+
+#[test]
+fn platform_for_os_maps_windows_and_linux() {
+    use crate::client::platform_for;
+    assert_eq!(platform_for("macos"), "mac");
+    assert_eq!(platform_for("windows"), "windows");
+    assert_eq!(platform_for("linux"), "linux");
+    assert_eq!(platform_for("freebsd"), "linux");
+}
+
+#[test]
+fn updater_is_on_for_a_windows_exe_with_no_off_switch() {
+    let env = |pairs: &'static [(&'static str, &'static str)]| move |k: &str| pairs.iter().find(|(n, _)| *n == k).map(|(_, v)| v.to_string());
+    for exe in [r"C:\Users\Ken\Downloads\Euclidean\Euclidean.exe", "C:/Users/Ken/Downloads/Euclidean/Euclidean.exe"] {
+        assert_eq!(off_reason_with(&env(&[]), false, Path::new(exe), false), None, "{exe}");
+        assert!(off_reason_with(&env(&[("EUCLIDEAN_NO_UPDATE", "1")]), false, Path::new(exe), false).is_some(), "{exe}");
+        assert!(off_reason_with(&env(&[("VECTORCRAFT_NO_PREFS", "1")]), false, Path::new(exe), false).is_some(), "{exe}");
+    }
+    let dev = Path::new("C:/src/euclidean/target/release-slim/vectorcraft.exe");
+    assert!(off_reason_with(&env(&[]), false, dev, false).is_some(), "a build under target/ is a development run");
+}
+
+/// The zip the Windows release carries: one `Euclidean/` folder holding `Euclidean.exe`.
+fn windows_zip(body: &str) -> Vec<u8> {
+    build_zip(&[Z::Dir("Euclidean/"), Z::File("Euclidean/Euclidean.exe", body.as_bytes(), 0o644)])
+}
+
+/// Check `zip` against a manifest signed with `platform` (`None`: no platform field).
+fn check_zip_for(zip: &[u8], platform: Option<&str>) -> Result<Vec<zipcheck::Entry>, String> {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let path = tmp.path().join("r.zip");
+    fs::write(&path, zip).unwrap();
+    let mut m = manifest_for("1.2.3", zip);
+    if let Some(p) = platform {
+        m["platform"] = json!(p);
+    }
+    let s = sign_manifest(&master(), &m);
+    zipcheck::verify_package(&trust(), &path, &m, &s)
+}
+
+#[test]
+fn windows_zip_passes_the_windows_rules() {
+    let entries = check_zip_for(&windows_zip("MZ"), Some("windows")).unwrap();
+    assert!(entries.iter().any(|e| e.path == "Euclidean/Euclidean.exe" && e.kind == zipcheck::Kind::File));
+}
+
+#[test]
+fn windows_zip_fails_the_mac_rules() {
+    for platform in [Some("mac"), None] {
+        let err = check_zip_for(&windows_zip("MZ"), platform).unwrap_err();
+        assert!(err.contains("outside Euclidean.app"), "{platform:?}: {err}");
+    }
+}
+
+#[test]
+fn mac_zip_still_passes_mac_and_fails_windows() {
+    assert!(check_zip_for(&app_zip("hello"), Some("mac")).is_ok());
+    let err = check_zip_for(&app_zip("hello"), Some("windows")).unwrap_err();
+    assert!(err.contains("outside Euclidean/"), "{err}");
+}
+
+#[test]
+fn windows_zip_without_the_exe_or_with_extras_is_refused() {
+    let no_exe = build_zip(&[Z::Dir("Euclidean/"), Z::File("Euclidean/readme.txt", b"x", 0o644)]);
+    assert!(check_zip_for(&no_exe, Some("windows")).unwrap_err().contains("no Euclidean/Euclidean.exe"));
+    let exe_dir = build_zip(&[Z::Dir("Euclidean/"), Z::Dir("Euclidean/Euclidean.exe/")]);
+    assert!(check_zip_for(&exe_dir, Some("windows")).unwrap_err().contains("no Euclidean/Euclidean.exe"));
+    let macosx =
+        build_zip(&[Z::Dir("Euclidean/"), Z::File("Euclidean/Euclidean.exe", b"MZ", 0o644), Z::File("__MACOSX/._Euclidean.exe", b"x", 0o644)]);
+    assert!(check_zip_for(&macosx, Some("windows")).unwrap_err().contains("outside Euclidean/"));
+    let two_tops = build_zip(&[Z::Dir("Euclidean/"), Z::File("Euclidean/Euclidean.exe", b"MZ", 0o644), Z::File("Other/x", b"x", 0o644)]);
+    assert!(check_zip_for(&two_tops, Some("windows")).is_err());
+    let link = build_zip(&[Z::Dir("Euclidean/"), Z::File("Euclidean/Euclidean.exe", b"MZ", 0o644), Z::Link("Euclidean/e", "Euclidean.exe")]);
+    assert!(check_zip_for(&link, Some("windows")).unwrap_err().contains("symlink"));
+}
+
+#[test]
+fn unknown_platform_has_no_entry_rules() {
+    let err = check_zip_for(&app_zip("hello"), Some("amiga")).unwrap_err();
+    assert!(err.contains("no entry rules"), "{err}");
+}
+
+#[test]
+fn mac_updater_refuses_a_windows_release() {
+    let zip = windows_zip("MZ");
+    let tmp = tempfile::TempDir::new().unwrap();
+    let path = tmp.path().join("r.zip");
+    fs::write(&path, &zip).unwrap();
+    let mut m = manifest_for("1.2.3", &zip);
+    m["platform"] = json!("windows");
+    let s = sign_manifest(&master(), &m);
+    let err = zipcheck::verify_package_as(&trust(), &path, &m, &s, zipcheck::Layout::Mac).unwrap_err();
+    assert!(err.contains("for Windows, not Mac"), "{err}");
+    assert!(zipcheck::verify_package_as(&trust(), &path, &m, &s, zipcheck::Layout::Windows).is_ok());
+}
+
+#[test]
+fn unzipped_windows_tree_matches_its_zip() {
+    let zip = windows_zip("MZ body");
+    let entries = check_zip_for(&zip, Some("windows")).unwrap();
+    let tmp = tempfile::TempDir::new().unwrap();
+    let path = tmp.path().join("r.zip");
+    fs::write(&path, &zip).unwrap();
+    let dest = tmp.path().join("out");
+    zipcheck::extract(&path, &entries, &dest).unwrap();
+    zipcheck::tree_matches_in(&entries, &dest.join("Euclidean"), zipcheck::Layout::Windows).unwrap();
+    fs::write(dest.join("Euclidean/extra.dll"), b"x").unwrap();
+    assert!(zipcheck::tree_matches_in(&entries, &dest.join("Euclidean"), zipcheck::Layout::Windows).unwrap_err().contains("extra"));
+}

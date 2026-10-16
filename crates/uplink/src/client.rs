@@ -52,14 +52,18 @@ pub enum Transport {
     Tls,
 }
 
-/// `mac`, `windows` or `linux`.
+/// `mac`, `windows` or `linux`: the platform this copy is running on, as Cargo Bay names it.
 pub fn platform() -> &'static str {
-    if cfg!(target_os = "macos") {
-        "mac"
-    } else if cfg!(windows) {
-        "windows"
-    } else {
-        "linux"
+    platform_for(std::env::consts::OS)
+}
+
+/// Cargo Bay's name for a Rust OS name (`std::env::consts::OS`): `macos` → `mac`, `windows` →
+/// `windows`, anything else → `linux`.
+pub fn platform_for(os: &str) -> &'static str {
+    match os {
+        "macos" => "mac",
+        "windows" => "windows",
+        _ => "linux",
     }
 }
 
