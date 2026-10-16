@@ -166,13 +166,18 @@ fn sketch_shows_parameters_at_the_top_of_the_right_panel_not_the_left() {
 }
 
 #[test]
-fn other_tabs_have_no_right_pinned_panels() {
+fn draw_and_type_pin_no_right_panels_and_output_pins_sheet_and_nest() {
     let mut rig = Rig::new(Layout::Fusion);
-    for (tab, left) in [("draw", "section:properties"), ("type", "section:character"), ("output", "section:artboards")] {
+    for (tab, left, pinned) in [
+        ("draw", "section:properties", &[][..]),
+        ("type", "section:character", &[][..]),
+        ("output", "section:artboards", &["section:right-pinned/nest"][..]),
+    ] {
         rig.app.ui.workbench.tab = tab.into();
         rig.settle();
         let names = rig.app.ui.workbench.hits.iter().map(|h| h.0.clone()).collect::<Vec<_>>();
-        assert!(!names.iter().any(|n| n.starts_with("section:right-pinned/")), "{tab}: {names:?}");
+        let right: Vec<&String> = names.iter().filter(|n| n.starts_with("section:right-pinned/")).collect();
+        assert_eq!(right, pinned.iter().collect::<Vec<_>>(), "{tab}: {names:?}");
         assert!(names.iter().any(|n| n == left), "{tab} lacks {left}: {names:?}");
     }
 }
@@ -818,5 +823,3 @@ fn a_sketch_is_one_step_and_editing_it_reopens_the_sketch() {
     rig.double_click("chip:1");
     assert!(rig.app.sketch.as_ref().is_some_and(|m| m.id.0 == id), "Edit reopens the sketch");
 }
-
-

@@ -4604,3 +4604,18 @@ lighting	Light	Свет
 	A name for this step	Имя этого шага
 	commands	команд
 	Rename Timeline Step	Переименовать шаг временной шкалы
+	Margin:	Поле:
+	Nest Selection	Раскроить выделенное
+	One file per sheet, at true size, cut paths only.	Один файл на лист, в натуральную величину, только контуры реза.
+	Parts may turn 90°	Детали можно поворачивать на 90°
+	Reset Sheet Settings	Сбросить настройки листа
+	Select the parts to nest	Выберите детали для раскроя
+	Sheet	Лист
+	Sheets as DXF…	Листы как DXF…
+	Sheets as SVG…	Листы как SVG…
+	{n} too big for the sheet	{n} слишком велики для листа
+	{parts} parts on {sheets} sheets	{parts} деталей на {sheets} листах
+	Nest on Sheets	Раскроить на листы
+	Plan Nest	Спланировать раскрой
+	Sheet & Nest	Лист и раскрой
+	{parts} parts on one sheet	{parts} деталей на одном листе

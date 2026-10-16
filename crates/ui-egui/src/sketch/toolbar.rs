@@ -194,10 +194,8 @@ fn groups(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, scale: f32) {
     let k = constraints();
     group(app, ui, t, scale, tl!("CONSTRAINTS"), &k[..], &k[..]);
     ui.separator();
-    let d = [
-        e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension)),
-        e("eye", tl!("Show Dimensions"), "", Act::ShowDims),
-    ];
+    let d =
+        [e("sketch-dimension", tl!("Sketch Dimension"), "D", Act::Tool(SketchTool::Dimension)), e("eye", tl!("Show Dimensions"), "", Act::ShowDims)];
     group(app, ui, t, scale, tl!("SKETCH DIMENSION"), &d[..], &[]);
 }
 

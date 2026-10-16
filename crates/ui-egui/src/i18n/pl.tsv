@@ -4881,3 +4881,18 @@ mark-style	Japanese	Japońskie
 	A name for this step	Nazwa tego kroku
 	commands	poleceń
 	Rename Timeline Step	Zmień nazwę kroku osi czasu
+	Margin:	Margines:
+	Nest Selection	Rozmieść zaznaczenie
+	One file per sheet, at true size, cut paths only.	Jeden plik na arkusz, w rzeczywistym rozmiarze, tylko ścieżki cięcia.
+	Parts may turn 90°	Części mogą obracać się o 90°
+	Reset Sheet Settings	Zresetuj ustawienia arkusza
+	Select the parts to nest	Zaznacz części do rozmieszczenia
+	Sheet	Arkusz
+	Sheets as DXF…	Arkusze jako DXF…
+	Sheets as SVG…	Arkusze jako SVG…
+	{n} too big for the sheet	{n} za duże na arkusz
+	{parts} parts on {sheets} sheets	{parts} części na {sheets} arkuszach
+	Nest on Sheets	Rozmieść na arkuszach
+	Plan Nest	Zaplanuj rozmieszczenie
+	Sheet & Nest	Arkusz i rozmieszczenie
+	{parts} parts on one sheet	{parts} części na jednym arkuszu

@@ -4144,3 +4144,18 @@ lighting	Light	光源
 	A name for this step	此步骤的名称
 	commands	个命令
 	Rename Timeline Step	重命名时间轴步骤
+	Margin:	边距：
+	Nest Selection	嵌套所选对象
+	One file per sheet, at true size, cut paths only.	每张板材一个文件，按实际尺寸，仅含切割路径。
+	Parts may turn 90°	允许零件旋转 90°
+	Reset Sheet Settings	重置板材设置
+	Select the parts to nest	选择要嵌套的零件
+	Sheet	板材
+	Sheets as DXF…	板材另存为 DXF…
+	Sheets as SVG…	板材另存为 SVG…
+	{n} too big for the sheet	{n} 个超出板材尺寸
+	{parts} parts on {sheets} sheets	{sheets} 张板材上共 {parts} 个零件
+	Nest on Sheets	在板材上嵌套
+	Plan Nest	规划嵌套
+	Sheet & Nest	板材与嵌套
+	{parts} parts on one sheet	1 张板材上共 {parts} 个零件

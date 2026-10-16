@@ -143,6 +143,7 @@ pub const ICON_PANELS: &[(&str, &str, &str)] = &[
     (crate::panels::variables::ID, "Variables", "chart-column"),
     (crate::panels::parameters::ID, "Parameters", "ruler"),
     (crate::panels::favourites::ID, "Favorites", "star"),
+    (crate::panels::nest::ID, "Sheet & Nest", "layout-grid"),
 ];
 
 /// Groups of icon panels separated by dividers in the collapsed column.
@@ -160,6 +161,7 @@ pub const ICON_PANEL_GROUPS: &[&[&str]] = &[
     &["character", "paragraph", "glyphs"],
     &["history", "actions", "info", "navigator"],
     &["variables", "parameters", "favourites"],
+    &["nest"],
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

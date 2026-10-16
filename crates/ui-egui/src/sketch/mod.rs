@@ -393,7 +393,9 @@ pub fn hint(app: &VectorcraftApp) -> Option<&'static str> {
         (SketchTool::Dimension, ..) if m.selected.is_empty() => {
             tl!("Click a line, circle or arc, or a point · drag a value to move it, double-click to edit · Esc leaves the tool")
         }
-        (SketchTool::Dimension, ..) => tl!("Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over"),
+        (SketchTool::Dimension, ..) => {
+            tl!("Click a second point (horizontal, vertical or aligned by where you place it) or a line · Esc starts over")
+        }
         (SketchTool::Trim, ..) => tl!("Click the part of a line to remove · Esc leaves the tool"),
         (SketchTool::Offset, ..) if m.modify.is_empty() => tl!("Click a line to offset its whole chain · Esc leaves the tool"),
         (SketchTool::Offset, ..) => tl!("Move the mouse to the side you want, or type a distance, Enter · Esc cancels"),
@@ -1091,7 +1093,8 @@ pub fn pointer(app: &mut VectorcraftApp, ui: &egui::Ui, resp: &egui::Response, r
     // Over the canvas itself: the response says so, and so does nothing floating above the point
     // (a dialog or popup would take the click).
     let over = resp.hovered() || resp.dragged() || pos.is_some_and(|p| ui.ctx().layer_id_at(p) == Some(ui.layer_id()));
-    let input = PointerInput { pos, pressed: pressed && over, down, released: released && over, clicked: clicked && over, double: double && over, shift };
+    let input =
+        PointerInput { pos, pressed: pressed && over, down, released: released && over, clicked: clicked && over, double: double && over, shift };
     handle_pointer(app, xf, input);
     if pos.is_some() {
         ui.ctx().request_repaint();
@@ -1171,10 +1174,9 @@ fn driven_offer_ui(app: &mut VectorcraftApp, ui: &egui::Ui, xf: &Xf, cache: &Cac
     let at = overlay::preview_geom(cache, xf, &offer.constraint, offer.at).map_or_else(|| ui.max_rect().center(), |g| g.label);
     let mut keep = false;
     let mut drop = false;
-    egui::Area::new(egui::Id::new("sketch-driven-offer"))
-        .order(egui::Order::Foreground)
-        .fixed_pos(at + egui::vec2(12.0, 12.0))
-        .show(ui.ctx(), |ui| {
+    egui::Area::new(egui::Id::new("sketch-driven-offer")).order(egui::Order::Foreground).fixed_pos(at + egui::vec2(12.0, 12.0)).show(
+        ui.ctx(),
+        |ui| {
             egui::Frame::popup(ui.style()).show(ui, |ui| {
                 ui.set_max_width(260.0);
                 ui.label(tl!("This dimension would over-constrain the sketch."));
@@ -1184,7 +1186,8 @@ fn driven_offer_ui(app: &mut VectorcraftApp, ui: &egui::Ui, xf: &Xf, cache: &Cac
                     drop = ui.button(tl!("Cancel")).clicked();
                 });
             });
-        });
+        },
+    );
     if keep {
         accept_driven(app);
     } else if drop && let Some(m) = app.sketch.as_mut() {

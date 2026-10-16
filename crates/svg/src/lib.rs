@@ -219,6 +219,32 @@ pub struct ExportOptions {
     /// its licence allows (whole where it forbids subsetting, left out where it forbids
     /// embedding). Not with outlined text or the Tiny profile.
     pub embed_fonts: bool,
+    /// The unit of the root's `width`/`height` (the viewBox stays in points): `pt` writes bare
+    /// numbers as before; `mm` and `in` write the size with its unit, so a laser or cutter app
+    /// reads the file at true size whatever it takes a bare number to mean (Euclidean, E1 F2).
+    pub size_unit: SizeUnit,
+}
+
+/// The unit [`ExportOptions::size_unit`] writes the SVG's size in.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SizeUnit {
+    /// Bare numbers, one per point (1/72 in).
+    #[default]
+    Pt,
+    Mm,
+    In,
+}
+
+impl SizeUnit {
+    /// `pt` in this unit, and the unit's suffix.
+    pub fn convert(self, pt: f64) -> (f64, &'static str) {
+        match self {
+            SizeUnit::Pt => (pt, ""),
+            SizeUnit::Mm => (pt * 25.4 / 72.0, "mm"),
+            SizeUnit::In => (pt / 72.0, "in"),
+        }
+    }
 }
 
 impl Default for ExportOptions {
@@ -239,6 +265,7 @@ impl Default for ExportOptions {
             encoding: Encoding::Utf8,
             profile: Profile::Svg11,
             embed_fonts: false,
+            size_unit: SizeUnit::Pt,
         }
     }
 }

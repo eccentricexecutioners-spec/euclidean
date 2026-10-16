@@ -91,6 +91,12 @@ pub const OPTIONS: &[FormatOption] = &[
         description: "embed the fonts type uses as @font-face, subset to the characters used (whole when the font's licence forbids subsetting, left out with a warning when it forbids embedding)",
     },
     FormatOption {
+        name: "sizeUnit",
+        ty: "string",
+        default: "\"pt\"",
+        description: "pt (the root's width/height as bare numbers, one per point) | mm | in (the size written with its unit, so cutting and laser apps read the file at true size)",
+    },
+    FormatOption {
         name: "svg",
         ty: "object",
         default: "null",

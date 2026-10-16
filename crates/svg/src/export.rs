@@ -112,7 +112,11 @@ fn write(doc: &Document, opts: &ExportOptions, native: Option<&[u8]>, id_prefix:
         out.push_str(" version=\"1.2\" baseProfile=\"tiny\"");
     }
     if !opts.responsive {
-        out.push_str(&format!(" width=\"{ww}\" height=\"{hh}\""));
+        let size = |pt: f64| {
+            let (v, unit) = opts.size_unit.convert(pt);
+            format!("{}{unit}", w.num(v))
+        };
+        out.push_str(&format!(" width=\"{}\" height=\"{}\"", size(rect.width()), size(rect.height())));
     }
     out.push_str(&format!(" viewBox=\"0 0 {ww} {hh}\">{nl}"));
     let css = opts.styling == Styling::InternalCss && !w.classes.is_empty();

@@ -5038,3 +5038,18 @@ mark-style	Japanese	Japonské
 	A name for this step	Název tohoto kroku
 	commands	příkazů
 	Rename Timeline Step	Přejmenovat krok časové osy
+	Margin:	Okraj:
+	Nest Selection	Výběr rozmístit na plechu
+	One file per sheet, at true size, cut paths only.	Jeden soubor na plech, ve skutečné velikosti, pouze řezné dráhy.
+	Parts may turn 90°	Díly lze otočit o 90°
+	Reset Sheet Settings	Obnovit nastavení plechu
+	Select the parts to nest	Vyberte díly k rozmístění
+	Sheet	Plech
+	Sheets as DXF…	Plechy jako DXF…
+	Sheets as SVG…	Plechy jako SVG…
+	{n} too big for the sheet	{n} je pro plech příliš velkých
+	{parts} parts on {sheets} sheets	{parts} dílů na {sheets} plechách
+	Nest on Sheets	Rozmístit na plechy
+	Plan Nest	Naplánovat rozmístění
+	Sheet & Nest	Plech a rozmístění
+	{parts} parts on one sheet	{parts} dílů na jednom plechu

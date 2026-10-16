@@ -60,16 +60,11 @@ fn read_chips(app: &VectorcraftApp) -> (Vec<Chip>, usize) {
             let sketch_id = cmd.starts_with("sketch.").then(|| id_of(s).or_else(|| children.iter().find_map(id_of))).flatten();
             Chip {
                 cmd,
-                label: s
-                    .get("name")
-                    .and_then(Value::as_str)
-                    .or_else(|| s.get("label").and_then(Value::as_str))
-                    .unwrap_or_default()
-                    .to_string(),
+                label: s.get("name").and_then(Value::as_str).or_else(|| s.get("label").and_then(Value::as_str)).unwrap_or_default().to_string(),
                 sketch_id,
                 children: children.len(),
-            status: s.get("status").and_then(Value::as_str).unwrap_or("ok").to_string(),
-            error: s.get("error").and_then(Value::as_str).map(str::to_string),
+                status: s.get("status").and_then(Value::as_str).unwrap_or("ok").to_string(),
+                error: s.get("error").and_then(Value::as_str).map(str::to_string),
                 rolled_back: flag(s),
                 suppressed: s.get("suppressed").and_then(Value::as_bool) == Some(true),
             }
@@ -246,7 +241,15 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
 }
 
 /// The right-click menu of a step: Edit, Suppress / Unsuppress, Delete, Roll to here, Rename.
-fn step_menu(ui: &mut Ui, i: usize, c: &Chip, hits: &mut Vec<(String, Rect)>, edit: &mut Option<usize>, roll: &mut Option<usize>, action: &mut Option<Action>) {
+fn step_menu(
+    ui: &mut Ui,
+    i: usize,
+    c: &Chip,
+    hits: &mut Vec<(String, Rect)>,
+    edit: &mut Option<usize>,
+    roll: &mut Option<usize>,
+    action: &mut Option<Action>,
+) {
     ui.set_min_width(150.0);
     let title = egui::RichText::new(format!("{} {} · {}", tl!("Step"), i + 1, c.label)).small().weak();
     ui.label(if c.suppressed { title.strikethrough() } else { title });

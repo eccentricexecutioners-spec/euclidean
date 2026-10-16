@@ -404,19 +404,27 @@ pub(crate) fn drives(sketch: &sketch::Sketch, param: &str) -> Option<String> {
         _ => format!("{what} {} {}", tl!("circle"), e + 1),
     };
     let driven = if sketch.is_driven(c) { format!("{} · ", tl!("Driven")) } else { String::new() };
-    Some(driven
-        + &match c {
-        Constraint::Length { line, .. } => format!("{} {}", tl!("Length of line"), line + 1),
-        Constraint::Angle { line, .. } => format!("{} {}", tl!("Angle of line"), line + 1),
-        Constraint::AngleBetween { a, b, .. } => format!("{} {} {} {}", tl!("Angle between lines"), a + 1, tl!("and"), b + 1),
-        Constraint::Distance { a, b, along: Along::Direct, .. } => format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1),
-        Constraint::Distance { a, b, along: Along::X, .. } => format!("{} {} {} {}", tl!("Horizontal distance between points"), a + 1, tl!("and"), b + 1),
-        Constraint::Distance { a, b, along: Along::Y, .. } => format!("{} {} {} {}", tl!("Vertical distance between points"), a + 1, tl!("and"), b + 1),
-        Constraint::DistancePointLine { line, .. } => format!("{} {}", tl!("Offset from line"), line + 1),
-        Constraint::Radius { e, .. } => radius_of(*e, tl!("Radius of")),
-        Constraint::Diameter { e, .. } => radius_of(*e, tl!("Diameter of")),
-        _ => return None,
-    })
+    Some(
+        driven
+            + &match c {
+                Constraint::Length { line, .. } => format!("{} {}", tl!("Length of line"), line + 1),
+                Constraint::Angle { line, .. } => format!("{} {}", tl!("Angle of line"), line + 1),
+                Constraint::AngleBetween { a, b, .. } => format!("{} {} {} {}", tl!("Angle between lines"), a + 1, tl!("and"), b + 1),
+                Constraint::Distance { a, b, along: Along::Direct, .. } => {
+                    format!("{} {} {} {}", tl!("Distance between points"), a + 1, tl!("and"), b + 1)
+                }
+                Constraint::Distance { a, b, along: Along::X, .. } => {
+                    format!("{} {} {} {}", tl!("Horizontal distance between points"), a + 1, tl!("and"), b + 1)
+                }
+                Constraint::Distance { a, b, along: Along::Y, .. } => {
+                    format!("{} {} {} {}", tl!("Vertical distance between points"), a + 1, tl!("and"), b + 1)
+                }
+                Constraint::DistancePointLine { line, .. } => format!("{} {}", tl!("Offset from line"), line + 1),
+                Constraint::Radius { e, .. } => radius_of(*e, tl!("Radius of")),
+                Constraint::Diameter { e, .. } => radius_of(*e, tl!("Diameter of")),
+                _ => return None,
+            },
+    )
 }
 
 /// The whole Fusion-style listing: Favorites (the starred rows), User Parameters (with New

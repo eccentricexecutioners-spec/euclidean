@@ -96,6 +96,7 @@ const WITH_FIELDS: &[&str] = &[
     "character",
     "paragraph",
     "parameters",
+    "nest",
     "layers",
     "artboards",
     "transparency",

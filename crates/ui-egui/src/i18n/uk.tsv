@@ -4588,3 +4588,18 @@ lighting	Light	Світло
 	A name for this step	Імʼя цього кроку
 	commands	команд
 	Rename Timeline Step	Перейменувати крок часової шкали
+	Margin:	Поле:
+	Nest Selection	Розкроїти виділене
+	One file per sheet, at true size, cut paths only.	Один файл на аркуш, у натуральну величину, лише контури різання.
+	Parts may turn 90°	Деталі можна повертати на 90°
+	Reset Sheet Settings	Скинути налаштування аркуша
+	Select the parts to nest	Виберіть деталі для розкрою
+	Sheet	Аркуш
+	Sheets as DXF…	Аркуші як DXF…
+	Sheets as SVG…	Аркуші як SVG…
+	{n} too big for the sheet	{n} завеликі для аркуша
+	{parts} parts on {sheets} sheets	{parts} деталей на {sheets} аркушах
+	Nest on Sheets	Розкроїти на аркуші
+	Plan Nest	Спланувати розкрій
+	Sheet & Nest	Аркуш і розкрій
+	{parts} parts on one sheet	{parts} деталей на одному аркуші

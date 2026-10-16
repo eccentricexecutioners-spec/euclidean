@@ -3926,3 +3926,18 @@ lighting	Light	光源
 	A name for this step	此步驟的名稱
 	commands	個命令
 	Rename Timeline Step	重新命名時間軸步驟
+	Margin:	邊距：
+	Nest Selection	巢狀排列選取項目
+	One file per sheet, at true size, cut paths only.	每張板材一個檔案，依實際尺寸，僅含切割路徑。
+	Parts may turn 90°	允許零件旋轉 90°
+	Reset Sheet Settings	重設板材設定
+	Select the parts to nest	選取要巢狀排列的零件
+	Sheet	板材
+	Sheets as DXF…	板材另存為 DXF…
+	Sheets as SVG…	板材另存為 SVG…
+	{n} too big for the sheet	{n} 個超出板材尺寸
+	{parts} parts on {sheets} sheets	{sheets} 張板材上共 {parts} 個零件
+	Nest on Sheets	在板材上巢狀排列
+	Plan Nest	規劃巢狀排列
+	Sheet & Nest	板材與巢狀排列
+	{parts} parts on one sheet	1 張板材上共 {parts} 個零件

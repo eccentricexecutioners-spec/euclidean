@@ -4572,3 +4572,18 @@ lighting	Light	광원
 	A name for this step	이 단계의 이름
 	commands	개 명령
 	Rename Timeline Step	타임라인 단계 이름 바꾸기
+	Margin:	여백:
+	Nest Selection	선택 항목 네스팅
+	One file per sheet, at true size, cut paths only.	시트당 파일 하나, 실제 크기, 절단 패스만.
+	Parts may turn 90°	부품 90° 회전 허용
+	Reset Sheet Settings	시트 설정 재설정
+	Select the parts to nest	네스팅할 부품을 선택하세요
+	Sheet	시트
+	Sheets as DXF…	시트를 DXF로…
+	Sheets as SVG…	시트를 SVG로…
+	{n} too big for the sheet	{n}개가 시트보다 큼
+	{parts} parts on {sheets} sheets	시트 {sheets}장에 부품 {parts}개
+	Nest on Sheets	시트에 네스팅
+	Plan Nest	네스팅 계획
+	Sheet & Nest	시트 및 네스팅
+	{parts} parts on one sheet	시트 1장에 부품 {parts}개

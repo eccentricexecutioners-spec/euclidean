@@ -4602,3 +4602,18 @@ lighting	Light	ライト
 	A name for this step	このステップの名前
 	commands	個のコマンド
 	Rename Timeline Step	タイムラインのステップ名を変更
+	Margin:	余白：
+	Nest Selection	選択部分をネスティング
+	One file per sheet, at true size, cut paths only.	シートごとに1ファイル、実寸、カットパスのみ。
+	Parts may turn 90°	パーツを90°回転可
+	Reset Sheet Settings	シート設定をリセット
+	Select the parts to nest	ネスティングするパーツを選択
+	Sheet	シート
+	Sheets as DXF…	シートをDXFで書き出し…
+	Sheets as SVG…	シートをSVGで書き出し…
+	{n} too big for the sheet	{n}個がシートに収まりません
+	{parts} parts on {sheets} sheets	{sheets}枚のシートに{parts}個のパーツ
+	Nest on Sheets	シートにネスティング
+	Plan Nest	ネスティングを計画
+	Sheet & Nest	シートとネスティング
+	{parts} parts on one sheet	1枚のシートに{parts}個のパーツ

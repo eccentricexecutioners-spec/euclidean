@@ -5005,3 +5005,18 @@ imageTrace	Outline	Körvonal
 	A name for this step	Név ennek a lépésnek
 	commands	parancs
 	Rename Timeline Step	Idővonal lépésének átnevezése
+	Margin:	Margó:
+	Nest Selection	Kijelölés elhelyezése
+	One file per sheet, at true size, cut paths only.	Egy fájl lemezenként, valódi méretben, csak vágóútvonalak.
+	Parts may turn 90°	Az alkatrészek elforgathatók 90°-kal
+	Reset Sheet Settings	Lemezbeállítások visszaállítása
+	Select the parts to nest	Jelölje ki az elhelyezendő alkatrészeket
+	Sheet	Lemez
+	Sheets as DXF…	Lemezek DXF-ként…
+	Sheets as SVG…	Lemezek SVG-ként…
+	{n} too big for the sheet	{n} túl nagy a lemezhez
+	{parts} parts on {sheets} sheets	{parts} alkatrész {sheets} lemezen
+	Nest on Sheets	Elhelyezés lemezeken
+	Plan Nest	Elhelyezés tervezése
+	Sheet & Nest	Lemez és elhelyezés
+	{parts} parts on one sheet	{parts} alkatrész egy lemezen

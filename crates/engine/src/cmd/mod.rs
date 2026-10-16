@@ -40,6 +40,7 @@ pub mod links;
 mod live;
 pub(crate) mod maskedit;
 pub(crate) mod menucmds;
+pub(crate) mod nest;
 pub(crate) mod newart;
 pub mod newdoc;
 mod object;
@@ -245,6 +246,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
         v.extend(variablecmds::specs());
         v.extend(parameters::specs());
         v.extend(timeline::specs());
+        v.extend(nest::specs());
         v.extend(sketch::specs());
         v.extend(docinfo::specs());
         v.extend(panelcmds::specs());

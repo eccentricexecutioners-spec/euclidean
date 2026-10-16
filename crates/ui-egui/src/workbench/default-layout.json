@@ -353,6 +353,16 @@
      ]
     },
     {
+     "id": "nest",
+     "label": "NEST",
+     "show": [
+      "panel:nest"
+     ],
+     "items": [
+      "panel:nest"
+     ]
+    },
+    {
      "id": "export",
      "label": "EXPORT",
      "show": [
@@ -371,6 +381,9 @@
    ],
    "left": [
     "artboards"
+   ],
+   "right": [
+    "nest"
    ]
   }
  ],

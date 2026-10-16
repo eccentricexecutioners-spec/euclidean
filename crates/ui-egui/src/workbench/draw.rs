@@ -415,6 +415,7 @@ pub(crate) fn short_label(item: &Item) -> String {
             "charStyles" => Some("Char Styles"),
             "paraStyles" => Some("Para Styles"),
             "openType" => Some("OpenType"),
+            "nest" => Some("Nest"),
             _ => None,
         },
         Item::Sep => None,

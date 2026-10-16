@@ -4590,3 +4590,18 @@ theme	Appearance	Giao diện
 	A name for this step	Tên cho bước này
 	commands	lệnh
 	Rename Timeline Step	Đổi tên bước dòng thời gian
+	Margin:	Lề:
+	Nest Selection	Sắp xếp lồng vùng chọn
+	One file per sheet, at true size, cut paths only.	Mỗi tấm một tệp, đúng kích thước thật, chỉ gồm đường cắt.
+	Parts may turn 90°	Cho phép xoay chi tiết 90°
+	Reset Sheet Settings	Đặt lại cài đặt tấm vật liệu
+	Select the parts to nest	Chọn các chi tiết cần sắp xếp lồng
+	Sheet	Tấm vật liệu
+	Sheets as DXF…	Tấm vật liệu dạng DXF…
+	Sheets as SVG…	Tấm vật liệu dạng SVG…
+	{n} too big for the sheet	{n} quá lớn so với tấm vật liệu
+	{parts} parts on {sheets} sheets	{parts} chi tiết trên {sheets} tấm
+	Nest on Sheets	Sắp xếp lồng lên tấm vật liệu
+	Plan Nest	Lập kế hoạch sắp xếp lồng
+	Sheet & Nest	Tấm vật liệu & sắp xếp lồng
+	{parts} parts on one sheet	{parts} chi tiết trên một tấm

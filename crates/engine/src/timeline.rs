@@ -241,10 +241,20 @@ pub fn feature_of(cmd: &str, selection: &Selection) -> Option<(String, bool, &'s
         "text.setText" | "text.insertInline" | "text.editRange" | "text.setFormat" | "text.setRangeStyle" | "text.setStyle" | "type.insert" => {
             (format!("type:{}", sel()), false, "Type")
         }
-        "paint.setFill" | "paint.setStroke" | "paint.swap" | "paint.none" | "paint.default" | "paint.invert" | "paint.complement" | "stroke.set" | "stroke.setAdvanced"
-        | "object.setOpacity" | "appearance.setItem" | "appearance.addFill" | "appearance.addStroke" | "appearance.addEffect" => {
-            (format!("appearance:{}", sel()), false, "Appearance")
-        }
+        "paint.setFill"
+        | "paint.setStroke"
+        | "paint.swap"
+        | "paint.none"
+        | "paint.default"
+        | "paint.invert"
+        | "paint.complement"
+        | "stroke.set"
+        | "stroke.setAdvanced"
+        | "object.setOpacity"
+        | "appearance.setItem"
+        | "appearance.addFill"
+        | "appearance.addStroke"
+        | "appearance.addEffect" => (format!("appearance:{}", sel()), false, "Appearance"),
         "object.move" | "object.transform" | "object.transformAgain" | "object.transformEach" => (format!("transform:{}", sel()), false, "Transform"),
         c if c.starts_with("parameters.") => ("parameters".into(), false, "Parameters"),
         _ => return None,
@@ -567,6 +577,7 @@ impl Session {
         // stored step. `gone`: what suppressed steps would have made.
         let mut map: std::collections::BTreeMap<NodeId, NodeId> = Default::default();
         let mut gone: std::collections::BTreeSet<NodeId> = Default::default();
+        #[allow(clippy::needless_range_loop)] // `i` is also the failed step's index
         for i in 0..steps.len() {
             if failed.is_some() {
                 steps[i].status = Status::Pending;

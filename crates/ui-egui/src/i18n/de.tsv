@@ -4563,3 +4563,18 @@ theme	Appearance	Erscheinungsbild
 	A name for this step	Ein Name für diesen Schritt
 	commands	Befehle
 	Rename Timeline Step	Zeitleistenschritt umbenennen
+	Margin:	Rand:
+	Nest Selection	Auswahl verschachteln
+	One file per sheet, at true size, cut paths only.	Eine Datei pro Tafel, in Originalgröße, nur Schnittpfade.
+	Parts may turn 90°	Teile dürfen um 90° gedreht werden
+	Reset Sheet Settings	Tafeleinstellungen zurücksetzen
+	Select the parts to nest	Zu verschachtelnde Teile auswählen
+	Sheet	Tafel
+	Sheets as DXF…	Tafeln als DXF…
+	Sheets as SVG…	Tafeln als SVG…
+	{n} too big for the sheet	{n} zu groß für die Tafel
+	{parts} parts on {sheets} sheets	{parts} Teile auf {sheets} Tafeln
+	Nest on Sheets	Auf Tafeln verschachteln
+	Plan Nest	Verschachtelung planen
+	Sheet & Nest	Tafel & Verschachtelung
+	{parts} parts on one sheet	{parts} Teile auf einer Tafel

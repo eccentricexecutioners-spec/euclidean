@@ -30,6 +30,7 @@ pub mod library_panel;
 pub mod links;
 pub mod magic_wand;
 pub mod navigator;
+pub mod nest;
 pub mod opentype;
 pub mod paragraph;
 pub mod parameters;
@@ -174,6 +175,7 @@ pub fn show_icon_panel(app: &mut VectorcraftApp, ui: &mut Ui, id: &str) {
         variables::ID => variables::show(app, ui),
         parameters::ID => parameters::show(app, ui),
         favourites::ID => favourites::show(app, ui),
+        nest::ID => nest::show(app, ui),
         "colorThemes" => color_themes::show(app, ui),
         links::ID => links::show(app, ui),
         asset_export::ID => asset_export::show(app, ui),
@@ -228,6 +230,7 @@ pub fn panel_menu_items(app: &mut VectorcraftApp, ui: &mut Ui, id: &str) -> bool
         variables::ID => variables::menu(app, ui),
         parameters::ID => parameters::menu(app, ui),
         favourites::ID => favourites::menu(app, ui),
+        nest::ID => nest::menu(app, ui),
         _ => return false,
     }
     true

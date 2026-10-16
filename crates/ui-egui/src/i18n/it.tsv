@@ -4608,3 +4608,18 @@ lighting	Light	Luce
 	A name for this step	Un nome per questo passaggio
 	commands	comandi
 	Rename Timeline Step	Rinomina passaggio della timeline
+	Margin:	Margine:
+	Nest Selection	Annida selezione
+	One file per sheet, at true size, cut paths only.	Un file per foglio, a dimensione reale, solo tracciati di taglio.
+	Parts may turn 90°	I pezzi possono ruotare di 90°
+	Reset Sheet Settings	Ripristina impostazioni foglio
+	Select the parts to nest	Seleziona i pezzi da annidare
+	Sheet	Foglio
+	Sheets as DXF…	Fogli come DXF…
+	Sheets as SVG…	Fogli come SVG…
+	{n} too big for the sheet	{n} troppo grandi per il foglio
+	{parts} parts on {sheets} sheets	{parts} pezzi su {sheets} fogli
+	Nest on Sheets	Annida sui fogli
+	Plan Nest	Pianifica annidamento
+	Sheet & Nest	Foglio e annidamento
+	{parts} parts on one sheet	{parts} pezzi su un foglio

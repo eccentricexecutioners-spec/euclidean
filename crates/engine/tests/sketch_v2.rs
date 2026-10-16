@@ -454,7 +454,12 @@ fn circle_id(v: &Value) -> u64 {
 
 fn dim_rows(s: &mut Session) -> Vec<(String, String)> {
     let list = s.execute("parameters.list", &json!({})).unwrap();
-    list["rows"].as_array().unwrap().iter().map(|r| (r["name"].as_str().unwrap().to_string(), r["expression"].as_str().unwrap().to_string())).collect()
+    list["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| (r["name"].as_str().unwrap().to_string(), r["expression"].as_str().unwrap().to_string()))
+        .collect()
 }
 
 #[test]
@@ -464,14 +469,18 @@ fn a_horizontal_distance_holds_the_x_offset_and_a_vertical_the_y() {
     // A free line from (10, 10) to (40, 30): points 1 and 2.
     s.execute("sketch.addLine", &json!({"id": id.0, "from": [10.0, 10.0], "to": [40.0, 30.0]})).unwrap();
     // Picked right to left: the engine turns it round so the value is positive.
-    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 2, "b": 1, "along": "x"}, "expression": "50"})).unwrap();
+    let r = s
+        .execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 2, "b": 1, "along": "x"}, "expression": "50"}))
+        .unwrap();
     assert_eq!(r["name"], "d1");
     let v = inspect(&mut s);
     let (a, b) = (point(&v, 1), point(&v, 2));
     assert!((b.0 - a.0 - 50.0).abs() < 1e-6, "x offset 50: {a:?} {b:?}");
     assert_eq!(v["constraints"][1]["along"], "x");
     assert_eq!((v["constraints"][1]["a"].as_u64(), v["constraints"][1]["b"].as_u64()), (Some(1), Some(2)), "turned round");
-    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 1, "b": 2, "along": "y"}, "expression": "20"})).unwrap();
+    let r = s
+        .execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "distance", "a": 1, "b": 2, "along": "y"}, "expression": "20"}))
+        .unwrap();
     assert_eq!(r["value"], 20.0);
     let v = inspect(&mut s);
     let (a, b) = (point(&v, 1), point(&v, 2));
@@ -497,7 +506,11 @@ fn a_dimension_is_placed_moved_renamed_and_the_place_survives_save_and_open() {
     assert_eq!(inspect(&mut s)["constraints"][1]["at"], json!([25.0, 20.0]));
     s.execute("parameters.rename", &json!({"from": "d1", "to": "width"})).unwrap();
     let v = inspect(&mut s);
-    assert_eq!((v["constraints"][1]["param"].as_str(), v["constraints"][1]["at"].clone()), (Some("width"), json!([25.0, 20.0])), "the place follows the name");
+    assert_eq!(
+        (v["constraints"][1]["param"].as_str(), v["constraints"][1]["at"].clone()),
+        (Some("width"), json!([25.0, 20.0])),
+        "the place follows the name"
+    );
     let doc = s.doc().unwrap().doc.clone();
     let bytes = vectorcraft_format::save_file(&doc);
     let back = vectorcraft_format::load_file(&bytes).unwrap().doc;
@@ -523,8 +536,14 @@ fn a_driven_dimension_reads_the_geometry_and_can_become_driving_when_room_allows
     let e = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}})).unwrap_err().to_string();
     assert!(e.contains("over-constrain"), "{e}");
     // The same, driven: accepted, in brackets, and it reads 40.
-    let r = s.execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}, "expression": "99", "driven": true})).unwrap();
-    assert_eq!((r["name"].as_str(), r["driven"].as_bool(), r["value"].as_f64()), (Some("d2"), Some(true), Some(40.0)), "a driven dimension ignores a typed value");
+    let r = s
+        .execute("sketch.addDimension", &json!({"id": id.0, "constraint": {"type": "length", "line": 0}, "expression": "99", "driven": true}))
+        .unwrap();
+    assert_eq!(
+        (r["name"].as_str(), r["driven"].as_bool(), r["value"].as_f64()),
+        (Some("d2"), Some(true), Some(40.0)),
+        "a driven dimension ignores a typed value"
+    );
     let v = inspect(&mut s);
     assert_eq!(v["constraints"].as_array().unwrap().last().unwrap()["driven"], true);
     assert_eq!(v["dof"], dof_before, "a driven dimension takes no freedom");

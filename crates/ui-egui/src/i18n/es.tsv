@@ -4979,3 +4979,18 @@ mark-style	Japanese	Japonesas
 	A name for this step	Un nombre para este paso
 	commands	comandos
 	Rename Timeline Step	Cambiar nombre del paso de la línea de tiempo
+	Margin:	Margen:
+	Nest Selection	Anidar selección
+	One file per sheet, at true size, cut paths only.	Un archivo por plancha, a tamaño real, solo trazados de corte.
+	Parts may turn 90°	Las piezas pueden girar 90°
+	Reset Sheet Settings	Restablecer ajustes de plancha
+	Select the parts to nest	Selecciona las piezas que anidar
+	Sheet	Plancha
+	Sheets as DXF…	Planchas como DXF…
+	Sheets as SVG…	Planchas como SVG…
+	{n} too big for the sheet	{n} demasiado grandes para la plancha
+	{parts} parts on {sheets} sheets	{parts} piezas en {sheets} planchas
+	Nest on Sheets	Anidar en planchas
+	Plan Nest	Planificar anidado
+	Sheet & Nest	Plancha y anidado
+	{parts} parts on one sheet	{parts} piezas en una plancha

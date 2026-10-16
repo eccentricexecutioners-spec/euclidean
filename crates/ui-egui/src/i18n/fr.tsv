@@ -5038,3 +5038,18 @@ theme	Appearance	Apparence
 	A name for this step	Un nom pour cette étape
 	commands	commandes
 	Rename Timeline Step	Renommer l’étape de la chronologie
+	Margin:	Marge :
+	Nest Selection	Imbriquer la sélection
+	One file per sheet, at true size, cut paths only.	Un fichier par plaque, à la taille réelle, tracés de découpe uniquement.
+	Parts may turn 90°	Les pièces peuvent pivoter de 90°
+	Reset Sheet Settings	Réinitialiser les réglages de plaque
+	Select the parts to nest	Sélectionnez les pièces à imbriquer
+	Sheet	Plaque
+	Sheets as DXF…	Plaques en DXF…
+	Sheets as SVG…	Plaques en SVG…
+	{n} too big for the sheet	{n} pièces trop grandes pour la plaque
+	{parts} parts on {sheets} sheets	{parts} pièces sur {sheets} plaques
+	Nest on Sheets	Imbriquer sur plaques
+	Plan Nest	Planifier l'imbrication
+	Sheet & Nest	Plaque et imbrication
+	{parts} parts on one sheet	{parts} pièces sur une plaque
