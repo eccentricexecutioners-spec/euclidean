@@ -133,12 +133,12 @@ fn the_menus_reach_asset_export() {
     let entries = crate::menus::menu_entries(&app);
     let find = |cmd: &str, label: &str| entries.iter().find(|e| e.command.as_deref() == Some(cmd) && e.label == label).map(|e| e.path.clone());
     assert_eq!(find("file.exportSelection", "Export Selection…"), Some(vec!["File".to_string()]));
-    assert_eq!(find("assets.add", "As Single Asset"), Some(vec!["Object".to_string(), "Collect for Export".to_string()]));
-    assert_eq!(find("assets.add", "As Multiple Assets"), Some(vec!["Object".to_string(), "Collect for Export".to_string()]));
-    let window = entries.iter().find(|e| e.label == "Asset Export").unwrap();
-    assert_eq!(window.params, json!({"panel": crate::panels::asset_export::ID}));
-    app.run("window.panel", window.params.clone()).unwrap();
-    assert_eq!(app.ui.open_panel.as_deref(), Some(crate::panels::asset_export::ID));
+    // E1: Asset Export is cut from the UI (`workbench::hidden`): no menu rows, no Window row, no
+    // `window.panel`; the commands still run for scripts.
+    assert_eq!(find("assets.add", "As Single Asset"), None);
+    assert_eq!(find("assets.add", "As Multiple Assets"), None);
+    assert!(!entries.iter().any(|e| e.label == "Asset Export"));
+    assert!(app.run("window.panel", json!({"panel": crate::panels::asset_export::ID})).is_err());
     app.run("assets.add", json!({"multiple": false})).unwrap();
     assert_eq!(assets(&mut app).len(), 1);
 }

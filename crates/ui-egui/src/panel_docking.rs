@@ -774,6 +774,7 @@ fn icon_rail(app: &mut VectorcraftApp, ui: &mut egui::Ui) {
                 for &(id, label, icon) in crate::state::ICON_PANEL_GROUPS
                     .iter()
                     .flat_map(|group| group.iter())
+                    .filter(|id| !crate::workbench::hidden::panel(id))
                     .filter_map(|id| crate::state::ICON_PANELS.iter().find(|entry| entry.0 == *id))
                 {
                     if app.ui.docking.as_ref().is_some_and(|layout| layout.contains(&id.to_string())) {

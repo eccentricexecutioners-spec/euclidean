@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "pinned_left": [
   "layers",
   "colour"
@@ -13,20 +13,40 @@
     {
      "id": "select",
      "label": "SELECT",
+     "show": [
+      "tool:selection",
+      "tool:directSelection",
+      "tool:lasso",
+      "tool:magicWand"
+     ],
      "items": [
       "tool:selection",
       "tool:directSelection",
       "tool:groupSelection",
-      "tool:magicWand",
       "tool:lasso",
+      "tool:magicWand",
       "tool:livePaintSelection",
       "tool:perspectiveSelection",
+      "sep",
       "menu:Select"
      ]
     },
     {
      "id": "create",
      "label": "CREATE",
+     "show": [
+      "tool:pen",
+      "tool:rectangle",
+      "tool:ellipse",
+      "tool:lineSegment",
+      "tool:curvature",
+      "tool:pencil",
+      "tool:polygon",
+      "tool:star",
+      "tool:arc",
+      "tool:roundedRectangle",
+      "tool:paintbrush"
+     ],
      "items": [
       "tool:pen",
       "tool:curvature",
@@ -34,6 +54,7 @@
       "tool:paintbrush",
       "tool:blobBrush",
       "tool:shaper",
+      "sep",
       "tool:lineSegment",
       "tool:arc",
       "tool:spiral",
@@ -44,8 +65,10 @@
       "tool:ellipse",
       "tool:polygon",
       "tool:star",
+      "sep",
       "tool:blend",
       "tool:perspectiveGrid",
+      "sep",
       "menu:Object/Repeat",
       "menu:Object/Pattern",
       "menu:Object/Blend"
@@ -54,6 +77,22 @@
     {
      "id": "modify",
      "label": "MODIFY",
+     "show": [
+      "tool:addAnchor",
+      "tool:deleteAnchor",
+      "tool:anchorPoint",
+      "tool:scissors",
+      "tool:rotate",
+      "tool:scale",
+      "tool:shapeBuilder",
+      "tool:knife",
+      "tool:join",
+      "tool:reflect",
+      "tool:freeTransform",
+      "tool:width",
+      "tool:eraser",
+      "tool:smooth"
+     ],
      "items": [
       "tool:addAnchor",
       "tool:deleteAnchor",
@@ -67,6 +106,7 @@
       "tool:mirrorCut",
       "tool:lineCut",
       "tool:rectCut",
+      "sep",
       "tool:rotate",
       "tool:reflect",
       "tool:scale",
@@ -75,6 +115,7 @@
       "tool:freeTransform",
       "tool:puppetWarp",
       "tool:width",
+      "sep",
       "tool:warp",
       "tool:twirl",
       "tool:pucker",
@@ -82,38 +123,63 @@
       "tool:scallop",
       "tool:crystallize",
       "tool:wrinkle",
+      "sep",
       "tool:shapeBuilder",
       "tool:symbolShifter",
       "tool:symbolScruncher",
       "tool:symbolSizer",
       "tool:symbolSpinner",
-      "panel:align",
-      "panel:pathfinder",
+      "sep",
       "menu:Object/Path",
       "menu:Object/Shape",
-      "menu:Object/Envelope Distort",
-      "menu:Object/Arrange",
+      "menu:Object/Envelope Distort"
+     ]
+    },
+    {
+     "id": "arrange",
+     "label": "ARRANGE",
+     "show": [
+      "panel:align",
+      "panel:pathfinder",
       "cmd:object.group",
       "cmd:object.ungroup"
+     ],
+     "items": [
+      "panel:align",
+      "panel:pathfinder",
+      "cmd:object.group",
+      "cmd:object.ungroup",
+      "sep",
+      "menu:Object/Arrange"
      ]
     },
     {
      "id": "style",
      "label": "STYLE",
-     "items": [
-      "tool:livePaintBucket",
-      "tool:gradient",
-      "tool:mesh",
+     "show": [
       "tool:eyedropper",
+      "tool:gradient",
+      "tool:livePaintBucket",
+      "panel:appearance",
+      "panel:transparency",
+      "tool:mesh"
+     ],
+     "items": [
+      "tool:eyedropper",
+      "tool:gradient",
+      "tool:livePaintBucket",
+      "tool:mesh",
       "tool:symbolStainer",
       "tool:symbolScreener",
       "tool:symbolStyler",
+      "sep",
+      "panel:appearance",
+      "panel:transparency",
       "panel:brushes",
       "panel:patternOptions",
       "panel:gradient",
-      "panel:transparency",
       "panel:graphicStyles",
-      "panel:appearance",
+      "sep",
       "menu:Effect",
       "menu:Object/Live Paint"
      ]
@@ -121,6 +187,10 @@
     {
      "id": "inspect",
      "label": "INSPECT",
+     "show": [
+      "tool:measure",
+      "panel:info"
+     ],
      "items": [
       "tool:measure",
       "panel:info",
@@ -131,13 +201,19 @@
     {
      "id": "insert",
      "label": "INSERT",
+     "show": [
+      "cmd:file.place.queue",
+      "panel:imageTrace",
+      "panel:symbols"
+     ],
      "items": [
       "cmd:file.place.queue",
-      "tool:symbolSprayer",
-      "panel:symbols",
-      "panel:libraries",
       "panel:imageTrace",
+      "panel:symbols",
+      "tool:symbolSprayer",
+      "panel:libraries",
       "panel:links",
+      "sep",
       "menu:Object/Image Trace"
      ]
     }
@@ -154,20 +230,25 @@
     {
      "id": "create",
      "label": "CREATE",
+     "show": [
+      "cmd:sketch.edit.new",
+      "cmd:sketch.edit.open"
+     ],
      "items": [
       "cmd:sketch.edit.new",
-      "tool:lineSegment",
-      "tool:rectangle",
-      "tool:ellipse",
-      "tool:arc",
-      "tool:polygon"
+      "cmd:sketch.edit.open"
      ]
     },
     {
-     "id": "modify",
-     "label": "MODIFY",
+     "id": "parameters",
+     "label": "PARAMETERS",
+     "show": [
+      "cmd:window.changeParameters",
+      "panel:parameters"
+     ],
      "items": [
-      "cmd:window.changeParameters"
+      "cmd:window.changeParameters",
+      "panel:parameters"
      ]
     }
    ],
@@ -184,6 +265,12 @@
     {
      "id": "create",
      "label": "CREATE",
+     "show": [
+      "tool:type",
+      "tool:areaType",
+      "tool:typeOnPath",
+      "tool:verticalType"
+     ],
      "items": [
       "tool:type",
       "tool:areaType",
@@ -196,12 +283,27 @@
     {
      "id": "modify",
      "label": "MODIFY",
-     "items": [
+     "show": [
+      "cmd:type.createOutlines",
+      "cmd:text.fitHeadline",
+      "cmd:type.changeCase",
       "panel:glyphs",
+      "panel:openType",
       "panel:charStyles",
       "panel:paraStyles",
+      "panel:tabs"
+     ],
+     "items": [
+      "cmd:type.createOutlines",
+      "cmd:text.fitHeadline",
+      "cmd:type.changeCase",
+      "sep",
+      "panel:glyphs",
       "panel:openType",
+      "panel:charStyles",
+      "panel:paraStyles",
       "panel:tabs",
+      "sep",
       "menu:Type"
      ]
     }
@@ -219,42 +321,51 @@
     {
      "id": "artboards",
      "label": "ARTBOARDS",
+     "show": [
+      "tool:artboard",
+      "panel:artboards"
+     ],
      "items": [
       "tool:artboard",
-      "tool:printTiling",
-      "panel:artboards"
+      "panel:artboards",
+      "tool:printTiling"
      ]
     },
     {
-     "id": "slices",
-     "label": "SLICES",
+     "id": "print",
+     "label": "PRINT",
+     "show": [
+      "cmd:file.print",
+      "cmd:file.export.pdf",
+      "panel:separations",
+      "panel:flattenerPreview"
+     ],
      "items": [
-      "tool:slice",
-      "tool:sliceSelection"
+      "cmd:file.print",
+      "cmd:file.export.pdf",
+      "panel:separations",
+      "panel:flattenerPreview"
      ]
     },
     {
      "id": "export",
      "label": "EXPORT",
-     "items": [
-      "panel:assetExport",
-      "panel:cssProperties",
-      "panel:separations",
-      "panel:flattenerPreview",
-      "cmd:file.exportForScreens",
-      "cmd:file.exportAs",
+     "show": [
       "cmd:file.export.svg",
       "cmd:file.export.png",
-      "cmd:file.export.pdf",
-      "cmd:file.exportSelection",
-      "cmd:file.saveForWeb",
-      "cmd:file.print"
+      "cmd:file.exportAs",
+      "cmd:file.exportSelection"
+     ],
+     "items": [
+      "cmd:file.export.svg",
+      "cmd:file.export.png",
+      "cmd:file.exportAs",
+      "cmd:file.exportSelection"
      ]
     }
    ],
    "left": [
-    "artboards",
-    "assetExport"
+    "artboards"
    ]
   }
  ],
@@ -293,7 +404,11 @@
   "tool:scatterGraph",
   "tool:pieGraph",
   "tool:radarGraph",
+  "tool:slice",
+  "tool:sliceSelection",
   "panel:actions",
-  "panel:variables"
+  "panel:variables",
+  "panel:assetExport",
+  "panel:cssProperties"
  ]
 }

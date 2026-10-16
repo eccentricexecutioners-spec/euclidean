@@ -83,7 +83,7 @@ fn menu_item_expands_to_commands_under_that_path() {
         tabs: vec![TabDef {
             id: "t".into(),
             label: "T".into(),
-            groups: vec![GroupDef { id: "g".into(), label: "G".into(), items: vec!["menu:Object/Path".into()] }],
+            groups: vec![GroupDef { id: "g".into(), label: "G".into(), items: vec!["menu:Object/Path".into()], show: vec![] }],
             left: vec![],
             right: vec![],
             color: None,

@@ -113,8 +113,8 @@ fn webp_options_say_the_file_is_lossless() {
 #[test]
 fn save_for_office_documents_picks_the_resolution() {
     let (mut app, written) = app(2);
-    let item = crate::menus::menu_entries(&app).into_iter().find(|e| e.command.as_deref() == Some("document.exportForOffice")).unwrap();
-    assert_eq!((item.path[0].as_str(), item.label.as_str(), item.enabled), ("File", "Save for Office Documents…", true));
+    // E1: hidden from the File menu (`workbench::hidden`); the command still opens its dialog.
+    assert!(!crate::menus::menu_entries(&app).into_iter().any(|e| e.command.as_deref() == Some("document.exportForOffice")));
     app.run("document.exportForOffice", json!({})).unwrap();
     assert_eq!(kind(&app), Some("saveForOffice"));
     frame(&mut app);

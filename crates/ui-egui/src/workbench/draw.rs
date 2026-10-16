@@ -10,11 +10,18 @@ use crate::{VectorcraftApp, chrome, dock, icons, panels, sketch, toolbar};
 
 const TAB_ROW_HEIGHT: f32 = 34.0;
 const TAB_PILL_HEIGHT: f32 = 24.0;
-const GROUP_ROW_HEIGHT: f32 = 66.0;
-const GROUP_CELL_HEIGHT: f32 = 54.0;
+const GROUP_ROW_HEIGHT: f32 = 78.0;
+const GROUP_CELL_HEIGHT: f32 = 66.0;
+/// A group-row button: icon over a short label.
+const ITEM_HEIGHT: f32 = 46.0;
+const ITEM_MIN_WIDTH: f32 = 44.0;
+const ITEM_MAX_WIDTH: f32 = 84.0;
+const ITEM_ICON: f32 = 22.0;
+const ITEM_FONT: f32 = 9.5;
+/// The gap (with a divider) between two groups.
+const GROUP_GAP: f32 = 11.0;
 const NAV_HEIGHT: f32 = 28.0;
 const BIG_BUTTON: f32 = 28.0;
-const GROUP_BUTTON: f32 = 30.0;
 /// The Fusion sketch row draws its tool buttons and icons at twice the Classic size.
 const WORKBENCH_ICON_SCALE: f32 = 2.0;
 const CARD_RADIUS: u8 = 14;
@@ -242,7 +249,13 @@ fn item_icon(item: &Item) -> Option<&'static str> {
         Item::Cmd { id, .. } => match id.as_str() {
             "file.place.queue" => "wb-place",
             "view.fitArtboard" | "view.fitAll" => "wb-fit",
-            "sketch.edit.new" => "wb-sketch",
+            "sketch.edit.new" | "sketch.edit.open" => "wb-sketch",
+            "window.changeParameters" => "settings",
+            "object.group" => "group",
+            "object.ungroup" => "ungroup",
+            "type.createOutlines" | "text.fitHeadline" | "type.changeCase" => "wb-type-ops",
+            "file.print" => "printer",
+            "file.export.pdf" | "file.export.svg" | "file.export.png" | "file.exportAs" | "file.exportSelection" => "share-2",
             _ => "wb-command",
         },
         Item::Tool(_) | Item::Sep => return None,
@@ -300,21 +313,6 @@ fn paint_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, item: &Item, rect: Re
 
 // ---------------------------------------------------------------- top rows
 
-/// The big button of a group: a washed square in the tab's colour, filled with it when the group's
-/// first item is the active tool.
-fn paint_group_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, hue: Color32, item: &Item, rect: Rect, resp: &egui::Response) {
-    let active = item_active(app, item);
-    let fill = if active {
-        hue
-    } else if resp.hovered() {
-        t.wash(hue, 0.24)
-    } else {
-        t.wash(hue, 0.14)
-    };
-    ui.painter().rect_filled(rect, 9.0, fill);
-    paint_item(ui, t, item, rect.shrink(rect.width() * 0.17), if active { t.on_accent } else { hue });
-}
-
 fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayout, active: Option<&ResolvedTab>) {
     let panel = egui::Panel::top("wb_tabs")
         .exact_size(TAB_ROW_HEIGHT)
@@ -356,6 +354,116 @@ fn tab_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, lay: &ResolvedLayo
     app.ui.workbench.hits.push(("panel:tabs".into(), panel.response.rect));
 }
 
+/// The width of a group-row button for `label` (its short label, at [`ITEM_FONT`]).
+fn item_width(ui: &Ui, label: &str) -> f32 {
+    let galley = ui.painter().layout_no_wrap(label.to_string(), crate::theme::semibold(ITEM_FONT), Color32::PLACEHOLDER);
+    (galley.size().x + 8.0).clamp(ITEM_MIN_WIDTH, ITEM_MAX_WIDTH)
+}
+
+/// A tool's or command's label as the button under its icon shows it: short, from the
+/// translated label (an English "… Tool" loses the word; a few long ones have their own).
+pub(crate) fn short_label(item: &Item) -> String {
+    let own = match item {
+        Item::Tool(t) => match t.id {
+            "directSelection" => Some("Direct"),
+            "groupSelection" => Some("Group Sel."),
+            "magicWand" => Some("Wand"),
+            "livePaintSelection" => Some("Paint Sel."),
+            "perspectiveSelection" => Some("Persp. Sel."),
+            "lineSegment" => Some("Line"),
+            "roundedRectangle" => Some("Rounded"),
+            "rectangularGrid" => Some("Rect Grid"),
+            "addAnchor" => Some("Add Point"),
+            "deleteAnchor" => Some("Del Point"),
+            "anchorPoint" => Some("Anchor"),
+            "freeTransform" => Some("Free Tf"),
+            "shapeBuilder" => Some("Builder"),
+            "livePaintBucket" => Some("Bucket"),
+            "perspectiveGrid" => Some("Persp. Grid"),
+            "typeOnPath" => Some("On Path"),
+            "verticalTypeOnPath" => Some("V. On Path"),
+            "areaType" => Some("Area"),
+            "verticalAreaType" => Some("V. Area"),
+            "verticalType" => Some("Vertical"),
+            "symbolSprayer" => Some("Sprayer"),
+            "printTiling" => Some("Tiling"),
+            _ => None,
+        },
+        Item::Cmd { id, .. } => match id.as_str() {
+            "file.place.queue" => Some("Place"),
+            "object.group" => Some("Group"),
+            "object.ungroup" => Some("Ungroup"),
+            "type.createOutlines" => Some("Outlines"),
+            "text.fitHeadline" => Some("Fit"),
+            "type.changeCase" => Some("Case"),
+            "sketch.edit.new" => Some("New Sketch"),
+            "sketch.edit.open" => Some("Edit Sketch"),
+            "window.changeParameters" => Some("Parameters"),
+            "file.print" => Some("Print"),
+            "file.export.pdf" => Some("PDF"),
+            "file.export.svg" => Some("SVG"),
+            "file.export.png" => Some("PNG"),
+            "file.exportAs" => Some("Export…"),
+            "file.exportSelection" => Some("Selection"),
+            _ => None,
+        },
+        Item::Panel { id, .. } => match id.as_str() {
+            "imageTrace" => Some("Trace"),
+            "separations" => Some("Seps"),
+            "flattenerPreview" => Some("Flattener"),
+            "charStyles" => Some("Char Styles"),
+            "paraStyles" => Some("Para Styles"),
+            "openType" => Some("OpenType"),
+            _ => None,
+        },
+        Item::Sep => None,
+    };
+    if let Some(own) = own
+        && crate::i18n::current().code() == "en"
+    {
+        return own.to_string();
+    }
+    let label = item_label(item);
+    label.strip_suffix(" Tool").unwrap_or(label).trim_end_matches('…').to_string()
+}
+
+/// What one group of the row shows: its visible buttons (folded to fit) and their widths.
+struct GroupPlan {
+    visible: usize,
+    widths: Vec<f32>,
+    caption_w: f32,
+}
+
+/// Fold the groups' visible items until the row fits `available`: the group with the most
+/// buttons loses its last one, again and again; every group keeps at least one.
+fn plan_groups(ui: &Ui, groups: &[super::ResolvedGroup], available: f32) -> Vec<GroupPlan> {
+    let mut plans: Vec<GroupPlan> = groups
+        .iter()
+        .map(|g| {
+            let widths: Vec<f32> = g.show.iter().map(|it| item_width(ui, &short_label(it))).collect();
+            let caption = ui.painter().layout_no_wrap(format!("{} ▾", g.label), FontId::proportional(10.5), Color32::PLACEHOLDER).size().x + 6.0;
+            GroupPlan { visible: widths.len(), widths, caption_w: caption }
+        })
+        .collect();
+    let total = |plans: &[GroupPlan]| -> f32 {
+        plans
+            .iter()
+            .enumerate()
+            .map(|(i, p)| p.widths.iter().take(p.visible).sum::<f32>().max(p.caption_w) + if i > 0 { GROUP_GAP } else { 0.0 })
+            .sum()
+    };
+    while total(&plans) > available {
+        let Some((i, _)) = plans.iter().enumerate().filter(|(_, p)| p.visible > 1).max_by_key(|(_, p)| p.visible) else { break };
+        if let Some(p) = plans.get_mut(i) {
+            p.visible -= 1;
+        }
+    }
+    plans
+}
+
+/// The tool-group row of the active tab, Fusion style: every group shows its items as buttons
+/// (icon over a short label); the caption under them opens the drop-down with every item of the
+/// group. On a narrow window the last buttons of the fullest groups fold into their drop-downs.
 fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&ResolvedTab>) {
     let hue = t.tab_color(tab.and_then(|t| t.color.as_deref()));
     egui::Panel::top("wb_groups")
@@ -370,38 +478,51 @@ fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&Res
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.set_height(GROUP_CELL_HEIGHT);
+                    let available = ui.available_width();
                     ui.horizontal_centered(|ui| {
                         ui.spacing_mut().item_spacing.x = 0.0;
                         let Some(tab) = tab else { return };
-                        for (i, g) in tab.groups.iter().enumerate() {
+                        let plans = plan_groups(ui, &tab.groups, available);
+                        for (i, (g, plan)) in tab.groups.iter().zip(&plans).enumerate() {
                             if i > 0 {
-                                let (r, _) = ui.allocate_exact_size(vec2(9.0, GROUP_CELL_HEIGHT - 12.0), Sense::hover());
+                                let (r, _) = ui.allocate_exact_size(vec2(GROUP_GAP, GROUP_CELL_HEIGHT - 12.0), Sense::hover());
                                 ui.painter().vline(r.center().x, r.y_range(), Stroke::new(1.0, t.divider));
                             }
-                            let first = g.items.iter().find(|i| !matches!(i, Item::Sep));
-                            let caption = format!("{} ▾", g.label);
-                            let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), Color32::PLACEHOLDER);
-                            let w = galley.size().x.max(GROUP_BUTTON) + 14.0;
+                            let buttons_w: f32 = plan.widths.iter().take(plan.visible).sum();
+                            let w = buttons_w.max(plan.caption_w);
                             let (rect, _) = ui.allocate_exact_size(vec2(w, GROUP_CELL_HEIGHT), Sense::hover());
-                            let button = Rect::from_center_size(
-                                egui::pos2(rect.center().x, rect.top() + GROUP_BUTTON / 2.0 + 2.0),
-                                vec2(GROUP_BUTTON, GROUP_BUTTON),
-                            );
-                            let label_rect = Rect::from_min_max(egui::pos2(rect.left(), button.bottom() + 1.0), rect.right_bottom());
-                            if let Some(item) = first {
-                                let resp = ui.interact(button, ui.id().with(("wb-big", &g.id)), Sense::click());
-                                paint_group_button(app, ui, t, hue, item, button, &resp);
-                                let resp = resp.on_hover_text(item_label(item));
-                                app.ui.workbench.hits.push((format!("group:{}", g.id), button));
+                            // The buttons, centred when the caption is wider.
+                            let mut x = rect.left() + (w - buttons_w) / 2.0;
+                            let mut chosen: Option<Item> = None;
+                            for (k, item) in g.show.iter().take(plan.visible).enumerate() {
+                                let bw = plan.widths.get(k).copied().unwrap_or(ITEM_MIN_WIDTH);
+                                let brect = Rect::from_min_size(egui::pos2(x, rect.top() + 2.0), vec2(bw, ITEM_HEIGHT));
+                                x += bw;
+                                let id = item.id().unwrap_or_default().to_string();
+                                let resp = ui.interact(brect, ui.id().with(("wb-item", &g.id, &id)), Sense::click());
+                                paint_row_button(app, ui, t, hue, item, brect, &resp);
+                                let label = item_label(item).to_string();
+                                let resp = resp.on_hover_text(match item {
+                                    Item::Tool(info) => info.shortcut.map_or(label.clone(), |sc| format!("{label} ({sc})")),
+                                    Item::Cmd { shortcut: Some(sc), .. } => format!("{label} ({sc})"),
+                                    _ => label.clone(),
+                                });
+                                app.ui.workbench.hits.push((format!("item:{id}"), brect));
+                                if k == 0 {
+                                    app.ui.workbench.hits.push((format!("group:{}", g.id), brect));
+                                }
                                 if resp.clicked() {
-                                    use_item(app, item);
+                                    chosen = Some(item.clone());
                                 }
                             }
+                            // The caption under the buttons: the group's name and ▾, opening the drop-down.
+                            let caption = format!("{} ▾", g.label);
+                            let galley = ui.painter().layout_no_wrap(caption, FontId::proportional(10.5), Color32::PLACEHOLDER);
+                            let label_rect = Rect::from_min_max(egui::pos2(rect.left(), rect.top() + 2.0 + ITEM_HEIGHT), rect.right_bottom());
                             let lresp = ui.interact(label_rect, ui.id().with(("wb-label", &g.id)), Sense::click());
                             let colour = if lresp.hovered() { t.text_strong } else { t.text_dim };
                             ui.painter().galley(label_rect.center() - galley.size() / 2.0, galley, colour);
                             app.ui.workbench.hits.push((format!("label:{}", g.id), label_rect));
-                            let mut chosen: Option<Item> = None;
                             egui::Popup::menu(&lresp).show(|ui| {
                                 crate::widgets::menu_scroll(ui, |ui| {
                                     ui.set_min_width(280.0);
@@ -427,6 +548,24 @@ fn group_row(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens, tab: Option<&Res
             let top = egui::CornerRadius { nw: 14, ne: 14, sw: 0, se: 0 };
             ui.painter().with_clip_rect(r).rect_filled(strip, top, hue);
         });
+}
+
+/// One button of the group row: the icon over its short label; the active tool is filled with
+/// the tab's colour, a hovered one washed with it.
+fn paint_row_button(app: &VectorcraftApp, ui: &Ui, t: &Tokens, hue: Color32, item: &Item, rect: Rect, resp: &egui::Response) {
+    let active = item_active(app, item);
+    if active {
+        ui.painter().rect_filled(rect.shrink(1.0), 7.0, hue);
+    } else if resp.hovered() {
+        ui.painter().rect_filled(rect.shrink(1.0), 7.0, t.wash(hue, 0.18));
+    }
+    let icon = Rect::from_center_size(egui::pos2(rect.center().x, rect.top() + 4.0 + ITEM_ICON / 2.0), vec2(ITEM_ICON, ITEM_ICON));
+    let (ink, text) = if active { (t.on_accent, t.on_accent) } else { (t.icon, t.text) };
+    paint_item(ui, t, item, icon, ink);
+    let label = short_label(item);
+    let galley = ui.painter().layout_no_wrap(label, crate::theme::semibold(ITEM_FONT), text);
+    let pos = egui::pos2(rect.center().x - galley.size().x.min(rect.width() - 4.0) / 2.0, rect.bottom() - 3.0 - galley.size().y);
+    ui.painter().with_clip_rect(rect).galley(pos, galley, text);
 }
 
 /// One row of a group's dropdown: icon, label, shortcut at the right edge; true when clicked.

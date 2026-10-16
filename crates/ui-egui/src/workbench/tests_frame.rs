@@ -100,7 +100,11 @@ fn clicking_a_groups_big_button_selects_its_tool() {
 fn the_dropdown_lists_every_item_of_the_group() {
     let mut rig = Rig::new(Layout::Fusion);
     let text = rig.click("label:modify");
-    for want in ["Scissors Tool", "Pathfinder", "Group", "Ungroup", "Puppet Warp Tool"] {
+    for want in ["Scissors Tool", "Puppet Warp Tool", "Mirror & Cut Tool"] {
+        assert!(text.contains(want), "missing {want}:\n{text}");
+    }
+    let text = rig.click("label:arrange");
+    for want in ["Pathfinder", "Group", "Ungroup", "Bring to Front"] {
         assert!(text.contains(want), "missing {want}:\n{text}");
     }
 }
@@ -275,7 +279,8 @@ fn opening_parameters_on_sketch_unfolds_the_right_copy_without_duplicating() {
     assert!(!rig.app.ui.workbench.collapsed.contains("right-pinned/parameters"));
     assert!(rig.app.ui.workbench.right_panels.is_empty());
     rig.settle();
-    let n = rig.app.ui.workbench.hits.iter().filter(|h| h.0.ends_with("parameters")).count();
+    // One panel section named parameters (the group row's own Parameters buttons are not panels).
+    let n = rig.app.ui.workbench.hits.iter().filter(|h| h.0.starts_with("section:") && h.0.ends_with("parameters")).count();
     assert_eq!(n, 1, "{:?}", rig.app.ui.workbench.hits);
 }
 
@@ -724,8 +729,9 @@ fn draw_row_is_unchanged_by_the_sketch_icons() {
     rig.settle();
     let groups: Vec<_> = rig.app.ui.workbench.hits.iter().filter(|h| h.0.starts_with("group:")).collect();
     assert!(!groups.is_empty());
+    // E1: a group's first button is a 46 pt item button (icon over its label), 44 pt or wider.
     for (name, r) in groups {
-        assert!((r.width() - 30.0).abs() < 0.01 && (r.height() - 30.0).abs() < 0.01, "{name}: {:?}", r.size());
+        assert!(r.width() >= 44.0 && (r.height() - 46.0).abs() < 0.01, "{name}: {:?}", r.size());
     }
     assert!(sketch_tool_rects(&rig).is_empty());
 }

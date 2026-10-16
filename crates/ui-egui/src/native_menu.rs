@@ -400,8 +400,8 @@ fn native_item(app: &VectorcraftApp, label: &'static str, command: &'static str,
 /// Settings ▸: one item per page of the Preferences dialog (its own list), each opening it there;
 /// the first (General…) has Preferences' shortcut (⌘K), as in Illustrator.
 fn settings_pages(preferences: &Item, lang: Lang) -> Vec<Node> {
-    vectorcraft_engine::cmd::prefscmds::PREF_CATEGORIES
-        .iter()
+    crate::prefs_dialog::pref_categories()
+        .into_iter()
         .enumerate()
         .map(|(i, page)| {
             Node::Item(Item {

@@ -76,18 +76,20 @@ fn effect_menu_lists_the_pixelate_filters_between_blur_and_sharpen() {
     assert!(at("Blur") < at("Pixelate") && at("Pixelate") < at("Sharpen"));
 }
 
-/// Effect › Video, after Sharpen: De-Interlace opens its dialog, NTSC Colors (no options) applies.
+/// Effect › Video (De-Interlace, NTSC Colors) is screen production: E1 hides it
+/// (`workbench::hidden::EFFECTS`). The raw tree still lists it after Sharpen; the shown menu does not.
 #[test]
 fn effect_menu_lists_the_video_filters_last() {
     let app = app();
     let entries = menus::menu_entries(&app);
-    let video: Vec<_> = entries.iter().filter(|e| e.path == ["Effect", "Video"]).collect();
-    let items: Vec<(&str, Option<&str>)> = video.iter().map(|e| (e.label.as_str(), e.command.as_deref())).collect();
-    assert_eq!(items, [("De-Interlace…", Some("effect.dialog")), ("NTSC Colors", Some("effect.apply"))]);
-    let raster: Vec<&str> =
-        entries.iter().filter_map(|e| e.path.get(1).filter(|_| e.path.len() == 2 && e.path[0] == "Effect")).map(String::as_str).collect();
-    let at = |name: &str| raster.iter().position(|s| *s == name).unwrap();
-    assert!(at("Sharpen") < at("Video"));
+    assert!(!entries.iter().any(|e| e.path == ["Effect", "Video"]), "Video is hidden");
+    let raw = menus::menu_tree_raw(true);
+    let (_, effect) = raw.iter().find(|(t, _)| *t == "Effect").unwrap();
+    let subs: Vec<&str> = effect.iter().filter_map(|i| if let Item::Sub(l, _) = i { Some(*l) } else { None }).collect();
+    let at = |name: &str| subs.iter().position(|s| *s == name).unwrap();
+    assert!(at("Sharpen") < at("Video"), "{subs:?}");
+    let video = effect.iter().find_map(|i| if let Item::Sub("Video", items) = i { Some(items) } else { None }).unwrap();
+    assert!(matches!(video.as_slice(), [Item::Cmd("De-Interlace…", "effect.dialog", _), Item::Cmd("NTSC Colors", "effect.apply", _)]), "{video:?}");
 }
 
 /// Effect › Distort, between Blur and Pixelate: each filter opens its dialog.
@@ -137,7 +139,8 @@ fn effect_menu_lists_the_texture_filters_between_sharpen_and_video() {
     let raster: Vec<&str> =
         entries.iter().filter_map(|e| e.path.get(1).filter(|_| e.path.len() == 2 && e.path[0] == "Effect")).map(String::as_str).collect();
     let at = |name: &str| raster.iter().position(|s| *s == name).unwrap();
-    assert!(at("Sharpen") < at("Texture") && at("Texture") < at("Video"));
+    assert!(at("Sharpen") < at("Texture"));
+    assert!(!raster.contains(&"Video"), "Video is hidden (E1)");
 }
 
 #[test]

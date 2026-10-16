@@ -19,6 +19,11 @@ pub const UI_FIELDS: &[(&str, &str, &str)] = &[
     ("__taskBar", "General", "Enable Contextual Task Bar"),
 ];
 
+/// The Preferences categories shown: `PREF_CATEGORIES` without the ones Euclidean hides.
+pub(crate) fn pref_categories() -> Vec<&'static str> {
+    PREF_CATEGORIES.iter().copied().filter(|c| !crate::workbench::hidden::pref_category(c)).collect()
+}
+
 pub fn open(app: &mut VectorcraftApp, category: Option<&str>) {
     // One field per preference key or group (the flattener presets have commands of their own).
     let mut fields: Map<String, Value> = app.session.prefs.to_json().as_object().cloned().unwrap_or_default();
@@ -27,7 +32,8 @@ pub fn open(app: &mut VectorcraftApp, category: Option<&str>) {
     if let Some(st) = app.session.active() {
         fields.insert("unitsGeneral".into(), json!(st.doc.units.key()));
     }
-    let cat = category.and_then(|c| PREF_CATEGORIES.iter().find(|x| x.eq_ignore_ascii_case(c))).copied().unwrap_or(PREF_CATEGORIES[0]);
+    let cats = pref_categories();
+    let cat = category.and_then(|c| cats.iter().find(|x| x.eq_ignore_ascii_case(c))).copied().unwrap_or(cats[0]);
     fields.insert("__category".into(), json!(cat));
     fields.insert("__smartGuides".into(), json!(app.ui.view.smart_guides));
     fields.insert("__snapToGrid".into(), json!(app.ui.view.snap_to_grid));
@@ -152,7 +158,8 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     let t = Tokens::get(ctx);
     let (mut ok, mut cancel, mut reset) = (false, false, false);
     let cat = d.str("__category");
-    let cat = PREF_CATEGORIES.iter().find(|c| **c == cat).copied().unwrap_or(PREF_CATEGORIES[0]);
+    let cats = pref_categories();
+    let cat = cats.iter().find(|c| **c == cat).copied().unwrap_or(cats[0]);
     crate::dialogs::modal::show(ctx, tl!("Preferences"), egui::Id::new("dialog-preferences"), -20.0, 20, |ui| {
         ui.set_width(760.0);
         crate::dialogs::modal::heading(ui, tl!("Preferences"));
@@ -164,7 +171,7 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                 ui.set_min_height(430.0);
                 ui.vertical(|ui| {
                     ui.spacing_mut().item_spacing.y = 1.0;
-                    for c in PREF_CATEGORIES {
+                    for c in &cats {
                         let sel = *c == cat;
                         let text = egui::RichText::new(tl!(*c)).size(12.5).color(if sel { t.text_strong } else { t.text });
                         let b = egui::Button::selectable(sel, text).frame_when_inactive(false).min_size(egui::vec2(184.0, 24.0));
@@ -202,12 +209,12 @@ pub fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
                     cancel = true;
                 }
                 ui.add_space(16.0);
-                let i = PREF_CATEGORIES.iter().position(|c| *c == cat).unwrap_or(0);
-                if ui.add_enabled(i + 1 < PREF_CATEGORIES.len(), egui::Button::new(tl!("Next"))).clicked() {
-                    d.fields.insert("__category".into(), json!(PREF_CATEGORIES[i + 1]));
+                let i = cats.iter().position(|c| *c == cat).unwrap_or(0);
+                if ui.add_enabled(i + 1 < cats.len(), egui::Button::new(tl!("Next"))).clicked() {
+                    d.fields.insert("__category".into(), json!(cats.get(i + 1).copied().unwrap_or(cat)));
                 }
                 if ui.add_enabled(i > 0, egui::Button::new(tl!("Previous"))).clicked() {
-                    d.fields.insert("__category".into(), json!(PREF_CATEGORIES[i - 1]));
+                    d.fields.insert("__category".into(), json!(cats.get(i.saturating_sub(1)).copied().unwrap_or(cat)));
                 }
             });
         });
@@ -313,9 +320,13 @@ fn category_fields(ui: &mut egui::Ui, d: &mut Dialog, cat: &str) {
                 labeled(ui, sp.label, |ui| {
                     let cur = v.as_str().unwrap_or("");
                     let cur_label = opts.iter().find(|o| o.0 == cur).map(|o| o.1).unwrap_or(cur);
+                    // The unit pickers leave out the units Euclidean hides.
+                    let opts: Vec<&(&str, &str)> = opts.iter().filter(|o| !(sp.category == "Units" && crate::workbench::hidden::unit(o.1))).collect();
                     let labels: Vec<&str> = opts.iter().map(|o| o.1).collect();
-                    if let Some(i) = widgets::dropdown(ui, sp.key, cur_label, &labels, 260.0) {
-                        d.fields.insert(sp.key.into(), json!(opts[i].0));
+                    if let Some(i) = widgets::dropdown(ui, sp.key, cur_label, &labels, 260.0)
+                        && let Some(o) = opts.get(i)
+                    {
+                        d.fields.insert(sp.key.into(), json!(o.0));
                     }
                 });
                 if sp.key == "gpuPreference" || sp.key == "linuxDisplayServer" {

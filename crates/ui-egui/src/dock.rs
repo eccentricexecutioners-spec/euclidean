@@ -141,7 +141,7 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
                         let mut first = true;
                         for id in group.iter() {
                             let Some((_, label, icon)) = ICON_PANELS.iter().find(|p| p.0 == *id) else { continue };
-                            if floating::group_of(&app.ui, id).is_some() {
+                            if floating::group_of(&app.ui, id).is_some() || crate::workbench::hidden::panel(id) {
                                 continue;
                             }
                             if std::mem::take(&mut first) && std::mem::replace(&mut divider, true) {
@@ -633,7 +633,7 @@ mod tests {
     }
 
     fn icon_panel_count() -> usize {
-        ICON_PANEL_GROUPS.iter().map(|g| g.len()).sum()
+        ICON_PANEL_GROUPS.iter().flat_map(|g| g.iter()).filter(|id| !crate::workbench::hidden::panel(id)).count()
     }
 
     #[test]

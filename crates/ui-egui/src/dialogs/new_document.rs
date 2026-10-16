@@ -209,7 +209,7 @@ fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
 /// also creates it (true then).
 fn presets(app: &VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) -> bool {
     let t = Tokens::get(ui.ctx());
-    let names: Vec<&str> = newdoc::category_names().collect();
+    let names: Vec<&str> = newdoc::category_names().filter(|n| !crate::workbench::hidden::preset_category(n)).collect();
     let cat = names.iter().position(|n| n.eq_ignore_ascii_case(&d.str("category"))).unwrap_or(0);
     if let Some(i) = widgets::tab_bar(ui, &names, cat) {
         d.fields.insert("category".into(), json!(names[i]));
@@ -385,8 +385,9 @@ fn save_row(app: &mut VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) {
 }
 
 fn units_dropdown(ui: &mut egui::Ui, d: &mut Dialog, width: f32) {
-    let labels = UNITS.map(Unit::label);
-    if let Some(u) = widgets::dropdown(ui, "newdoc-units", unit(d).label(), &labels, width).and_then(|i| UNITS.get(i)) {
+    let units: Vec<Unit> = UNITS.into_iter().filter(|u| !crate::workbench::hidden::unit(u.label())).collect();
+    let labels: Vec<&str> = units.iter().map(|u| u.label()).collect();
+    if let Some(u) = widgets::dropdown(ui, "newdoc-units", unit(d).label(), &labels, width).and_then(|i| units.get(i)) {
         d.fields.insert("units".into(), json!(u.label()));
     }
 }
@@ -484,7 +485,7 @@ fn show_more(app: &mut VectorcraftApp, ctx: &egui::Context) {
             form::text(ui, &mut d, "name", 300.0);
         });
         // Profile: the preset categories (the tabs); Size: the profile's presets.
-        let profiles: Vec<&str> = newdoc::CATEGORIES.iter().map(|c| c.0).collect();
+        let profiles: Vec<&str> = newdoc::CATEGORIES.iter().map(|c| c.0).filter(|n| !crate::workbench::hidden::preset_category(n)).collect();
         let profile = profiles.iter().find(|p| p.eq_ignore_ascii_case(&d.str("category"))).copied().unwrap_or("[Custom]");
         widgets::label_row(ui, tl!("Profile:"), L, |ui| {
             if let Some(p) = widgets::dropdown(ui, "newdoc-profile", profile, &profiles, 220.0).and_then(|i| profiles.get(i)) {
@@ -622,7 +623,7 @@ mod tests {
     fn a_double_clicked_preset_creates_the_document() {
         let mut app = VectorcraftApp::new(Session::new(), Default::default());
         app.run("file.newDialog", json!({})).unwrap();
-        set(&mut app, "category", json!("Mobile"));
+        set(&mut app, "category", json!("Print"));
         let ctx = egui::Context::default();
         crate::theme::install_fonts(&ctx);
         // Frames 50 ms apart, so two clicks a frame apart make a double-click.
@@ -648,14 +649,14 @@ mod tests {
                 }
             }
             out.shapes.iter().for_each(|c| walk(&c.shape, &mut texts));
-            texts.into_iter().find(|(t, _)| t.starts_with("Phone 393")).map(|(_, r)| r.center()).unwrap()
+            texts.into_iter().find(|(t, _)| t.starts_with("Letter")).map(|(_, r)| r.center()).unwrap()
         };
         let at = card(&mut app, &mut run);
         let press = |pressed| egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
         run(&mut app, vec![egui::Event::PointerMoved(at), press(true)]);
         run(&mut app, vec![press(false)]);
         assert!(app.ui.dialog.is_some() && app.session.documents().is_empty(), "a click only chooses it");
-        assert!(field(&app, "preset").as_str().is_some_and(|p| p == "Phone 393×852"), "{:?}", field(&app, "preset"));
+        assert!(field(&app, "preset").as_str().is_some_and(|p| p == "Letter"), "{:?}", field(&app, "preset"));
         run(&mut app, vec![press(true)]);
         run(&mut app, vec![press(false)]);
         assert!(app.ui.dialog.is_none(), "the double-click created it: {:?}", app.ui.status);

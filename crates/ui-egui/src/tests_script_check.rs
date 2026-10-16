@@ -40,15 +40,20 @@ fn report(app: &VectorcraftApp) -> &Value {
     &d.fields["report"]
 }
 
+/// E1: Check Script is hidden (`workbench::hidden`), so the Scripts submenu is pruned from the
+/// menu; the raw tree still holds both rows, so deleting the ids from the registry brings them back.
 #[test]
 fn file_scripts_holds_check_script_above_other_script() {
-    let tree = menus::menu_tree();
+    let tree = menus::menu_tree_raw(true);
     let (_, file) = tree.iter().find(|(t, _)| *t == "File").unwrap();
     let scripts = file.iter().find_map(|i| if let menus::Item::Sub("Scripts", items) = i { Some(items) } else { None }).unwrap();
     assert!(
         matches!(scripts.as_slice(), [menus::Item::Cmd("Check Script…", "ui.checkScript", _), menus::Item::Todo("Other Script…", _)]),
         "{scripts:?}"
     );
+    let tree = menus::menu_tree();
+    let (_, file) = tree.iter().find(|(t, _)| *t == "File").unwrap();
+    assert!(!file.iter().any(|i| matches!(i, menus::Item::Sub("Scripts", _))), "Scripts is hidden in Euclidean");
 }
 
 #[test]

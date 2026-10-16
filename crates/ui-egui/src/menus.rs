@@ -2142,6 +2142,44 @@ pub fn menu_tree() -> Vec<(&'static str, Vec<Item>)> {
 }
 
 pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
+    menu_tree_raw(english_names).into_iter().map(|(title, items)| (title, prune_hidden(items))).collect()
+}
+
+/// `items` without what Euclidean hides (`workbench::hidden`): hidden commands, the Window rows
+/// of hidden panels, hidden workspaces, placeholder rows, submenus left empty, and separators
+/// that no longer separate anything. The in-window bar, the native bar, `menu_entries` and the
+/// control channel's `ui.menu.list` all read the pruned tree.
+pub fn prune_hidden(items: Vec<Item>) -> Vec<Item> {
+    use crate::workbench::hidden;
+    let mut out: Vec<Item> = Vec::with_capacity(items.len());
+    for it in items {
+        let it = match it {
+            Item::Sub(l, children) => Item::Sub(l, prune_hidden(children)),
+            it => it,
+        };
+        let keep = match &it {
+            Item::Cmd(_, id, p) => {
+                !hidden::command(id)
+                    && !(matches!(*id, "effect.apply" | "effect.dialog") && p.get("effect").and_then(Value::as_str).is_some_and(hidden::effect))
+                    && !(*id == "window.panel" && p.get("panel").and_then(Value::as_str).is_some_and(hidden::panel))
+                    && !(*id == "window.workspace" && p.get("name").and_then(Value::as_str).is_some_and(hidden::workspace))
+            }
+            Item::Todo(l, _) => !hidden::menu_label(l),
+            Item::Sub(_, children) => !children.is_empty(),
+            Item::Sep => out.last().is_some_and(|l| !matches!(l, Item::Sep)),
+            _ => true,
+        };
+        if keep {
+            out.push(it);
+        }
+    }
+    if matches!(out.last(), Some(Item::Sep)) {
+        out.pop();
+    }
+    out
+}
+
+pub(crate) fn menu_tree_raw(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
     let panel = |label: &'static str, id: &'static str| cp(label, "window.panel", json!({ "panel": id }));
     vec![
         (
@@ -2933,7 +2971,7 @@ fn prune(app: &VectorcraftApp, items: Vec<Item>) -> Vec<Item> {
             it => it,
         };
         let keep = match &it {
-            Item::Cmd(_, id, _) => matches!(*id, "edit.undo" | "edit.redo") || enabled(app, id),
+            Item::Cmd(_, id, _) => !crate::workbench::hidden::command(id) && (matches!(*id, "edit.undo" | "edit.redo") || enabled(app, id)),
             Item::Sub(_, children) => !children.is_empty(),
             Item::Sep => out.last().is_some_and(|l| !matches!(l, Item::Sep)),
             _ => true,
@@ -2960,7 +2998,11 @@ pub fn context_menu_body(app: &VectorcraftApp, ui: &mut egui::Ui, clicked: &mut 
 /// The document units a right-click on a ruler offers: each runs `document.setUnits`, exactly as
 /// Preferences ▸ Units ▸ General does, with the current one checked ([`checked`]).
 pub fn ruler_unit_items() -> Vec<Item> {
-    vectorcraft_engine::doc::Unit::ALL.iter().map(|u| cp(u.label(), "document.setUnits", json!({ "units": u.label() }))).collect()
+    vectorcraft_engine::doc::Unit::ALL
+        .iter()
+        .filter(|u| !crate::workbench::hidden::unit(u.label()))
+        .map(|u| cp(u.label(), "document.setUnits", json!({ "units": u.label() })))
+        .collect()
 }
 
 /// The ruler context menu's popup (right-click a ruler or the origin box); the unit clicked goes in
@@ -3769,7 +3811,7 @@ pub fn menu_strings() -> std::collections::BTreeSet<String> {
         }
     }
     let mut out = BTreeSet::new();
-    for (title, items) in menu_tree() {
+    for (title, items) in menu_tree_raw(true) {
         out.insert(title.to_string());
         walk(&items, title, &mut out);
     }

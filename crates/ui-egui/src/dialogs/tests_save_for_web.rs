@@ -41,7 +41,8 @@ fn app(dir: &std::path::Path, web: bool) -> (VectorcraftApp, Log) {
 fn every_view_and_format_draws() {
     let dir = vectorcraft_testkit::temp_dir("sfw-views");
     let (mut app, _) = app(&dir, false);
-    assert_eq!(crate::menus::shortcut_of("file.saveForWeb"), Some("Cmd+Alt+Shift+S"));
+    // E1: Save for Web is hidden (`workbench::hidden`): no shortcut; the command still opens the dialog.
+    assert_eq!(crate::menus::shortcut_of("file.saveForWeb"), None);
     assert!(crate::menus::enabled(&app, "file.saveForWeb"));
     assert_eq!((spec(save_for_web::KIND).ok_label.unwrap())(&app), "Save…");
     app.run("file.saveForWeb", json!({})).unwrap();

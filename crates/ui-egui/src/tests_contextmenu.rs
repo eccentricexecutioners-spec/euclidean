@@ -122,8 +122,12 @@ fn right_clicking_a_ruler_swaps_the_document_units() {
     assert_eq!(app.session.general_unit(), Unit::Points, "a new document starts in the prefs unit");
     // Right-click on the top ruler (the band along the top, past the origin box).
     let texts = click(&mut app, &ctx, pos2(400.0, 8.0), PointerButton::Secondary);
-    for label in ["Points", "Picas", "Inches", "Millimeters", "Feet & Inches", "Pixels"] {
+    for label in ["Points", "Inches", "Millimeters", "Centimeters", "Feet & Inches", "Meters"] {
         assert!(has(&texts, label), "{label} in {texts:?}");
+    }
+    // E1: Picas, Yards, Feet and Pixels are hidden from the unit pickers.
+    for label in ["Picas", "Pixels", "Yards"] {
+        assert!(!has(&texts, label), "{label} is hidden: {texts:?}");
     }
     assert!(texts.iter().any(|(t, _)| t == "✓  Points"), "the current unit is checked: {texts:?}");
     // Choosing a unit runs document.setUnits and closes the menu.

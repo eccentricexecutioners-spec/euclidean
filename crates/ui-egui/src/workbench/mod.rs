@@ -4,6 +4,7 @@
 //! elsewhere.
 
 mod draw;
+pub mod hidden;
 mod layout;
 mod step_form;
 mod step_map;
@@ -147,3 +148,5 @@ impl WorkbenchState {
 mod tests;
 #[cfg(test)]
 mod tests_frame;
+#[cfg(test)]
+mod tests_hidden;

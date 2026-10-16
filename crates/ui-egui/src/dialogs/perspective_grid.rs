@@ -251,7 +251,8 @@ fn body(app: &mut VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) -> bool {
             d.fields.insert("kind".into(), json!(i + 1));
         }
     });
-    let units: Vec<(&str, &str)> = Unit::ALL.iter().filter(|u| **u != Unit::FeetInches).map(|u| (u.key(), u.label())).collect();
+    let units: Vec<(&str, &str)> =
+        Unit::ALL.iter().filter(|u| **u != Unit::FeetInches && !crate::workbench::hidden::unit(u.label())).map(|u| (u.key(), u.label())).collect();
     form::choice(ui, d, "units", tl!("Units:"), (LABEL, 200.0), &units);
     // A new unit (the menu or `ui.dialog.set`) keeps the lengths: they are converted.
     let unit = unit(d);

@@ -11,15 +11,16 @@ use crate::{VectorcraftApp, menus};
 pub fn items() -> Vec<(String, String, String)> {
     let mut items = vec![];
     // Aliases kept for older scripts run a command that is listed already.
-    for c in vectorcraft_engine::command_specs().iter().filter(|c| !vectorcraft_engine::cmd::is_alias(c.id)) {
+    let hidden = crate::workbench::hidden::command;
+    for c in vectorcraft_engine::command_specs().iter().filter(|c| !vectorcraft_engine::cmd::is_alias(c.id) && !hidden(c.id)) {
         let path = c.menu.join(" › ");
         let label = if path.is_empty() { c.label.to_string() } else { format!("{path} › {}", c.label) };
         items.push((label, c.id.to_string(), menus::shortcut_of(c.id).unwrap_or("").to_string()));
     }
-    for c in menus::UI_COMMANDS {
+    for c in menus::UI_COMMANDS.iter().filter(|c| !hidden(c.0)) {
         items.push((c.1.to_string(), c.0.to_string(), menus::shortcut_of(c.0).unwrap_or("").to_string()));
     }
-    for tool in vectorcraft_tools::catalog::all_tools() {
+    for tool in vectorcraft_tools::catalog::all_tools().filter(|t| !crate::workbench::hidden::tool(t.id)) {
         items.push((tool.label.to_string(), format!("tool:{}", tool.id), crate::shortcut_editor::tool_shortcut(tool.id).unwrap_or("").to_string()));
     }
     items

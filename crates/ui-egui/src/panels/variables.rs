@@ -437,12 +437,19 @@ mod tests {
     fn window_variables_opens_the_panel() {
         let app = VectorcraftApp::new(vectorcraft_engine::Session::new(), Default::default());
         let entries = crate::menus::menu_entries(&app);
-        let panel = entries
-            .iter()
-            .find(|e| e.command.as_deref() == Some("window.panel") && e.params.get("panel").and_then(serde_json::Value::as_str) == Some(ID))
-            .expect("the Variables panel is listed");
-        assert_eq!((panel.path.clone(), panel.label.as_str()), (vec!["Window".to_string()], "Variables"));
+        // E1: Variables is on ice (`workbench::hidden`): not in the Window menu, not opened by `window.panel`;
+        // the raw tree still lists it, so deleting the id from the registry brings it back.
+        assert!(
+            !entries
+                .iter()
+                .any(|e| e.command.as_deref() == Some("window.panel") && e.params.get("panel").and_then(serde_json::Value::as_str) == Some(ID)),
+            "the Variables panel is hidden"
+        );
         assert!(!entries.iter().any(|e| e.path == ["Window", "Variables"]), "no Variables submenu");
+        let raw = crate::menus::menu_tree_raw(true);
+        let (_, window) = raw.iter().find(|(t, _)| *t == "Window").unwrap();
+        assert!(window.iter().any(|i| matches!(i, crate::menus::Item::Cmd("Variables", "window.panel", _))));
+        assert!(crate::menus::normalize_panel(ID).is_none());
     }
 
     /// A menu item that needs a name opens the dialog rather than running the command with

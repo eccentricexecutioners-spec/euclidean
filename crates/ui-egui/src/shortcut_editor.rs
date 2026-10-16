@@ -134,8 +134,22 @@ pub fn default_of(key: &str) -> Option<&'static str> {
     default_command_shortcut(key)
 }
 
+/// Is the entry key (`tool:<id>`, `panel:<id>` or a command id) hidden by Euclidean's registry?
+/// A hidden entry has no shortcut: not by default, not by override.
+fn hidden_key(key: &str) -> bool {
+    use crate::workbench::hidden;
+    match key.split_once(':') {
+        Some(("tool", id)) => hidden::tool(id),
+        Some(("panel", id)) => hidden::panel(id),
+        _ => hidden::command(key),
+    }
+}
+
 /// Effective shortcut of an entry key, honouring the user's overrides.
 fn effective(key: &str) -> Option<&'static str> {
+    if hidden_key(key) {
+        return None;
+    }
     match global_override(key) {
         Some("") => None,
         Some(s) => Some(s),
@@ -145,6 +159,9 @@ fn effective(key: &str) -> Option<&'static str> {
 
 /// Effective shortcut of `key` under an explicit override map: override > default; "" = none.
 pub fn effective_in(overrides: &BTreeMap<String, String>, key: &str) -> Option<String> {
+    if hidden_key(key) {
+        return None;
+    }
     match overrides.get(key) {
         Some(s) if s.is_empty() => None,
         Some(s) => Some(s.clone()),
@@ -254,6 +271,7 @@ pub fn entries() -> &'static [Entry] {
     static E: OnceLock<Vec<Entry>> = OnceLock::new();
     E.get_or_init(|| {
         let mut v: Vec<Entry> = vectorcraft_tools::catalog::all_tools()
+            .filter(|t| !crate::workbench::hidden::tool(t.id))
             .map(|t| Entry { key: format!("tool:{}", t.id), label: t.label.to_string(), group: "Tools".into(), is_tool: true })
             .collect();
         let mut seen = HashSet::new();
@@ -265,7 +283,7 @@ pub fn entries() -> &'static [Entry] {
             } else {
                 true
             };
-            if !listed || !seen.insert(c.id) {
+            if !listed || crate::workbench::hidden::command(c.id) || !seen.insert(c.id) {
                 continue;
             }
             let group = if c.menu.is_empty() { id_group(c.id) } else { c.menu.join(" › ") };
@@ -278,7 +296,10 @@ pub fn entries() -> &'static [Entry] {
             is_tool: false,
         }));
         for (id, label, sc, params) in menus::UI_COMMANDS {
-            if !seen.insert(id) || (sc.is_empty() && !params.starts_with("{}") && !params.starts_with("{path")) {
+            if crate::workbench::hidden::command(id)
+                || !seen.insert(id)
+                || (sc.is_empty() && !params.starts_with("{}") && !params.starts_with("{path"))
+            {
                 continue;
             }
             v.push(Entry { key: id.to_string(), label: label.to_string(), group: id_group(id), is_tool: false });

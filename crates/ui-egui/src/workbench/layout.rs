@@ -59,6 +59,10 @@ pub struct GroupDef {
     pub id: String,
     pub label: String,
     pub items: Vec<String>,
+    /// The items drawn as buttons in the group's row, most important first (the row folds the
+    /// last ones into the drop-down when the window is narrow); empty = every item.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub show: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -83,7 +87,49 @@ pub enum Item {
 pub struct ResolvedGroup {
     pub id: String,
     pub label: String,
+    /// Every item, in drop-down order (hidden ones left out).
     pub items: Vec<Item>,
+    /// The items shown as buttons, in order.
+    pub show: Vec<Item>,
+}
+
+impl Item {
+    /// The id a tool, command or panel item names (`None` for a separator).
+    pub fn id(&self) -> Option<&str> {
+        match self {
+            Item::Tool(t) => Some(t.id),
+            Item::Cmd { id, .. } | Item::Panel { id, .. } => Some(id),
+            Item::Sep => None,
+        }
+    }
+}
+
+/// `items` with every hidden one and every repeat (same id) taken out, and no doubled or
+/// trailing separators.
+fn tidy(items: Vec<Item>) -> Vec<Item> {
+    let mut seen: Vec<String> = vec![];
+    let mut out: Vec<Item> = vec![];
+    for it in items {
+        match it.id() {
+            Some(id) => {
+                if super::hidden::command(id) && matches!(it, Item::Cmd { .. }) || seen.iter().any(|s| s == id) {
+                    continue;
+                }
+                seen.push(id.to_string());
+                out.push(it);
+            }
+            None => {
+                if matches!(out.last(), Some(Item::Sep) | None) {
+                    continue;
+                }
+                out.push(it);
+            }
+        }
+    }
+    while matches!(out.last(), Some(Item::Sep)) {
+        out.pop();
+    }
+    out
 }
 
 #[derive(Clone, Debug)]
@@ -132,14 +178,30 @@ pub fn load(path: Option<&Path>) -> (LayoutFile, Vec<String>) {
 /// Resolve every name; an unknown one is skipped with one warning naming it.
 pub fn resolve(file: &LayoutFile) -> (ResolvedLayout, Vec<String>) {
     let mut warns = vec![];
-    let items = |list: &[String], w: &mut Vec<String>| -> Vec<Item> { list.iter().flat_map(|s| resolve_item(s, w)).collect() };
+    // A hidden tool, command or panel is skipped without a warning: the registry, not the layout, decides.
+    let items = |list: &[String], w: &mut Vec<String>| -> Vec<Item> {
+        tidy(list.iter().filter(|s| !super::hidden::layout_item(s)).flat_map(|s| resolve_item(s, w)).collect())
+    };
     let tabs = file
         .tabs
         .iter()
         .map(|t| ResolvedTab {
             id: t.id.clone(),
             label: t.label.clone(),
-            groups: t.groups.iter().map(|g| ResolvedGroup { id: g.id.clone(), label: g.label.clone(), items: items(&g.items, &mut warns) }).collect(),
+            groups: t
+                .groups
+                .iter()
+                .map(|g| {
+                    let all = items(&g.items, &mut warns);
+                    let show = if g.show.is_empty() {
+                        all.iter().filter(|i| !matches!(i, Item::Sep)).cloned().collect()
+                    } else {
+                        // Only items the group holds; the drop-down lists everything.
+                        items(&g.show, &mut warns).into_iter().filter(|i| i.id().is_some_and(|id| all.iter().any(|a| a.id() == Some(id)))).collect()
+                    };
+                    ResolvedGroup { id: g.id.clone(), label: g.label.clone(), items: all, show }
+                })
+                .collect(),
             left: t.left.clone(),
             right: t.right.clone(),
             color: t.color.clone().filter(|c| Tokens::is_tab_color(c)),
@@ -214,7 +276,7 @@ fn resolve_item(s: &str, warns: &mut Vec<String>) -> Vec<Item> {
             let path: Vec<&str> = rest.split('/').collect();
             let found: Vec<Item> = vectorcraft_engine::cmd::command_specs()
                 .iter()
-                .filter(|c| c.menu.len() >= path.len() && c.menu.iter().zip(&path).all(|(a, b)| a == b))
+                .filter(|c| c.menu.len() >= path.len() && c.menu.iter().zip(&path).all(|(a, b)| a == b) && !super::hidden::command(c.id))
                 .map(|c| Item::Cmd { id: c.id.into(), label: c.label.into(), shortcut: c.shortcut.map(Into::into) })
                 .collect();
             if found.is_empty() {
@@ -249,5 +311,5 @@ pub fn unplaced_tools(file: &LayoutFile) -> Vec<&'static str> {
             _ => None,
         })
         .collect();
-    vectorcraft_tools::catalog::all_tools().map(|t| t.id).filter(|id| !placed.contains(id)).collect()
+    vectorcraft_tools::catalog::all_tools().map(|t| t.id).filter(|id| !placed.contains(id) && !super::hidden::tool(id)).collect()
 }

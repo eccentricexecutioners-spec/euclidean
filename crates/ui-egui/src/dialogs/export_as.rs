@@ -20,9 +20,13 @@ pub(super) const SPEC: DialogSpec =
 /// The formats Export As writes (the native format and `.ai` are Save As's).
 static FORMATS: LazyLock<Vec<&'static Format>> =
     LazyLock::new(|| fileio::FORMATS.iter().filter(|f| f.write && !matches!(f.id, "vectorcraft" | "ai")).collect());
+/// The formats the dropdown offers: `FORMATS` without the ones Euclidean hides (those still open
+/// when a script asks for them by id).
+static LISTED: LazyLock<Vec<&'static Format>> =
+    LazyLock::new(|| FORMATS.iter().copied().filter(|f| !crate::workbench::hidden::export_format(f.id)).collect());
 /// Formats listed after them that can't be written (`fileio::unsupported` ids), greyed out.
 const UNAVAILABLE: [(&str, &str); 1] = [("dwg", "DWG (use DXF)")];
-static LABELS: LazyLock<Vec<&'static str>> = LazyLock::new(|| FORMATS.iter().map(|f| f.label).chain(UNAVAILABLE.iter().map(|u| u.1)).collect());
+static LABELS: LazyLock<Vec<&'static str>> = LazyLock::new(|| LISTED.iter().map(|f| f.label).chain(UNAVAILABLE.iter().map(|u| u.1)).collect());
 
 /// What to use instead when the field names a format that can't be written (DWG).
 fn unavailable(d: &Dialog) -> Option<(&'static str, &'static str)> {
@@ -66,7 +70,7 @@ fn body(_: &mut VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) -> bool {
     egui::Grid::new("export-as").num_columns(2).spacing([10.0, 8.0]).show(ui, |ui| {
         ui.label(egui::RichText::new(tl!("Format:")).color(t.text_dim));
         let shown = missing.map_or(f.label, |(label, _)| label);
-        if let Some(g) = widgets::dropdown_with(ui, "export-as-format", shown, &LABELS, 160.0, |i| i < FORMATS.len()).and_then(|i| FORMATS.get(i)) {
+        if let Some(g) = widgets::dropdown_with(ui, "export-as-format", shown, &LABELS, 160.0, |i| i < LISTED.len()).and_then(|i| LISTED.get(i)) {
             d.fields.insert("format".into(), json!(g.id));
         }
         ui.end_row();

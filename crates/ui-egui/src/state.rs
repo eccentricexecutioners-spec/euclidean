@@ -97,7 +97,9 @@ impl DockTab {
 /// Every panel `window.panel` shows, as (id, English label): the dock tabs, then the icon panels.
 pub fn all_panels() -> impl Iterator<Item = (&'static str, &'static str)> {
     let tabs = DockTab::ALL.into_iter().map(|t| (t.info().0, t.info().1));
-    tabs.chain(ICON_PANELS.iter().map(|&(id, label, _)| (id, label)))
+    // A panel Euclidean hides (`workbench::hidden`) is no panel to the menus, the dock, the
+    // shortcut editor or `window.panel`.
+    tabs.chain(ICON_PANELS.iter().map(|&(id, label, _)| (id, label))).filter(|(id, _)| !crate::workbench::hidden::panel(id))
 }
 
 /// Panels that live as collapsed icons in the dock (Essentials Classic).
@@ -677,7 +679,7 @@ impl UiState {
         FloatingPanels::sanitize(&mut self.floating_panels, &mut self.toolbar_pos);
         crate::edit_toolbar::sanitize(&mut self.toolbar_edits);
         self.docking = self.docking.filter(crate::panel_docking::valid);
-        self.docking_icons.retain(|id| ICON_PANELS.iter().any(|entry| entry.0 == id));
+        self.docking_icons.retain(|id| ICON_PANELS.iter().any(|entry| entry.0 == id) && !crate::workbench::hidden::panel(id));
         // Overrides that can't fire (modifier-only chords recorded by older versions, #487) give
         // the default back.
         self.shortcut_overrides.retain(|_, c| c.is_empty() || crate::shortcut_editor::normalize(c).is_some());

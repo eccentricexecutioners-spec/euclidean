@@ -1282,7 +1282,8 @@ mod tests {
         // Color, Color Guide, Swatches… top to bottom.
         let icons = h.icons();
         let count = icons.len();
-        assert_eq!(count, crate::state::ICON_PANEL_GROUPS.iter().map(|g| g.len()).sum::<usize>(), "every group's icons are drawn");
+        let shown = crate::state::ICON_PANEL_GROUPS.iter().flat_map(|g| g.iter()).filter(|id| !crate::workbench::hidden::panel(id)).count();
+        assert_eq!(count, shown, "every group's icons are drawn (but the hidden ones)");
         h.drag(icons[2].center(), pos2(500.0, 250.0));
         assert_eq!(h.groups(), [["swatches"]]);
         assert_eq!(h.icons().len(), count - 1);

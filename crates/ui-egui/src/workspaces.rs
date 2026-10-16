@@ -175,12 +175,17 @@ pub fn find(ui: &UiState, name: &str) -> Option<Workspace> {
         .iter()
         .find(|w| w.name.eq_ignore_ascii_case(name))
         .cloned()
-        .or_else(|| builtins().into_iter().find(|w| w.name.eq_ignore_ascii_case(name)))
+        .or_else(|| builtins().into_iter().filter(|w| !crate::workbench::hidden::workspace(&w.name)).find(|w| w.name.eq_ignore_ascii_case(name)))
 }
 
 /// Every workspace name: built-ins then user workspaces.
 pub fn names(ui: &UiState) -> Vec<String> {
-    builtins().into_iter().map(|w| w.name).chain(ui.custom_workspaces.iter().map(|w| w.name.clone())).collect()
+    builtins()
+        .into_iter()
+        .filter(|w| !crate::workbench::hidden::workspace(&w.name))
+        .map(|w| w.name)
+        .chain(ui.custom_workspaces.iter().map(|w| w.name.clone()))
+        .collect()
 }
 
 /// Save the current layout as `name` (replacing a user workspace of that name).
@@ -248,6 +253,7 @@ pub fn sync(ui: &UiState) {
 pub fn menu_items() -> Vec<crate::menus::Item> {
     use crate::menus::Item;
     let mut v: Vec<Item> =
+        // Every built-in, hidden ones too: the menu tree's prune (`menus::prune_hidden`) drops those.
         builtins().into_iter().map(|w| Item::Cmd(crate::shortcut_editor::intern(&w.name), "window.workspace", json!({"name": w.name}))).collect();
     let custom = names_store().read().map(|v| v.clone()).unwrap_or_default();
     if !custom.is_empty() {
@@ -486,8 +492,13 @@ mod tests {
     #[test]
     fn all_requested_workspaces_exist() {
         let ui = UiState::default();
-        for n in ["Essentials", "Essentials Classic", "Painting", "Typography", "Layout", "Tracing", "Web", "Automation"] {
+        for n in ["Essentials", "Essentials Classic", "Painting", "Typography", "Layout", "Tracing"] {
             assert!(find(&ui, n).is_some(), "{n}");
+        }
+        // E1: Web and Automation are hidden (`workbench::hidden`); they are still built in.
+        for n in ["Web", "Automation"] {
+            assert!(find(&ui, n).is_none(), "{n} is hidden");
+            assert!(builtins().iter().any(|w| w.name == n), "{n} is still a built-in");
         }
     }
 }

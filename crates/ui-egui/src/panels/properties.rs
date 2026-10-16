@@ -313,9 +313,11 @@ fn document_sections(app: &mut VectorcraftApp, ui: &mut Ui) {
     section_header(ui, tl!("Document"));
     ui.horizontal(|ui| {
         dim_label(ui, tl!("Units"));
-        let labels: Vec<&str> = Unit::ALL.iter().map(|u| u.label()).collect();
-        if let Some(i) = widgets::dropdown(ui, "units", units.label(), &labels, 140.0) {
-            app.run("document.setUnits", json!({"units": labels[i]})).ok();
+        let labels: Vec<&str> = Unit::ALL.iter().map(|u| u.label()).filter(|l| !crate::workbench::hidden::unit(l)).collect();
+        if let Some(i) = widgets::dropdown(ui, "units", units.label(), &labels, 140.0)
+            && let Some(l) = labels.get(i)
+        {
+            app.run("document.setUnits", json!({"units": l})).ok();
         }
     });
     let w = (ui.available_width() - 6.0) / 2.0;

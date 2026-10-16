@@ -497,7 +497,8 @@ fn menu_labels() -> Vec<(&'static str, &'static str, serde_json::Value)> {
         }
     }
     let mut labels = vec![];
-    for (title, items) in crate::menus::menu_tree() {
+    // The raw tree: a row Euclidean hides (`workbench::hidden`) is still a translated label.
+    for (title, items) in crate::menus::menu_tree_raw(true) {
         labels.push((title, "", serde_json::Value::Null));
         walk(&items, &mut labels);
     }

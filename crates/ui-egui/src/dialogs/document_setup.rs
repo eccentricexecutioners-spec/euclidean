@@ -79,7 +79,7 @@ fn unit(d: &Dialog) -> Unit {
 }
 
 fn general(app: &mut VectorcraftApp, ui: &mut egui::Ui, d: &mut Dialog) -> bool {
-    let units: Vec<(&str, &str)> = Unit::ALL.iter().map(|u| (u.label(), u.label())).collect();
+    let units: Vec<(&str, &str)> = Unit::ALL.iter().filter(|u| !crate::workbench::hidden::unit(u.label())).map(|u| (u.label(), u.label())).collect();
     choice(ui, d, "units", tl!("Units:"), &units);
     ui.add_space(6.0);
     let unit = unit(d);
