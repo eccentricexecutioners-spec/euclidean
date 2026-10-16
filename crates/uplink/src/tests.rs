@@ -328,6 +328,34 @@ fn check_update_with_bad_signature_is_not_staged() {
     assert!(!cfg.state.pending_file().exists());
 }
 
+// D6: Cargo Bay may sign `"platform": "mac"` into a Mac manifest. The manifest is checked as received (a Value,
+// canonicalised with every key), so the extra field is covered by the signature and ignored by every field read.
+#[test]
+fn check_update_with_platform_in_the_signed_manifest_is_staged() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let zip = app_zip("new build");
+    let mut manifest = manifest_for("2.0.0", &zip);
+    manifest["platform"] = json!("mac");
+    let signature = sign_manifest(&master(), &manifest);
+    let z = zip.clone();
+    let server = TestServer::start(move |req, base| {
+        if req.method == "POST" {
+            Resp::Json(
+                200,
+                json!({"status": "update", "release": {"version": "2.0.0", "channel": "stable",
+                "manifest": manifest, "signature": signature, "download_url": format!("{base}/dl")}}),
+            )
+        } else {
+            Resp::Bytes(200, z.clone())
+        }
+    });
+    let cfg = config(tmp.path(), &server.url, "mac");
+    link_key(tmp.path());
+    assert_eq!(run_check(&cfg, &|_| {}), Outcome::Staged { version: "2.0.0".into(), already: false });
+    let pending: Value = serde_json::from_str(&fs::read_to_string(cfg.state.pending_file()).unwrap()).unwrap();
+    assert!(pending.to_string().contains("\"platform\":\"mac\""), "{pending}");
+}
+
 #[test]
 fn check_401_retires_key() {
     let tmp = tempfile::TempDir::new().unwrap();

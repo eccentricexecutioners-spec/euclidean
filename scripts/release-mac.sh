@@ -100,7 +100,7 @@ git -C "$STAGE" tag "$TAG"
 
 # --- 4. Build, sign and check the zip with the release tool's dry run -------------------------------------------------
 release_tool() { (cd "$CARGO_BAY_DIR" && node tools/release.mjs --repo "$STAGE" --tag "$TAG" --path Euclidean.app \
-  --tool "$TOOL" --kind desktop-app --notes "$NOTES" --key "$CARGO_BAY_RELEASE_KEY" "$@"); }
+  --tool "$TOOL" --kind desktop-app --platform mac --notes "$NOTES" --key "$CARGO_BAY_RELEASE_KEY" "$@"); }
 release_tool --dry-run "$OUT/signed"
 ZIP="$OUT/signed/Euclidean.app-$VERSION.zip"
 BYTES="$(stat -f %z "$ZIP")"
