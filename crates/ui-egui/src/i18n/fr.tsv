@@ -5006,3 +5006,16 @@ theme	Appearance	Apparence
 @msg	Checking for updates…	Recherche de mises à jour…
 @msg	select one sketch, or pass `id`	sélectionnez une esquisse ou indiquez `id`
 @msg	object {_1} is not a drawn sketch	l'objet {_1} n'est pas une esquisse dessinée
+	Follows a formula: edit it in the Parameters table.	Suit une formule : modifiez-la dans la table Paramètres.
+	step	pas
+	values	valeurs
+	Remove Look	Supprimer le look
+	Save Look	Enregistrer le look
+	Looks	Looks
+	Save the favourites' values as a look to come back to them.	Enregistrez les valeurs des favoris comme un look pour y revenir.
+	No favorites yet	Pas encore de favoris
+	Star a parameter in the Parameters table and it appears here as a slider.	Marquez un paramètre d'une étoile dans la table Paramètres : il apparaît ici sous forme de curseur.
+	Open Parameters	Ouvrir Paramètres
+	Apply Look	Appliquer le look
+	Delete Look	Supprimer le look
+	List Looks	Lister les looks

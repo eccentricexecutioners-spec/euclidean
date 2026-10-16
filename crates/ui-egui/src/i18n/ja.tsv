@@ -4570,3 +4570,16 @@ lighting	Light	ライト
 @msg	Checking for updates…	アップデートを確認しています…
 @msg	select one sketch, or pass `id`	スケッチを1つ選択するか、`id` を指定してください
 @msg	object {_1} is not a drawn sketch	オブジェクト {_1} は描画スケッチではありません
+	Follows a formula: edit it in the Parameters table.	数式に従います。パラメータ表で編集してください。
+	step	ステップ
+	values	個の値
+	Remove Look	ルックを削除
+	Save Look	ルックを保存
+	Looks	ルック
+	Save the favourites' values as a look to come back to them.	お気に入りの値をルックとして保存すると、後で戻せます。
+	No favorites yet	お気に入りはまだありません
+	Star a parameter in the Parameters table and it appears here as a slider.	パラメータ表でパラメータに星を付けると、ここにスライダーとして表示されます。
+	Open Parameters	パラメータを開く
+	Apply Look	ルックを適用
+	Delete Look	ルックを削除
+	List Looks	ルックの一覧

@@ -4947,3 +4947,16 @@ mark-style	Japanese	Japonesas
 @msg	Checking for updates…	Buscando actualizaciones…
 @msg	select one sketch, or pass `id`	seleccione un boceto o indique `id`
 @msg	object {_1} is not a drawn sketch	el objeto {_1} no es un boceto dibujado
+	Follows a formula: edit it in the Parameters table.	Sigue una fórmula: edítala en la tabla Parámetros.
+	step	paso
+	values	valores
+	Remove Look	Quitar aspecto
+	Save Look	Guardar aspecto
+	Looks	Aspectos
+	Save the favourites' values as a look to come back to them.	Guarda los valores de los favoritos como un aspecto para volver a ellos.
+	No favorites yet	Aún no hay favoritos
+	Star a parameter in the Parameters table and it appears here as a slider.	Marca un parámetro con estrella en la tabla Parámetros y aparecerá aquí como control deslizante.
+	Open Parameters	Abrir Parámetros
+	Apply Look	Aplicar aspecto
+	Delete Look	Eliminar aspecto
+	List Looks	Listar aspectos

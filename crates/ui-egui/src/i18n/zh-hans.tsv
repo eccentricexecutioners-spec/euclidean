@@ -4112,3 +4112,16 @@ lighting	Light	光源
 @msg	Couldn't get the update ready — try again later.	无法准备更新 — 请稍后再试。
 @msg	Updates are off in this copy.	此副本已关闭更新。
 @msg	Checking for updates…	正在检查更新…
+	Follows a formula: edit it in the Parameters table.	由公式决定：请在“参数”表中编辑。
+	step	步长
+	values	个值
+	Remove Look	移除外观
+	Save Look	保存外观
+	Looks	外观
+	Save the favourites' values as a look to come back to them.	将收藏参数的值保存为外观，以便随时恢复。
+	No favorites yet	还没有收藏
+	Star a parameter in the Parameters table and it appears here as a slider.	在“参数”表中为参数加星，它会以滑块形式显示在这里。
+	Open Parameters	打开“参数”
+	Apply Look	应用外观
+	Delete Look	删除外观
+	List Looks	列出外观

@@ -173,16 +173,16 @@ fn add_remove_and_starring_follow_the_sandbox() {
     let list = s.execute("parameters.list", &json!({})).unwrap();
     assert_eq!(list["rows"][0]["expression"], "10 mm");
     assert_eq!(row(&list, "param2")["expression"], "10");
-    // Starring without a range: half to double, stepping by the unit's step.
+    // Starring without a range: a quarter to four times (E1), stepping by the unit's step.
     s.execute("parameters.set", &json!({"name": "param1", "favourite": true})).unwrap();
     let list = s.execute("parameters.list", &json!({})).unwrap();
     assert_eq!(
         (list["rows"][0]["min"].as_f64(), list["rows"][0]["max"].as_f64(), list["rows"][0]["step"].as_f64()),
-        (Some(5.0), Some(20.0), Some(0.5))
+        (Some(3.0), Some(40.0), Some(0.5))
     );
     // A starred row always has a range: clearing `min` refills it; unstarred, null clears it.
     s.execute("parameters.set", &json!({"name": "param1", "min": null})).unwrap();
-    assert_eq!(s.execute("parameters.list", &json!({})).unwrap()["rows"][0]["min"], 5.0);
+    assert_eq!(s.execute("parameters.list", &json!({})).unwrap()["rows"][0]["min"], 3.0);
     s.execute("parameters.set", &json!({"name": "param1", "favourite": false, "min": null})).unwrap();
     assert!(s.execute("parameters.list", &json!({})).unwrap()["rows"][0]["min"].is_null());
     s.execute("parameters.remove", &json!({"name": "param1"})).unwrap();

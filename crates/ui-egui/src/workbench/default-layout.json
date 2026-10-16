@@ -189,10 +189,12 @@
      "label": "INSPECT",
      "show": [
       "tool:measure",
+      "panel:favourites",
       "panel:info"
      ],
      "items": [
       "tool:measure",
+      "panel:favourites",
       "panel:info",
       "panel:docInfo",
       "panel:attributes"
@@ -243,17 +245,20 @@
      "id": "parameters",
      "label": "PARAMETERS",
      "show": [
-      "cmd:window.changeParameters",
-      "panel:parameters"
+      "panel:favourites",
+      "panel:parameters",
+      "cmd:window.changeParameters"
      ],
      "items": [
-      "cmd:window.changeParameters",
-      "panel:parameters"
+      "panel:favourites",
+      "panel:parameters",
+      "cmd:window.changeParameters"
      ]
     }
    ],
    "left": [],
    "right": [
+    "favourites",
     "parameters"
    ]
   },

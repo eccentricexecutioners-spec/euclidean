@@ -4576,3 +4576,16 @@ lighting	Light	Luce
 @msg	Checking for updates…	Verifica degli aggiornamenti in corso…
 @msg	select one sketch, or pass `id`	selezionare uno schizzo o indicare `id`
 @msg	object {_1} is not a drawn sketch	l'oggetto {_1} non è uno schizzo disegnato
+	Follows a formula: edit it in the Parameters table.	Segue una formula: modificala nella tabella Parametri.
+	step	passo
+	values	valori
+	Remove Look	Rimuovi look
+	Save Look	Salva look
+	Looks	Look
+	Save the favourites' values as a look to come back to them.	Salva i valori dei preferiti come look per tornarci.
+	No favorites yet	Nessun preferito
+	Star a parameter in the Parameters table and it appears here as a slider.	Aggiungi una stella a un parametro nella tabella Parametri e apparirà qui come cursore.
+	Open Parameters	Apri Parametri
+	Apply Look	Applica look
+	Delete Look	Elimina look
+	List Looks	Elenca look

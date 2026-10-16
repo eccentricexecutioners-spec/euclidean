@@ -4572,3 +4572,16 @@ lighting	Light	Свет
 @msg	Checking for updates…	Проверка обновлений…
 @msg	select one sketch, or pass `id`	выберите один эскиз или укажите `id`
 @msg	object {_1} is not a drawn sketch	объект {_1} не является нарисованным эскизом
+	Follows a formula: edit it in the Parameters table.	Следует формуле: измените её в таблице «Параметры».
+	step	шаг
+	values	значений
+	Remove Look	Удалить образ
+	Save Look	Сохранить образ
+	Looks	Образы
+	Save the favourites' values as a look to come back to them.	Сохраните значения избранных как образ, чтобы вернуться к ним.
+	No favorites yet	Избранных пока нет
+	Star a parameter in the Parameters table and it appears here as a slider.	Отметьте параметр звёздочкой в таблице «Параметры», и он появится здесь как ползунок.
+	Open Parameters	Открыть «Параметры»
+	Apply Look	Применить образ
+	Delete Look	Удалить образ
+	List Looks	Список образов

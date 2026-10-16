@@ -4540,3 +4540,16 @@ lighting	Light	광원
 @msg	Checking for updates…	업데이트를 확인하는 중…
 @msg	select one sketch, or pass `id`	스케치를 하나 선택하거나 `id`를 지정하세요
 @msg	object {_1} is not a drawn sketch	개체 {_1}은(는) 그린 스케치가 아닙니다
+	Follows a formula: edit it in the Parameters table.	수식을 따릅니다. 매개변수 표에서 편집하세요.
+	step	단계
+	values	개 값
+	Remove Look	룩 제거
+	Save Look	룩 저장
+	Looks	룩
+	Save the favourites' values as a look to come back to them.	즐겨찾기 값을 룩으로 저장하면 나중에 되돌릴 수 있습니다.
+	No favorites yet	즐겨찾기가 없습니다
+	Star a parameter in the Parameters table and it appears here as a slider.	매개변수 표에서 별표를 누르면 여기에 슬라이더로 나타납니다.
+	Open Parameters	매개변수 열기
+	Apply Look	룩 적용
+	Delete Look	룩 삭제
+	List Looks	룩 목록

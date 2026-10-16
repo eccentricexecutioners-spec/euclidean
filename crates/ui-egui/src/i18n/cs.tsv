@@ -5006,3 +5006,16 @@ mark-style	Japanese	Japonské
 @msg	Checking for updates…	Kontrolují se aktualizace…
 @msg	select one sketch, or pass `id`	vyberte jeden náčrt nebo zadejte `id`
 @msg	object {_1} is not a drawn sketch	objekt {_1} není nakreslený náčrt
+	Follows a formula: edit it in the Parameters table.	Řídí se vzorcem: upravte ho v tabulce Parametry.
+	step	krok
+	values	hodnot
+	Remove Look	Odebrat vzhled
+	Save Look	Uložit vzhled
+	Looks	Vzhledy
+	Save the favourites' values as a look to come back to them.	Uložte hodnoty oblíbených jako vzhled, abyste se k nim mohli vrátit.
+	No favorites yet	Zatím žádné oblíbené
+	Star a parameter in the Parameters table and it appears here as a slider.	Označte parametr hvězdičkou v tabulce Parametry a objeví se zde jako posuvník.
+	Open Parameters	Otevřít Parametry
+	Apply Look	Použít vzhled
+	Delete Look	Smazat vzhled
+	List Looks	Seznam vzhledů

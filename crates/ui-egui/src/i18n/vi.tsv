@@ -4558,3 +4558,16 @@ theme	Appearance	Giao diện
 @msg	Checking for updates…	Đang kiểm tra bản cập nhật…
 @msg	select one sketch, or pass `id`	chọn một phác thảo hoặc cung cấp `id`
 @msg	object {_1} is not a drawn sketch	đối tượng {_1} không phải là phác thảo đã vẽ
+	Follows a formula: edit it in the Parameters table.	Theo công thức: chỉnh sửa trong bảng Tham số.
+	step	bước
+	values	giá trị
+	Remove Look	Xoá look
+	Save Look	Lưu look
+	Looks	Look
+	Save the favourites' values as a look to come back to them.	Lưu giá trị các mục yêu thích thành look để quay lại sau.
+	No favorites yet	Chưa có mục yêu thích
+	Star a parameter in the Parameters table and it appears here as a slider.	Đánh dấu sao một tham số trong bảng Tham số, nó sẽ hiện ở đây dưới dạng thanh trượt.
+	Open Parameters	Mở Tham số
+	Apply Look	Áp dụng look
+	Delete Look	Xoá look
+	List Looks	Liệt kê look

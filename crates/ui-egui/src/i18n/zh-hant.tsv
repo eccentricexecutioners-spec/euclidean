@@ -3894,3 +3894,16 @@ lighting	Light	光源
 @msg	Couldn't get the update ready — try again later.	無法準備更新 — 請稍後再試。
 @msg	Updates are off in this copy.	此副本已關閉更新。
 @msg	Checking for updates…	正在檢查更新…
+	Follows a formula: edit it in the Parameters table.	由公式決定：請在「參數」表中編輯。
+	step	步進
+	values	個值
+	Remove Look	移除外觀
+	Save Look	儲存外觀
+	Looks	外觀
+	Save the favourites' values as a look to come back to them.	將收藏參數的值儲存為外觀，以便隨時恢復。
+	No favorites yet	還沒有收藏
+	Star a parameter in the Parameters table and it appears here as a slider.	在「參數」表中為參數加星，它會以滑桿形式顯示在這裡。
+	Open Parameters	開啟「參數」
+	Apply Look	套用外觀
+	Delete Look	刪除外觀
+	List Looks	列出外觀

@@ -4849,3 +4849,16 @@ mark-style	Japanese	Japońskie
 @msg	Checking for updates…	Sprawdzanie aktualizacji…
 @msg	select one sketch, or pass `id`	zaznacz jeden szkic lub podaj `id`
 @msg	object {_1} is not a drawn sketch	obiekt {_1} nie jest narysowanym szkicem
+	Follows a formula: edit it in the Parameters table.	Wynika ze wzoru: edytuj go w tabeli Parametry.
+	step	krok
+	values	wartości
+	Remove Look	Usuń look
+	Save Look	Zapisz look
+	Looks	Looki
+	Save the favourites' values as a look to come back to them.	Zapisz wartości ulubionych jako look, aby do nich wrócić.
+	No favorites yet	Brak ulubionych
+	Star a parameter in the Parameters table and it appears here as a slider.	Oznacz parametr gwiazdką w tabeli Parametry, a pojawi się tutaj jako suwak.
+	Open Parameters	Otwórz Parametry
+	Apply Look	Zastosuj look
+	Delete Look	Usuń look
+	List Looks	Lista looków

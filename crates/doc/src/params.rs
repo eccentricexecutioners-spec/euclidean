@@ -189,12 +189,12 @@ pub fn format_value(mm: Option<f64>, unit: &str) -> String {
     }
 }
 
-/// The slider range a parameter gets when it is starred without one: half to double its value
-/// (in its unit), stepping by 1 (no unit), 0.5 (mm) or 0.125 (in).
+/// The slider range a parameter gets when it is starred without one: a quarter to four times its
+/// value (in its unit; E1, was half to double), stepping by 1 (no unit), 0.5 (mm) or 0.125 (in).
 pub fn default_range(value: f64, unit: &str) -> (f64, f64, f64) {
     let v = if value.is_finite() { value } else { 0.0 };
-    let min = (v * 0.5).round().max(0.0);
-    let max = match (v * 2.0).round() {
+    let min = (v * 0.25).round().max(0.0);
+    let max = match (v * 4.0).round() {
         m if m > min => m,
         _ => min + 10.0,
     };
@@ -315,10 +315,10 @@ mod tests {
 
     #[test]
     fn default_ranges_follow_the_sandbox() {
-        assert_eq!(default_range(120.0, "mm"), (60.0, 240.0, 0.5));
-        assert_eq!(default_range(4.0, ""), (2.0, 8.0, 1.0));
-        assert_eq!(default_range(1.0, "in"), (1.0, 2.0, 0.125));
-        assert_eq!(default_range(0.4, "in"), (0.0, 1.0, 0.125));
+        assert_eq!(default_range(120.0, "mm"), (30.0, 480.0, 0.5));
+        assert_eq!(default_range(4.0, ""), (1.0, 16.0, 1.0));
+        assert_eq!(default_range(1.0, "in"), (0.0, 4.0, 0.125));
+        assert_eq!(default_range(0.4, "in"), (0.0, 2.0, 0.125));
         assert_eq!(default_range(0.0, "mm"), (0.0, 10.0, 0.5));
     }
 
@@ -342,7 +342,7 @@ mod tests {
         assert!(out[0].get("sketch").is_none() && out[1]["sketch"] == 7, "{out}");
         assert_eq!(format_value(Some(30.0), "deg"), "30 deg");
         assert_eq!((to_unit(30.0, "deg"), from_unit(30.0, "deg")), (30.0, 30.0));
-        assert_eq!(default_range(30.0, "deg"), (15.0, 60.0, 1.0));
+        assert_eq!(default_range(30.0, "deg"), (8.0, 120.0, 1.0));
         assert!(valid_unit("deg"));
     }
 

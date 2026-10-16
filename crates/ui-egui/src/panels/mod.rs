@@ -16,6 +16,7 @@ pub mod color_guide;
 pub mod color_themes;
 pub mod css_properties;
 pub mod doc_info;
+pub mod favourites;
 pub mod flattener_preview;
 pub mod glyphs;
 pub mod gradient;
@@ -172,6 +173,7 @@ pub fn show_icon_panel(app: &mut VectorcraftApp, ui: &mut Ui, id: &str) {
         "attributes" => attributes::show(app, ui),
         variables::ID => variables::show(app, ui),
         parameters::ID => parameters::show(app, ui),
+        favourites::ID => favourites::show(app, ui),
         "colorThemes" => color_themes::show(app, ui),
         links::ID => links::show(app, ui),
         asset_export::ID => asset_export::show(app, ui),
@@ -225,6 +227,7 @@ pub fn panel_menu_items(app: &mut VectorcraftApp, ui: &mut Ui, id: &str) -> bool
         css_properties::ID => css_properties::menu(app, ui),
         variables::ID => variables::menu(app, ui),
         parameters::ID => parameters::menu(app, ui),
+        favourites::ID => favourites::menu(app, ui),
         _ => return false,
     }
     true

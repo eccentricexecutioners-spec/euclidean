@@ -4973,3 +4973,16 @@ imageTrace	Outline	Körvonal
 @msg	Checking for updates…	Frissítések keresése…
 @msg	select one sketch, or pass `id`	jelöljön ki egy vázlatot, vagy adja meg az `id`-t
 @msg	object {_1} is not a drawn sketch	a(z) {_1} objektum nem rajzolt vázlat
+	Follows a formula: edit it in the Parameters table.	Képletet követ: a Paraméterek táblázatban szerkeszthető.
+	step	lépés
+	values	érték
+	Remove Look	Megjelenés eltávolítása
+	Save Look	Megjelenés mentése
+	Looks	Megjelenések
+	Save the favourites' values as a look to come back to them.	Mentse a kedvencek értékeit megjelenésként, hogy visszatérhessen hozzájuk.
+	No favorites yet	Még nincsenek kedvencek
+	Star a parameter in the Parameters table and it appears here as a slider.	Csillagozzon meg egy paramétert a Paraméterek táblázatban, és itt csúszkaként jelenik meg.
+	Open Parameters	Paraméterek megnyitása
+	Apply Look	Megjelenés alkalmazása
+	Delete Look	Megjelenés törlése
+	List Looks	Megjelenések listázása

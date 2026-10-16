@@ -4531,3 +4531,16 @@ theme	Appearance	Erscheinungsbild
 @msg	Checking for updates…	Es wird nach Updates gesucht…
 @msg	select one sketch, or pass `id`	Wählen Sie eine Skizze aus oder geben Sie `id` an
 @msg	object {_1} is not a drawn sketch	Objekt {_1} ist keine gezeichnete Skizze
+	Follows a formula: edit it in the Parameters table.	Folgt einer Formel: im Parameter-Tabellenfeld bearbeiten.
+	step	Schritt
+	values	Werte
+	Remove Look	Look entfernen
+	Save Look	Look speichern
+	Looks	Looks
+	Save the favourites' values as a look to come back to them.	Speichern Sie die Werte der Favoriten als Look, um zu ihnen zurückzukehren.
+	No favorites yet	Noch keine Favoriten
+	Star a parameter in the Parameters table and it appears here as a slider.	Markieren Sie einen Parameter in der Parameter-Tabelle mit einem Stern, dann erscheint er hier als Regler.
+	Open Parameters	Parameter öffnen
+	Apply Look	Look anwenden
+	Delete Look	Look löschen
+	List Looks	Looks auflisten
