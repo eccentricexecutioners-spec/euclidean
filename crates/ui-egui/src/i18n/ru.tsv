@@ -4600,3 +4600,7 @@ lighting	Light	Свет
 	Driven	Управляемый
 	Move Sketch Dimension	Переместить размер эскиза
 	Set Sketch Dimension Driven	Сделать размер эскиза управляемым
+	Rename Step	Переименовать шаг
+	A name for this step	Имя этого шага
+	commands	команд
+	Rename Timeline Step	Переименовать шаг временной шкалы

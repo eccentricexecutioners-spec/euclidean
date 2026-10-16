@@ -4568,3 +4568,7 @@ lighting	Light	광원
 	Driven	종속
 	Move Sketch Dimension	스케치 치수 이동
 	Set Sketch Dimension Driven	스케치 치수를 종속으로 설정
+	Rename Step	단계 이름 바꾸기
+	A name for this step	이 단계의 이름
+	commands	개 명령
+	Rename Timeline Step	타임라인 단계 이름 바꾸기

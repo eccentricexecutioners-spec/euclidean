@@ -743,3 +743,80 @@ fn classic_sketch_toolbar_keeps_its_size() {
     rig.settle();
     assert!(sketch_tool_rects(&rig).is_empty());
 }
+
+// ---------------------------------------------------------------- E1 Part E: features, right-click
+
+impl Rig {
+    fn right_click(&mut self, name: &str) -> String {
+        let p = self.hit(name);
+        self.frame(vec![Event::PointerMoved(p)]);
+        let button = |pressed| Event::PointerButton { pos: p, button: PointerButton::Secondary, pressed, modifiers: Modifiers::NONE };
+        self.frame(vec![button(true)]);
+        self.frame(vec![button(false)]);
+        self.settle()
+    }
+}
+
+#[test]
+fn right_click_on_a_step_offers_edit_suppress_delete_roll_and_rename_and_rename_names_it() {
+    let (mut rig, _) = timeline_rig();
+    let text = rig.right_click("chip:0");
+    for item in ["Edit…", "Suppress", "Delete", "Roll to here", "Rename…"] {
+        assert!(text.contains(item), "{item} missing in\n{text}");
+    }
+    rig.click("menu:rename");
+    assert!(rig.app.ui.workbench.rename_step.is_some(), "the Rename Step window is up");
+    rig.app.ui.workbench.rename_step = Some((0, String::new()));
+    rig.settle();
+    rig.frame(vec![Event::Text("Base plate".into())]);
+    rig.settle();
+    rig.click("rename:ok");
+    assert!(rig.app.ui.workbench.rename_step.is_none());
+    let steps = timeline_list(&mut rig);
+    assert_eq!((steps["steps"][0]["label"].as_str(), steps["steps"][0]["name"].as_str()), (Some("Base plate"), Some("Base plate")), "{steps}");
+    // The menu's title shows the name; Suppress from the menu fades the step.
+    let text = rig.right_click("chip:0");
+    assert!(text.contains("Step 1 · Base plate"), "{text}");
+    rig.click("menu:suppress");
+    assert_eq!(timeline_list(&mut rig)["steps"][0]["suppressed"], json!(true));
+    assert!(rig.app.ui.workbench.chip_suppressed[0]);
+    rig.right_click("chip:0");
+    let text = rig.settle();
+    assert!(text.contains("Unsuppress"), "{text}");
+    rig.click("menu:suppress");
+    assert_eq!(timeline_list(&mut rig)["steps"][0]["suppressed"], json!(false));
+    // Roll to here from the menu.
+    rig.right_click("chip:1");
+    rig.click("menu:roll");
+    assert_eq!(timeline_list(&mut rig)["marker"], json!(2));
+    // Delete from the menu.
+    rig.right_click("chip:0");
+    rig.click("menu:delete");
+    assert_eq!(timeline_list(&mut rig)["steps"].as_array().unwrap().len(), 3);
+}
+
+#[test]
+fn a_sketch_is_one_step_and_editing_it_reopens_the_sketch() {
+    let mut rig = Rig::new(Layout::Fusion);
+    let s = &mut rig.app.session;
+    s.execute("timeline.setRecording", &json!({"on": true})).unwrap();
+    s.execute("file.new", &json!({"width": 300, "height": 200})).unwrap();
+    s.execute("shape.rectangle", &json!({"x": 10, "y": 10, "width": 50, "height": 40})).unwrap();
+    let id = s.execute("sketch.new", &json!({})).unwrap()["id"].as_u64().unwrap();
+    for i in 0..5 {
+        s.execute("sketch.addLine", &json!({"id": id, "from": [10.0, 10.0 + i as f64 * 5.0], "to": [60.0, 10.0 + i as f64 * 5.0]})).unwrap();
+    }
+    s.execute("sketch.addDimension", &json!({"id": id, "constraint": {"type": "length", "line": 0}})).unwrap();
+    rig.settle();
+    let steps = timeline_list(&mut rig);
+    assert_eq!(steps["steps"].as_array().unwrap().len(), 2, "{steps}");
+    assert_eq!(steps["steps"][1]["label"], "Sketch 1");
+    assert_eq!(rig.app.ui.workbench.chip_colors.len(), 2);
+    let text = rig.hover("chip:1");
+    assert!(text.contains("7 commands"), "{text}");
+    assert!(rig.app.sketch.is_none());
+    rig.double_click("chip:1");
+    assert!(rig.app.sketch.as_ref().is_some_and(|m| m.id.0 == id), "Edit reopens the sketch");
+}
+
+

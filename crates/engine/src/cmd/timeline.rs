@@ -12,7 +12,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "List Timeline Steps",
             [],
             None,
-            "{} → {steps: [{index, cmd, label, params, selection: [ids], status: ok|failed|pending, error, rolledBack, suppressed}], marker (steps applied), editable (the base is kept), baseBytes} the active document's timeline, oldest step first",
+            "{} → {steps: [{index, cmd, label, name, feature, children: [{cmd, params}], params, selection: [ids], status: ok|failed|pending, error, rolledBack, suppressed}], marker (steps applied), editable (the base is kept), baseBytes} the active document's timeline, oldest step first; a feature step (a sketch, a pen path) lists the commands merged into it as children",
             has_doc,
             list
         ),
@@ -62,6 +62,15 @@ pub fn specs() -> Vec<CommandSpec> {
             delete_step
         ),
         cmd!(
+            "timeline.renameStep",
+            "Rename Timeline Step",
+            [],
+            None,
+            "{index, name | null} names the step (shown instead of its label; null takes the name away). One undo step, no replay → {steps, marker}",
+            has_timeline,
+            rename_step
+        ),
+        cmd!(
             "timeline.replay",
             "Replay Timeline",
             [],
@@ -90,13 +99,18 @@ fn list(s: &mut Session, _: &Value) -> Result<Value> {
             json!({
                 "index": i,
                 "cmd": step.cmd,
-                "label": step.label,
+                "label": step.shown(),
+                "name": step.name,
+                "feature": step.feature,
+                "children": step.children.iter().map(|c| json!({"cmd": c.cmd, "params": c.params})).collect::<Vec<_>>(),
                 "params": step.params,
                 "selection": step.selection.objects,
                 "status": step.status,
                 "error": step.error,
                 "rolledBack": i >= applied,
                 "suppressed": step.suppressed,
+                "created": step.created,
+                "orphaned": step.orphaned,
             })
         })
         .collect();
@@ -177,11 +191,39 @@ fn delete_step(s: &mut Session, p: &Value) -> Result<Value> {
     s.timeline_rewrite("Delete Timeline Step", |t| {
         let n = t.steps.len();
         let i = usize::try_from(index).ok().filter(|i| *i < n).ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
+        // Steps that acted on what this one made are orphaned: they fail rather than act on
+        // whatever object takes those ids.
+        let gone: std::collections::BTreeSet<_> = t.steps[i].created.iter().copied().collect();
+        for later in t.steps.iter_mut().skip(i + 1) {
+            if timeline::references(later, &gone) {
+                later.orphaned = true;
+            }
+        }
         t.steps.remove(i);
         if let Some(m) = t.marker {
             let m = if i < m { m - 1 } else { m };
             t.marker = (m < t.steps.len()).then_some(m);
         }
+        Ok(())
+    })
+}
+
+fn rename_step(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.renameStep";
+    let index = p.get("index").and_then(Value::as_u64).ok_or_else(|| bad(cmd, "`index` must be a step number (0 = the first step)"))?;
+    let name = match p.get("name") {
+        None | Some(Value::Null) => None,
+        Some(Value::String(n)) if n.trim().is_empty() => None,
+        Some(Value::String(n)) => Some(n.trim().chars().take(80).collect::<String>()),
+        Some(_) => return Err(bad(cmd, "`name` must be text or null")),
+    };
+    s.timeline_touch("Rename Timeline Step", |t| {
+        let n = t.steps.len();
+        let step = usize::try_from(index)
+            .ok()
+            .and_then(|i| t.steps.get_mut(i))
+            .ok_or_else(|| bad(cmd, format!("no step {index} (the timeline has {n})")))?;
+        step.name = name;
         Ok(())
     })
 }

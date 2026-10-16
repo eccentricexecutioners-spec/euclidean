@@ -90,6 +90,9 @@ pub struct WorkbenchState {
     /// How many steps the strip showed last frame (it scrolls to the end when this grows).
     #[serde(skip)]
     pub strip_steps: usize,
+    /// The Rename Step window: the step and the name being typed.
+    #[serde(skip)]
+    pub rename_step: Option<(usize, String)>,
 }
 
 impl Default for WorkbenchState {
@@ -113,6 +116,7 @@ impl Default for WorkbenchState {
             tab_fills: vec![],
             in_sketch: false,
             step_form: None,
+            rename_step: None,
             chip_colors: vec![],
             chip_hues: vec![],
             chip_suppressed: vec![],

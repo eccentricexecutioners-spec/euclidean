@@ -5001,3 +5001,7 @@ imageTrace	Outline	Körvonal
 	Driven	Vezérelt
 	Move Sketch Dimension	Vázlatméret mozgatása
 	Set Sketch Dimension Driven	Vázlatméret vezéreltre állítása
+	Rename Step	Lépés átnevezése
+	A name for this step	Név ennek a lépésnek
+	commands	parancs
+	Rename Timeline Step	Idővonal lépésének átnevezése

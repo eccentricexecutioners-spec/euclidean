@@ -3922,3 +3922,7 @@ lighting	Light	光源
 	Driven	從動
 	Move Sketch Dimension	移動草圖尺寸
 	Set Sketch Dimension Driven	設定草圖尺寸為從動
+	Rename Step	重新命名步驟
+	A name for this step	此步驟的名稱
+	commands	個命令
+	Rename Timeline Step	重新命名時間軸步驟

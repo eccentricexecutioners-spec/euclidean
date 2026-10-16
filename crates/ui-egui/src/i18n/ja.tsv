@@ -4598,3 +4598,7 @@ lighting	Light	ライト
 	Driven	従動
 	Move Sketch Dimension	スケッチ寸法を移動
 	Set Sketch Dimension Driven	スケッチ寸法を従動に設定
+	Rename Step	ステップ名を変更
+	A name for this step	このステップの名前
+	commands	個のコマンド
+	Rename Timeline Step	タイムラインのステップ名を変更

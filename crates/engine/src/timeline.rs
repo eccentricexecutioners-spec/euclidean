@@ -113,6 +113,142 @@ pub struct Step {
     /// Skipped on replay (Suppress Timeline Step); the later steps run without it.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub suppressed: bool,
+    /// E1: the feature this step records (`sketch`, `pen`, `appearance:2,3`…): the commands of
+    /// one feature that follow each other merge into one step (Fusion records features, not
+    /// clicks). `None` for a step that is one command.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feature: Option<String>,
+    /// E1: the commands merged into this step after its own, replayed after it in order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<Step>,
+    /// E1: the name the user gave the step (Rename); shown instead of the label.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// E1: the objects this step (with its children) created, in id order. On replay the objects
+    /// it creates again may get other ids (an earlier creation was suppressed or deleted): the
+    /// later steps are pointed at the new ids, so they keep acting on the same objects.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub created: Vec<NodeId>,
+    /// E1: a step this one acted on was deleted, so its objects are gone: it fails on replay
+    /// rather than acting on whatever took their ids.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub orphaned: bool,
+}
+
+/// Does `step` (or a child) act on any of `ids`?
+pub fn references(step: &Step, ids: &std::collections::BTreeSet<NodeId>) -> bool {
+    !ids.is_empty() && (step.selection.objects.iter().any(|id| ids.contains(id)) || names(step, ids))
+}
+
+/// Does `step` (or a child) name any of `ids` in its params, isolation or draw-inside target?
+pub fn names(step: &Step, ids: &std::collections::BTreeSet<NodeId>) -> bool {
+    if ids.is_empty() {
+        return false;
+    }
+    let in_params = |p: &Value| {
+        p.as_object().is_some_and(|o| {
+            ["id", "ids", "sketch", "target", "into", "with"].iter().any(|k| match o.get(*k) {
+                Some(Value::Number(n)) => n.as_u64().is_some_and(|i| ids.contains(&NodeId(i))),
+                Some(Value::Array(a)) => a.iter().any(|v| v.as_u64().is_some_and(|i| ids.contains(&NodeId(i)))),
+                _ => false,
+            })
+        })
+    };
+    step.isolation.is_some_and(|id| ids.contains(&id))
+        || step.draw_inside.is_some_and(|id| ids.contains(&id))
+        || in_params(&step.params)
+        || step.children.iter().any(|c| names(c, ids))
+}
+
+/// Every node id of `doc`.
+fn node_ids(doc: &Document) -> std::collections::BTreeSet<NodeId> {
+    let mut ids = std::collections::BTreeSet::new();
+    doc.walk(|n| {
+        ids.insert(n.id);
+    });
+    ids
+}
+
+/// The ids in `after` that `before` did not have.
+fn created_between(before: &Document, after: &Document) -> Vec<NodeId> {
+    let was = node_ids(before);
+    node_ids(after).into_iter().filter(|id| !was.contains(id)).collect()
+}
+
+/// Point `step` at the new ids of objects that were created again under other ids.
+fn remap_step(step: &mut Step, map: &std::collections::BTreeMap<NodeId, NodeId>) {
+    if map.is_empty() {
+        return;
+    }
+    let m = |id: &mut NodeId| {
+        if let Some(n) = map.get(id) {
+            *id = *n;
+        }
+    };
+    for id in &mut step.selection.objects {
+        m(id);
+    }
+    for id in [&mut step.layer, &mut step.isolation, &mut step.draw_inside].into_iter().flatten() {
+        m(id);
+    }
+    remap_params(&mut step.params, map);
+    for c in &mut step.children {
+        remap_step(c, map);
+    }
+}
+
+/// The object ids a command's params name (`id`, `ids`, `sketch`, `target`, `into`), remapped.
+fn remap_params(params: &mut Value, map: &std::collections::BTreeMap<NodeId, NodeId>) {
+    let Some(obj) = params.as_object_mut() else { return };
+    for key in ["id", "ids", "sketch", "target", "into", "with"] {
+        match obj.get_mut(key) {
+            Some(Value::Number(n)) => {
+                if let Some(new) = n.as_u64().and_then(|i| map.get(&NodeId(i))) {
+                    *obj.get_mut(key).unwrap_or(&mut Value::Null) = json!(new.0);
+                }
+            }
+            Some(Value::Array(a)) => {
+                for v in a.iter_mut() {
+                    if let Some(new) = v.as_u64().and_then(|i| map.get(&NodeId(i))) {
+                        *v = json!(new.0);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Step {
+    /// What the strip shows: the user's name, else the label.
+    pub fn shown(&self) -> &str {
+        self.name.as_deref().unwrap_or(&self.label)
+    }
+}
+
+/// The feature a command belongs to, when it is part of one: `(key, starts a new step, label)`.
+/// A command that starts a feature (a new sketch, the pen's first click) always makes a step; one
+/// that continues it merges into the step before it when that step is the same feature.
+/// Selection-bound features (appearance, transform, type) merge only on the same objects.
+pub fn feature_of(cmd: &str, selection: &Selection) -> Option<(String, bool, &'static str)> {
+    let sel = || selection.objects.iter().map(|id| id.0.to_string()).collect::<Vec<_>>().join(",");
+    Some(match cmd {
+        "sketch.new" => ("sketch".into(), true, "Sketch"),
+        c if c.starts_with("sketch.") => ("sketch".into(), false, "Sketch"),
+        "path.create" => ("pen".into(), true, "Pen Path"),
+        "path.appendAnchor" | "path.close" => ("pen".into(), false, "Pen Path"),
+        "text.create" | "text.createInPath" => (format!("type:{}", sel()), true, "Type"),
+        "text.setText" | "text.insertInline" | "text.editRange" | "text.setFormat" | "text.setRangeStyle" | "text.setStyle" | "type.insert" => {
+            (format!("type:{}", sel()), false, "Type")
+        }
+        "paint.setFill" | "paint.setStroke" | "paint.swap" | "paint.none" | "paint.default" | "paint.invert" | "paint.complement" | "stroke.set" | "stroke.setAdvanced"
+        | "object.setOpacity" | "appearance.setItem" | "appearance.addFill" | "appearance.addStroke" | "appearance.addEffect" => {
+            (format!("appearance:{}", sel()), false, "Appearance")
+        }
+        "object.move" | "object.transform" | "object.transformAgain" | "object.transformEach" => (format!("transform:{}", sel()), false, "Transform"),
+        c if c.starts_with("parameters.") => ("parameters".into(), false, "Parameters"),
+        _ => return None,
+    })
 }
 
 fn is_normal(m: &DrawMode) -> bool {
@@ -321,6 +457,8 @@ impl Session {
             Timeline { version: 1, base, base_bytes, steps: vec![], marker: None }
         });
         let label = label.map_or_else(|| label_for(cmd, params), |l| with_values(l, params));
+        let feature = feature_of(cmd, &before.selection);
+        let created = created_between(&before.doc, &st.doc);
         let step = Step {
             cmd: cmd.to_string(),
             params: params.clone(),
@@ -334,7 +472,50 @@ impl Session {
             status: Status::Ok,
             error: None,
             suppressed: false,
+            feature: None,
+            children: vec![],
+            name: None,
+            created,
+            orphaned: false,
         };
+        // A feature's next command merges into its step (not across the marker, nor into a
+        // suppressed step).
+        if let Some((key, starts_new, feature_label)) = feature {
+            let last_matches = t.marker.is_none() && t.steps.last().is_some_and(|l| l.feature.as_deref() == Some(&key) && !l.suppressed);
+            if !starts_new && last_matches {
+                if let Some(last) = t.steps.last_mut() {
+                    last.created.extend(step.created.iter().copied());
+                    last.children.push(step);
+                    last.status = Status::Ok;
+                    last.error = None;
+                    // Two or more edits on a selection: the step is the feature ("Appearance"),
+                    // not its first command; a sketch or pen step was named so from the start.
+                    if last.name.is_none() && !matches!(key.as_str(), "sketch" | "pen") {
+                        last.label = feature_label.to_string();
+                    }
+                }
+                store(Arc::make_mut(&mut st.doc), &t);
+                st.history.recost_last(&st.doc);
+                return;
+            }
+            let mut step = step;
+            // A sketch or a pen path is named as a feature from its first command; an edit on
+            // a selection keeps its own label until a second one merges into it.
+            if key == "sketch" {
+                let n = 1 + t.steps.iter().filter(|s| s.feature.as_deref() == Some("sketch")).count();
+                step.label = format!("{feature_label} {n}");
+            } else if key == "pen" {
+                step.label = feature_label.to_string();
+            }
+            step.feature = Some(key);
+            return self.timeline_push(t, step);
+        }
+        self.timeline_push(t, step)
+    }
+
+    /// Append `step` to `t` and store it (see [`Session::timeline_record`]).
+    fn timeline_push(&mut self, mut t: Timeline, step: Step) {
+        let Some(st) = self.active_mut() else { return };
         // Rolled back: the new step goes in at the marker and the later steps replay after it.
         if let Some(m) = t.marker.take().filter(|m| *m < t.steps.len()) {
             t.steps.insert(m, step);
@@ -380,26 +561,72 @@ impl Session {
         // The session's template and drawing mode are the user's now, not the steps': put back.
         let template = (self.paint.clone(), self.draw_mode, self.draw_inside);
         let mut failed = None;
-        for (i, step) in steps.iter_mut().enumerate() {
+        // The stored steps keep the ids they were recorded with. On replay an object may be made
+        // again under another id (an earlier creation is suppressed or gone): `map` takes recorded
+        // ids to the ids of this run and is applied to a copy of each step as it runs, never to the
+        // stored step. `gone`: what suppressed steps would have made.
+        let mut map: std::collections::BTreeMap<NodeId, NodeId> = Default::default();
+        let mut gone: std::collections::BTreeSet<NodeId> = Default::default();
+        for i in 0..steps.len() {
             if failed.is_some() {
-                step.status = Status::Pending;
-                step.error = None;
+                steps[i].status = Status::Pending;
+                steps[i].error = None;
                 continue;
             }
-            if step.suppressed {
-                step.status = Status::Ok;
-                step.error = None;
+            if steps[i].suppressed {
+                steps[i].status = Status::Ok;
+                steps[i].error = None;
+                gone.extend(steps[i].created.iter().copied());
                 continue;
             }
-            let r = self.timeline_restore(step).and_then(|()| self.execute(&step.cmd, &step.params).map(|_| ()));
+            // A step that works on an object a suppressed or deleted step made fails, rather than
+            // act on whatever took its id. One that only had it selected and made something of
+            // its own just loses that selection.
+            let mut run = steps[i].clone();
+            let selected_gone = run.selection.objects.iter().any(|id| gone.contains(id));
+            if steps[i].orphaned || names(&steps[i], &gone) || (selected_gone && steps[i].created.is_empty()) {
+                steps[i].status = Status::Failed;
+                steps[i].error = Some("the objects it acted on are gone (made by a step that is suppressed or deleted)".into());
+                failed = Some(i);
+                continue;
+            }
+            if selected_gone {
+                run.selection.objects.retain(|id| !gone.contains(id));
+            }
+            let before = self.active().map(|st| st.doc.clone());
+            let was = steps[i].created.clone();
+            let extend = |this: &Self, map: &mut std::collections::BTreeMap<NodeId, NodeId>| {
+                if let (Some(before), Some(st)) = (before.as_ref(), this.active()) {
+                    for (a, b) in was.iter().zip(created_between(before, &st.doc).iter()) {
+                        if a != b {
+                            map.insert(*a, *b);
+                        }
+                    }
+                }
+            };
+            let mut own = run.clone();
+            own.children.clear();
+            remap_step(&mut own, &map);
+            let mut r = self.timeline_restore(&own).and_then(|()| self.execute(&own.cmd, &own.params).map(|_| ()));
+            extend(self, &mut map);
+            // The feature's merged commands run after its first, in order.
+            for child in &run.children {
+                if r.is_err() {
+                    break;
+                }
+                let mut child = child.clone();
+                remap_step(&mut child, &map);
+                r = self.timeline_restore(&child).and_then(|()| self.execute(&child.cmd, &child.params).map(|_| ()));
+                extend(self, &mut map);
+            }
             match r {
                 Ok(()) => {
-                    step.status = Status::Ok;
-                    step.error = None;
+                    steps[i].status = Status::Ok;
+                    steps[i].error = None;
                 }
                 Err(e) => {
-                    step.status = Status::Failed;
-                    step.error = Some(e.to_string());
+                    steps[i].status = Status::Failed;
+                    steps[i].error = Some(e.to_string());
                     failed = Some(i);
                 }
             }
@@ -475,9 +702,36 @@ impl Session {
     }
 }
 
+impl Session {
+    /// Change the active document's timeline without replaying it (a rename), as one undo step.
+    pub(crate) fn timeline_touch(&mut self, label: &str, edit: impl FnOnce(&mut Timeline) -> Result<()>) -> Result<Value> {
+        let st = self.doc_mut()?;
+        let mut t = read(&st.doc).ok_or_else(|| EngineError::Other("this document has no timeline steps".into()))?;
+        edit(&mut t)?;
+        let before = st.doc.clone();
+        let sel = st.selection.clone();
+        store(Arc::make_mut(&mut st.doc), &t);
+        st.push_undo(label.to_string(), before, Arc::new(sel));
+        st.revision += 1;
+        Ok(json!({"steps": t.steps.len(), "marker": t.applied()}))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn features_merge_their_following_commands() {
+        let sel = Selection::default();
+        assert_eq!(feature_of("sketch.new", &sel), Some(("sketch".into(), true, "Sketch")));
+        assert_eq!(feature_of("sketch.addLine", &sel), Some(("sketch".into(), false, "Sketch")));
+        assert_eq!(feature_of("path.create", &sel).map(|f| f.1), Some(true));
+        assert_eq!(feature_of("path.appendAnchor", &sel).map(|f| f.1), Some(false));
+        assert_eq!(feature_of("paint.setFill", &sel), Some(("appearance:".into(), false, "Appearance")));
+        assert_eq!(feature_of("shape.rectangle", &sel), None);
+        assert_eq!(feature_of("object.path.offsetPath", &sel), None);
+    }
 
     #[test]
     fn labels_name_the_command_and_its_values() {
