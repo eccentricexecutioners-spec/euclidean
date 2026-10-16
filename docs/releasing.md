@@ -257,3 +257,46 @@ zip is 50 MB (52,428,800 bytes) or more, Supabase's upload limit. Then it sends 
 VectorCraft's `v0.1.0`… tags are kept here. Versions are never reused, so a failed release takes
 the next number. The build is Apple silicon (arm64) only, and it is not notarised: a tester clicks
 **Open Anyway** once, and updates after that open without asking.
+
+## Euclidean for Windows (x64: built on GitHub, released from the Mini)
+
+Windows is released at the same version as the Mac, from the same commit: the one
+`release-mac.sh` tags `euclidean-v<version>`. GitHub only compiles it. No key, publish key or
+other secret goes to GitHub; the Mini checks the build, signs the manifest with its own release
+key (`platform: windows`), and sends it to Cargo Bay.
+
+**The build:** `.github/workflows/euclidean-windows.yml`, started by hand only (`workflow_dispatch`,
+input `ref`, default `euclidean`). One `windows-latest` job: the uplink tests, then
+`cargo build --locked --profile release-slim -p vectorcraft --target x86_64-pc-windows-msvc` with the
+C runtime linked in (`+crt-static`, as `packaging/windows/package.ps1`) and the icon resource
+required. It checks the exe is x64 and GUI-subsystem, copies it to `Euclidean/Euclidean.exe`, zips
+that folder as `Euclidean-<version>-windows-x64.zip`, writes `build-info.txt` (commit SHA, version,
+rustc), and uploads both as the artifact `euclidean-windows-x64` (kept 14 days). No craft-fonts
+checkout, no environment, nothing published to GitHub Releases. The exe needs nothing beside it.
+
+**Each release, after the Mac one:**
+
+1. Push the fork (`git push origin euclidean`) before releasing the Mac, so GitHub can build the
+   commit `release-mac.sh` will tag, and start the build:
+   `gh workflow run euclidean-windows.yml --repo eccentricexecutioners-spec/euclidean --ref euclidean`.
+2. `bash scripts/release-mac.sh <version> --notes "…"` once that run has succeeded. It tags
+   `euclidean-v<version>` at HEAD, which must be the commit the run built.
+3. `bash scripts/release-windows.sh <version> --dry-run`, then without `--dry-run`.
+
+`release-windows.sh` finds the newest successful `euclidean-windows.yml` run whose head SHA is the
+commit `euclidean-v<version>` names (or takes `--run <id>`, refused when it built anything else),
+downloads its artifact into `~/euclidean-releases/<version>-windows/`, commits the unzipped
+`Euclidean/` folder to a one-off git repo (as the Mac script does with `Euclidean.app`), and has
+Cargo Bay's release tool zip and sign it with `--platform windows`. Five gates, all before anything
+is sent: one top-level `Euclidean/` holding `Euclidean.exe` and no `__MACOSX`; `file` calls the exe
+a PE32+ x86-64 GUI executable; `build-info.txt` names the tagged commit and the version, and the exe
+in the release zip is byte for byte the one GitHub built; the uplink crate's own `windows` zip rules
+(signature, signed platform, size, SHA-256, entries, unzip and tree comparison); under 500 MB
+(524,288,000 bytes). It makes no tag. Where `gh` cannot be used, download the artifact by hand and
+pass `--zip <path>`: `build-info.txt` must sit beside the zip, and Gate 3 still applies (the run's
+head SHA is then not checked).
+
+Windows has no code-signing certificate: a tester sees "Windows protected your PC" once and
+chooses **More info › Run anyway**. Windows copies link and check for updates, but do not replace
+themselves: a newer version shows "{new} is available — download it from the Mothership's Tools
+page".

@@ -47,7 +47,11 @@ higher than the one held.
 
 Before an update is staged: signature, then size, then SHA-256, then the zip's entries (exactly
 one top-level `Euclidean.app/`, no absolute paths, no `..`, no backslashes, symlinks only when
-they stay inside the bundle). At the next start the staged bundle is checked again: the zip's
+they stay inside the bundle). The entry rules follow the signed manifest's `platform`: `mac` (or none) is the
+rule above; `windows` is exactly one top-level `Euclidean/` holding the file
+`Euclidean/Euclidean.exe`, with the same path rules and no symlinks; any other value has no rules
+and is refused. The Mac updater takes only a `mac` release (`zipcheck::verify_package_as`).
+`scripts/release-windows.sh` runs the `windows` rules on each Windows release before it is sent. At the next start the staged bundle is checked again: the zip's
 signature, size and SHA-256, and the unzipped tree against the zip (every file's size, CRC-32 and
 executable bit; every symlink's target; nothing extra).
 
