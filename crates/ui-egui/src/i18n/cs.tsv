@@ -5056,3 +5056,22 @@ mark-style	Japanese	Japonské
 	Delete Timeline Steps	Smazat kroky časové osy
 	Suppress Timeline Steps	Potlačit kroky časové osy
 	steps selected	vybraných kroků
+	Add Sheet	Přidat list
+	List Sheets	Vypsat listy
+	Sheet Settings	Nastavení listu
+	Update Sheet	Aktualizovat list
+	An empty sheet with these settings, right of the art	Prázdný list s tímto nastavením, vpravo od kresby
+	Click a sheet's artboard to change that sheet.	Klepnutím na kreslicí plátno listu změníte tento list.
+	Made by an earlier version: margin and spacing are the defaults.	Vytvořeno starší verzí: okraj a rozestup jsou výchozí.
+	Material:	Materiál:
+	Thickness:	Tloušťka:
+	Nest Selection onto this sheet	Rozmístit výběr na tento list
+	New sheet	Nový list
+	Sheet changed: {parts} parts re-nested	List změněn: {parts} dílů znovu rozmístěno
+	Sheet: {name}	List: {name}
+	This sheet, at true size, cut paths only.	Tento list ve skutečné velikosti, jen řezné cesty.
+	{name} added: empty	{name} přidán: prázdný
+	{n} moved to a new sheet	{n} přesunuto na nový list
+	Plywood	Překližka
+	MDF	MDF
+	Acrylic	Akrylát

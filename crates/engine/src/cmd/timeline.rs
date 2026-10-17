@@ -251,7 +251,11 @@ fn delete_steps(s: &mut Session, p: &Value) -> Result<Value> {
     s.timeline_rewrite(label, |t| {
         // As one deleteStep each, but every step after the first deleted one is checked against
         // all of them: a later step that worked on what any of them made is orphaned.
-        let gone: std::collections::BTreeSet<_> = gone_steps.iter().flat_map(|i| t.steps[*i].created.iter().copied()).collect();
+        if gone_steps.iter().any(|i| *i >= t.steps.len()) {
+            return Err(bad(cmd, "the timeline changed"));
+        }
+        let gone: std::collections::BTreeSet<_> =
+            gone_steps.iter().filter_map(|i| t.steps.get(*i)).flat_map(|st| st.created.iter().copied()).collect();
         for (k, later) in t.steps.iter_mut().enumerate().skip(gone_steps[0] + 1) {
             if gone_steps.binary_search(&k).is_err() && timeline::references(later, &gone) {
                 later.orphaned = true;
@@ -282,7 +286,7 @@ fn suppress_steps(s: &mut Session, p: &Value) -> Result<Value> {
     };
     s.timeline_rewrite(label, |t| {
         for i in &which {
-            t.steps[*i].suppressed = on;
+            t.steps.get_mut(*i).ok_or_else(|| bad(cmd, "the timeline changed"))?.suppressed = on;
         }
         Ok(())
     })

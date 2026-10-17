@@ -4606,3 +4606,22 @@ lighting	Light	Світло
 	Delete Timeline Steps	Видалити кроки часової шкали
 	Suppress Timeline Steps	Придушити кроки часової шкали
 	steps selected	кроків вибрано
+	Add Sheet	Додати аркуш
+	List Sheets	Список аркушів
+	Sheet Settings	Параметри аркуша
+	Update Sheet	Оновити аркуш
+	An empty sheet with these settings, right of the art	Порожній аркуш із цими параметрами, праворуч від малюнка
+	Click a sheet's artboard to change that sheet.	Клацніть монтажну область аркуша, щоб змінити цей аркуш.
+	Made by an earlier version: margin and spacing are the defaults.	Створено в попередній версії: поле й інтервал — типові.
+	Material:	Матеріал:
+	Thickness:	Товщина:
+	Nest Selection onto this sheet	Розмістити виділене на цьому аркуші
+	New sheet	Новий аркуш
+	Sheet changed: {parts} parts re-nested	Аркуш змінено: {parts} деталей розміщено заново
+	Sheet: {name}	Аркуш: {name}
+	This sheet, at true size, cut paths only.	Цей аркуш у натуральну величину, лише контури різання.
+	{name} added: empty	{name} додано: порожній
+	{n} moved to a new sheet	{n} перенесено на новий аркуш
+	Plywood	Фанера
+	MDF	МДФ
+	Acrylic	Акрил

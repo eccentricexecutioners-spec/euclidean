@@ -4581,3 +4581,22 @@ theme	Appearance	Erscheinungsbild
 	Delete Timeline Steps	Zeitleistenschritte löschen
 	Suppress Timeline Steps	Zeitleistenschritte unterdrücken
 	steps selected	Schritte ausgewählt
+	Add Sheet	Bogen hinzufügen
+	List Sheets	Bogen auflisten
+	Sheet Settings	Bogeneinstellungen
+	Update Sheet	Bogen aktualisieren
+	An empty sheet with these settings, right of the art	Ein leerer Bogen mit diesen Einstellungen rechts neben der Grafik
+	Click a sheet's artboard to change that sheet.	Klicken Sie auf die Zeichenfläche eines Bogens, um diesen Bogen zu ändern.
+	Made by an earlier version: margin and spacing are the defaults.	Mit einer früheren Version erstellt: Rand und Abstand sind die Standardwerte.
+	Material:	Material:
+	Thickness:	Stärke:
+	Nest Selection onto this sheet	Auswahl auf diesem Bogen verschachteln
+	New sheet	Neuer Bogen
+	Sheet changed: {parts} parts re-nested	Bogen geändert: {parts} Teile neu verschachtelt
+	Sheet: {name}	Bogen: {name}
+	This sheet, at true size, cut paths only.	Dieser Bogen in Originalgröße, nur Schnittpfade.
+	{name} added: empty	{name} hinzugefügt: leer
+	{n} moved to a new sheet	{n} auf einen neuen Bogen verschoben
+	Plywood	Sperrholz
+	MDF	MDF
+	Acrylic	Acryl

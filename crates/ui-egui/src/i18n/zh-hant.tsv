@@ -3944,3 +3944,22 @@ lighting	Light	光源
 	Delete Timeline Steps	刪除時間軸步驟
 	Suppress Timeline Steps	抑制時間軸步驟
 	steps selected	個步驟已選取
+	Add Sheet	新增板材
+	List Sheets	列出板材
+	Sheet Settings	板材設定
+	Update Sheet	更新板材
+	An empty sheet with these settings, right of the art	使用這些設定的空板材，位於圖稿右側
+	Click a sheet's artboard to change that sheet.	按一下板材的工作區域以變更該板材。
+	Made by an earlier version: margin and spacing are the defaults.	由較早版本建立：邊界和間距為預設值。
+	Material:	材料：
+	Thickness:	厚度：
+	Nest Selection onto this sheet	將所選內容排樣到此板材
+	New sheet	新板材
+	Sheet changed: {parts} parts re-nested	板材已變更：{parts} 個零件已重新排樣
+	Sheet: {name}	板材：{name}
+	This sheet, at true size, cut paths only.	此板材，按實際尺寸，僅切割路徑。
+	{name} added: empty	已新增 {name}：空
+	{n} moved to a new sheet	{n} 個已移到新板材
+	Plywood	夾板
+	MDF	中密度纖維板
+	Acrylic	壓克力

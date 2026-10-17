@@ -4622,3 +4622,22 @@ lighting	Light	Свет
 	Delete Timeline Steps	Удалить шаги временной шкалы
 	Suppress Timeline Steps	Подавить шаги временной шкалы
 	steps selected	шагов выбрано
+	Add Sheet	Добавить лист
+	List Sheets	Список листов
+	Sheet Settings	Параметры листа
+	Update Sheet	Обновить лист
+	An empty sheet with these settings, right of the art	Пустой лист с этими параметрами, справа от рисунка
+	Click a sheet's artboard to change that sheet.	Щёлкните монтажную область листа, чтобы изменить этот лист.
+	Made by an earlier version: margin and spacing are the defaults.	Создано в более ранней версии: поле и интервал — по умолчанию.
+	Material:	Материал:
+	Thickness:	Толщина:
+	Nest Selection onto this sheet	Разместить выделенное на этом листе
+	New sheet	Новый лист
+	Sheet changed: {parts} parts re-nested	Лист изменён: {parts} деталей размещено заново
+	Sheet: {name}	Лист: {name}
+	This sheet, at true size, cut paths only.	Этот лист в натуральную величину, только контуры резки.
+	{name} added: empty	{name} добавлен: пустой
+	{n} moved to a new sheet	{n} перенесено на новый лист
+	Plywood	Фанера
+	MDF	МДФ
+	Acrylic	Акрил

@@ -4620,3 +4620,22 @@ lighting	Light	ライト
 	Delete Timeline Steps	タイムラインのステップを複数削除
 	Suppress Timeline Steps	タイムラインのステップを複数抑制
 	steps selected	ステップを選択中
+	Add Sheet	シートを追加
+	List Sheets	シートを一覧表示
+	Sheet Settings	シート設定
+	Update Sheet	シートを更新
+	An empty sheet with these settings, right of the art	この設定の空のシートを、アートの右に
+	Click a sheet's artboard to change that sheet.	シートのアートボードをクリックすると、そのシートを変更できます。
+	Made by an earlier version: margin and spacing are the defaults.	以前のバージョンで作成：マージンと間隔は既定値です。
+	Material:	材料：
+	Thickness:	厚さ：
+	Nest Selection onto this sheet	選択範囲をこのシートにネスト
+	New sheet	新規シート
+	Sheet changed: {parts} parts re-nested	シートを変更：{parts} 個のパーツを再ネスト
+	Sheet: {name}	シート：{name}
+	This sheet, at true size, cut paths only.	このシートを実寸で、カットパスのみ。
+	{name} added: empty	{name} を追加：空
+	{n} moved to a new sheet	{n} 個を新しいシートへ移動
+	Plywood	合板
+	MDF	MDF
+	Acrylic	アクリル

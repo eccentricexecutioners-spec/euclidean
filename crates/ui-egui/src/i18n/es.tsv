@@ -4997,3 +4997,22 @@ mark-style	Japanese	Japonesas
 	Delete Timeline Steps	Eliminar pasos de la línea de tiempo
 	Suppress Timeline Steps	Suprimir pasos de la línea de tiempo
 	steps selected	pasos seleccionados
+	Add Sheet	Añadir hoja
+	List Sheets	Listar hojas
+	Sheet Settings	Ajustes de hoja
+	Update Sheet	Actualizar hoja
+	An empty sheet with these settings, right of the art	Una hoja vacía con estos ajustes, a la derecha del dibujo
+	Click a sheet's artboard to change that sheet.	Haga clic en la mesa de trabajo de una hoja para cambiar esa hoja.
+	Made by an earlier version: margin and spacing are the defaults.	Creada con una versión anterior: el margen y el espaciado son los predeterminados.
+	Material:	Material:
+	Thickness:	Grosor:
+	Nest Selection onto this sheet	Anidar la selección en esta hoja
+	New sheet	Hoja nueva
+	Sheet changed: {parts} parts re-nested	Hoja cambiada: {parts} piezas reanidadas
+	Sheet: {name}	Hoja: {name}
+	This sheet, at true size, cut paths only.	Esta hoja, a tamaño real, solo trazados de corte.
+	{name} added: empty	{name} añadida: vacía
+	{n} moved to a new sheet	{n} movidas a una hoja nueva
+	Plywood	Contrachapado
+	MDF	MDF
+	Acrylic	Acrílico

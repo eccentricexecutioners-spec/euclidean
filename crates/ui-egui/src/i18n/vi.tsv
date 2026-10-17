@@ -4608,3 +4608,22 @@ theme	Appearance	Giao diện
 	Delete Timeline Steps	Xóa các bước dòng thời gian
 	Suppress Timeline Steps	Tạm ẩn các bước dòng thời gian
 	steps selected	bước đã chọn
+	Add Sheet	Thêm tấm
+	List Sheets	Liệt kê các tấm
+	Sheet Settings	Cài đặt tấm
+	Update Sheet	Cập nhật tấm
+	An empty sheet with these settings, right of the art	Một tấm trống với các cài đặt này, bên phải hình vẽ
+	Click a sheet's artboard to change that sheet.	Nhấp vào bảng vẽ của một tấm để thay đổi tấm đó.
+	Made by an earlier version: margin and spacing are the defaults.	Tạo bởi phiên bản trước: lề và khoảng cách là mặc định.
+	Material:	Vật liệu:
+	Thickness:	Độ dày:
+	Nest Selection onto this sheet	Xếp vùng chọn lên tấm này
+	New sheet	Tấm mới
+	Sheet changed: {parts} parts re-nested	Đã đổi tấm: xếp lại {parts} chi tiết
+	Sheet: {name}	Tấm: {name}
+	This sheet, at true size, cut paths only.	Tấm này, đúng kích thước, chỉ đường cắt.
+	{name} added: empty	Đã thêm {name}: trống
+	{n} moved to a new sheet	{n} chuyển sang tấm mới
+	Plywood	Ván ép
+	MDF	MDF
+	Acrylic	Mica

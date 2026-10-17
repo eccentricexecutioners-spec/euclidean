@@ -4899,3 +4899,22 @@ mark-style	Japanese	Japońskie
 	Delete Timeline Steps	Usuń kroki osi czasu
 	Suppress Timeline Steps	Wstrzymaj kroki osi czasu
 	steps selected	wybranych kroków
+	Add Sheet	Dodaj arkusz
+	List Sheets	Wyświetl arkusze
+	Sheet Settings	Ustawienia arkusza
+	Update Sheet	Aktualizuj arkusz
+	An empty sheet with these settings, right of the art	Pusty arkusz z tymi ustawieniami, na prawo od grafiki
+	Click a sheet's artboard to change that sheet.	Kliknij obszar roboczy arkusza, aby zmienić ten arkusz.
+	Made by an earlier version: margin and spacing are the defaults.	Utworzono we wcześniejszej wersji: margines i odstęp są domyślne.
+	Material:	Materiał:
+	Thickness:	Grubość:
+	Nest Selection onto this sheet	Rozmieść zaznaczenie na tym arkuszu
+	New sheet	Nowy arkusz
+	Sheet changed: {parts} parts re-nested	Arkusz zmieniony: {parts} części rozmieszczono ponownie
+	Sheet: {name}	Arkusz: {name}
+	This sheet, at true size, cut paths only.	Ten arkusz w rzeczywistym rozmiarze, tylko ścieżki cięcia.
+	{name} added: empty	Dodano {name}: pusty
+	{n} moved to a new sheet	{n} przeniesiono na nowy arkusz
+	Plywood	Sklejka
+	MDF	MDF
+	Acrylic	Akryl

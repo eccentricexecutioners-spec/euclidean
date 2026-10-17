@@ -5056,3 +5056,22 @@ theme	Appearance	Apparence
 	Delete Timeline Steps	Supprimer les étapes de la chronologie
 	Suppress Timeline Steps	Désactiver les étapes de la chronologie
 	steps selected	étapes sélectionnées
+	Add Sheet	Ajouter une feuille
+	List Sheets	Lister les feuilles
+	Sheet Settings	Réglages de la feuille
+	Update Sheet	Mettre à jour la feuille
+	An empty sheet with these settings, right of the art	Une feuille vide avec ces réglages, à droite du dessin
+	Click a sheet's artboard to change that sheet.	Cliquez sur le plan de travail d’une feuille pour modifier cette feuille.
+	Made by an earlier version: margin and spacing are the defaults.	Créée par une version antérieure : la marge et l’espacement sont ceux par défaut.
+	Material:	Matériau :
+	Thickness:	Épaisseur :
+	Nest Selection onto this sheet	Imbriquer la sélection sur cette feuille
+	New sheet	Nouvelle feuille
+	Sheet changed: {parts} parts re-nested	Feuille modifiée : {parts} pièces réimbriquées
+	Sheet: {name}	Feuille : {name}
+	This sheet, at true size, cut paths only.	Cette feuille, en taille réelle, tracés de coupe uniquement.
+	{name} added: empty	{name} ajoutée : vide
+	{n} moved to a new sheet	{n} déplacées sur une nouvelle feuille
+	Plywood	Contreplaqué
+	MDF	MDF
+	Acrylic	Acrylique

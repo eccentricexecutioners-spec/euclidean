@@ -4626,3 +4626,22 @@ lighting	Light	Luce
 	Delete Timeline Steps	Elimina passaggi della timeline
 	Suppress Timeline Steps	Sopprimi passaggi della timeline
 	steps selected	passaggi selezionati
+	Add Sheet	Aggiungi foglio
+	List Sheets	Elenca fogli
+	Sheet Settings	Impostazioni foglio
+	Update Sheet	Aggiorna foglio
+	An empty sheet with these settings, right of the art	Un foglio vuoto con queste impostazioni, a destra del disegno
+	Click a sheet's artboard to change that sheet.	Fai clic sulla tavola da disegno di un foglio per modificarlo.
+	Made by an earlier version: margin and spacing are the defaults.	Creato con una versione precedente: margine e spaziatura sono quelli predefiniti.
+	Material:	Materiale:
+	Thickness:	Spessore:
+	Nest Selection onto this sheet	Annida la selezione su questo foglio
+	New sheet	Nuovo foglio
+	Sheet changed: {parts} parts re-nested	Foglio modificato: {parts} parti riannidate
+	Sheet: {name}	Foglio: {name}
+	This sheet, at true size, cut paths only.	Questo foglio, a grandezza reale, solo tracciati di taglio.
+	{name} added: empty	{name} aggiunto: vuoto
+	{n} moved to a new sheet	{n} spostate su un nuovo foglio
+	Plywood	Compensato
+	MDF	MDF
+	Acrylic	Acrilico

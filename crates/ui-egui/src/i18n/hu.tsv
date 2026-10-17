@@ -5023,3 +5023,22 @@ imageTrace	Outline	Körvonal
 	Delete Timeline Steps	Idővonal lépéseinek törlése
 	Suppress Timeline Steps	Idővonal lépéseinek elnyomása
 	steps selected	kijelölt lépés
+	Add Sheet	Lap hozzáadása
+	List Sheets	Lapok listázása
+	Sheet Settings	Lapbeállítások
+	Update Sheet	Lap frissítése
+	An empty sheet with these settings, right of the art	Üres lap ezekkel a beállításokkal, a rajztól jobbra
+	Click a sheet's artboard to change that sheet.	Kattintson egy lap rajztáblájára a lap módosításához.
+	Made by an earlier version: margin and spacing are the defaults.	Korábbi verzióval készült: a margó és a térköz az alapértelmezett.
+	Material:	Anyag:
+	Thickness:	Vastagság:
+	Nest Selection onto this sheet	Kijelölés elrendezése ezen a lapon
+	New sheet	Új lap
+	Sheet changed: {parts} parts re-nested	Lap módosítva: {parts} alkatrész újrarendezve
+	Sheet: {name}	Lap: {name}
+	This sheet, at true size, cut paths only.	Ez a lap, valós méretben, csak vágási útvonalak.
+	{name} added: empty	{name} hozzáadva: üres
+	{n} moved to a new sheet	{n} áthelyezve új lapra
+	Plywood	Rétegelt lemez
+	MDF	MDF
+	Acrylic	Akril

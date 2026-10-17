@@ -808,10 +808,14 @@ fn artboard_delete(s: &mut Session, p: &Value) -> Result<Value> {
             return Err(EngineError::Other("a document needs at least one artboard".into()));
         }
         // The last first, so the others keep their places; their guides go with them.
+        let mut gone = vec![];
         for &i in indices.iter().rev() {
             let id = d.artboards.remove(i).id;
             d.retain_guides(sel, |_, g| g.artboard != Some(id));
+            gone.push(id);
         }
+        // A deleted sheet's settings go with it (Sheet & Nest).
+        super::nest::forget_sheets(d, &gone);
         Ok(())
     })?;
     ok()

@@ -4590,3 +4590,22 @@ lighting	Light	광원
 	Delete Timeline Steps	타임라인 단계 삭제
 	Suppress Timeline Steps	타임라인 단계 억제
 	steps selected	단계 선택됨
+	Add Sheet	시트 추가
+	List Sheets	시트 목록
+	Sheet Settings	시트 설정
+	Update Sheet	시트 업데이트
+	An empty sheet with these settings, right of the art	이 설정의 빈 시트를 아트 오른쪽에
+	Click a sheet's artboard to change that sheet.	시트의 대지를 클릭하면 그 시트를 바꿀 수 있습니다.
+	Made by an earlier version: margin and spacing are the defaults.	이전 버전에서 만듦: 여백과 간격은 기본값입니다.
+	Material:	재료:
+	Thickness:	두께:
+	Nest Selection onto this sheet	선택 항목을 이 시트에 배치
+	New sheet	새 시트
+	Sheet changed: {parts} parts re-nested	시트 변경됨: 부품 {parts}개 재배치
+	Sheet: {name}	시트: {name}
+	This sheet, at true size, cut paths only.	이 시트를 실제 크기로, 재단 패스만.
+	{name} added: empty	{name} 추가됨: 비어 있음
+	{n} moved to a new sheet	{n}개를 새 시트로 이동
+	Plywood	합판
+	MDF	MDF
+	Acrylic	아크릴
