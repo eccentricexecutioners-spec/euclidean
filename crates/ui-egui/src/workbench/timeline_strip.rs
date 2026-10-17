@@ -2,7 +2,10 @@
 //! appearance change…), the end marker after the last applied one, and the buttons that move the
 //! marker. Double-clicking a chip edits it (a sketch step reopens the sketch; another opens its
 //! parameters form, `step_form.rs`); right-clicking offers Edit, Suppress, Delete, Roll to here
-//! and Rename; dragging the marker between chips rolls the document back to there.
+//! and Rename; dragging the marker between chips rolls the document back to there. A click
+//! selects a step, Shift-click the range from the last one clicked, Cmd-click (Ctrl on Windows)
+//! adds or takes away one; Delete or Backspace then deletes the selected steps as one undo step,
+//! and the right-click menu of a selection of several offers Delete (n) and Suppress (n).
 
 use egui::{Align, Color32, Rect, Sense, Stroke, Ui, vec2};
 use serde_json::{Value, json};
@@ -26,6 +29,9 @@ enum Action {
     Suppress(usize, bool),
     Delete(usize),
     Rename(usize),
+    /// The selected steps, suppressed (true) or run again.
+    SuppressMany(Vec<usize>, bool),
+    DeleteMany(Vec<usize>),
 }
 
 /// What a chip needs to be drawn.
@@ -100,6 +106,16 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
     let n = chips.len();
     let grew = n > app.ui.workbench.strip_steps;
     app.ui.workbench.strip_steps = n;
+    // A selection of steps that are gone (an undo, another document) is let go.
+    app.ui.workbench.steps_selected.retain(|i| *i < n);
+    if app.ui.workbench.steps_anchor.is_some_and(|a| a >= n) {
+        app.ui.workbench.steps_anchor = None;
+    }
+    let selected = app.ui.workbench.steps_selected.clone();
+    // The selection a right-click menu works on (the steps it was opened over).
+    let many: Vec<usize> = selected.iter().copied().collect();
+    let mut pick: Option<(usize, egui::Modifiers)> = None;
+    let mut strip_rect = Rect::NOTHING;
     let (hues, active_hue) = {
         let wb = &mut app.ui.workbench;
         let tab = wb.tab.clone();
@@ -118,6 +134,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
         .exact_size(STRIP_HEIGHT)
         .frame(egui::Frame::NONE.fill(t.panel_darker).inner_margin(egui::Margin::symmetric(8, 2)).stroke(Stroke::new(1.0, t.border)))
         .show(ui, |ui| {
+            strip_rect = ui.max_rect();
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 let buttons: [(&str, &str, &str, bool, usize); 4] = [
@@ -160,8 +177,16 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                                 let fade = |x: Color32| x.gamma_multiply(SUPPRESSED_FADE);
                                 (fill, ink, border) = (fade(fill), fade(ink), fade(border));
                             }
+                            // Selected: the active tab's colour, a stronger fill and outline.
+                            let chosen = selected.contains(&i);
+                            let edge = if chosen {
+                                fill = t.wash(active_hue, 0.32);
+                                Stroke::new(2.0, active_hue)
+                            } else {
+                                Stroke::new(1.0, border)
+                            };
                             ui.painter().rect_filled(rect, 8.0, fill);
-                            ui.painter().rect_stroke(rect, 8.0, Stroke::new(1.0, border), egui::StrokeKind::Inside);
+                            ui.painter().rect_stroke(rect, 8.0, edge, egui::StrokeKind::Inside);
                             let icon_rect = Rect::from_center_size(rect.center(), vec2(ICON_SIZE, ICON_SIZE));
                             crate::icons::paint(ui, step_icon(&c.cmd), icon_rect, ink);
                             if c.suppressed {
@@ -175,10 +200,22 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                             if grew && i + 1 == n {
                                 resp.scroll_to_me(Some(Align::RIGHT));
                             }
+                            if resp.clicked() {
+                                pick = Some((i, ui.input(|inp| inp.modifiers)));
+                            }
+                            // A right-click on a step outside the selection selects it alone.
+                            if resp.secondary_clicked() && !selected.contains(&i) {
+                                pick = Some((i, egui::Modifiers::NONE));
+                            }
                             if resp.double_clicked() {
                                 edit = Some(i);
                             }
-                            resp.context_menu(|ui| step_menu(ui, i, c, &mut card_hits, &mut edit, &mut roll, &mut action));
+                            if many.len() > 1 && selected.contains(&i) {
+                                let all_suppressed = many.iter().all(|k| chips.get(*k).is_some_and(|c| c.suppressed));
+                                resp.context_menu(|ui| many_menu(ui, &many, all_suppressed, &mut card_hits, &mut action));
+                            } else {
+                                resp.context_menu(|ui| step_menu(ui, i, c, &mut card_hits, &mut edit, &mut roll, &mut action));
+                            }
                             // The hover card would take the menu's place: not while the menu is up.
                             if !resp.context_menu_opened() {
                                 resp.on_hover_ui(|ui| hover_card(ui, t, i, c, &mut card_hits, &mut edit, &mut roll, &mut action));
@@ -211,6 +248,10 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
                 }
             });
         });
+    if let Some((i, m)) = pick {
+        select_step(&mut app.ui.workbench, i, m);
+    }
+    focus(app, ui.ctx(), strip_rect);
     app.ui.workbench.chip_colors = colors;
     app.ui.workbench.chip_hues = hues;
     app.ui.workbench.chip_suppressed = suppressed;
@@ -232,11 +273,113 @@ pub(super) fn show(app: &mut VectorcraftApp, ui: &mut Ui, t: &Tokens) {
             let current = chips.get(index).map(|c| c.label.clone()).unwrap_or_default();
             app.ui.workbench.rename_step = Some((index, current));
         }
+        Some(Action::SuppressMany(indices, on)) => run(app, "timeline.suppressSteps", json!({"indices": indices, "suppressed": on})),
+        Some(Action::DeleteMany(indices)) => delete_steps(app, indices),
         None => {}
     }
     rename_window(app, ui.ctx());
     if let Some(k) = roll {
         roll_to(app, k);
+    }
+}
+
+/// A click on step `i`: alone it selects the step; with Shift the range from the anchor (the last
+/// step clicked without Shift); with Cmd (Ctrl on Windows) it adds or takes away that one step.
+/// The strip then has the keyboard.
+fn select_step(wb: &mut super::WorkbenchState, i: usize, m: egui::Modifiers) {
+    if m.shift {
+        let a = wb.steps_anchor.unwrap_or(i);
+        let range = a.min(i)..=a.max(i);
+        if !m.command {
+            wb.steps_selected.clear();
+        }
+        wb.steps_selected.extend(range);
+        wb.steps_anchor = Some(a);
+    } else if m.command {
+        if !wb.steps_selected.remove(&i) {
+            wb.steps_selected.insert(i);
+        }
+        wb.steps_anchor = Some(i);
+    } else {
+        wb.steps_selected = [i].into();
+        wb.steps_anchor = Some(i);
+    }
+    wb.strip_focus = true;
+}
+
+/// Who has the keyboard after the strip is drawn: a press elsewhere takes it from the strip; a
+/// press on the canvas also clears the selection (not one in a menu or window over the canvas).
+fn focus(app: &mut VectorcraftApp, ctx: &egui::Context, strip: Rect) {
+    let press = ctx.input(|i| if i.pointer.any_pressed() { i.pointer.interact_pos() } else { None });
+    let Some(p) = press.filter(|p| !strip.contains(*p)) else { return };
+    app.ui.workbench.strip_focus = false;
+    let over_canvas = app.canvas_rect.is_some_and(|r| r.contains(p));
+    let covered = egui::Popup::is_any_open(ctx)
+        || app.ui.workbench.rename_step.is_some()
+        || ctx.layer_id_at(p).is_some_and(|l| l.order != egui::Order::Background);
+    if over_canvas && !covered {
+        app.ui.workbench.steps_selected.clear();
+        app.ui.workbench.steps_anchor = None;
+    }
+}
+
+/// The strip's keys, read before the canvas's shortcuts: while the strip has the keyboard (a chip
+/// was clicked last) and no text field has it, Delete or Backspace delete the selected steps as one
+/// undo step and Esc lets them go. True when a key was taken.
+pub(super) fn keys(app: &mut VectorcraftApp, ctx: &egui::Context) -> bool {
+    let wb = &app.ui.workbench;
+    if !wb.strip_focus || wb.steps_selected.is_empty() || ctx.egui_wants_keyboard_input() || ctx.memory(|m| m.focused().is_some()) {
+        return false;
+    }
+    let del =
+        ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Delete) || i.consume_key(egui::Modifiers::NONE, egui::Key::Backspace));
+    if del {
+        let indices: Vec<usize> = wb.steps_selected.iter().copied().collect();
+        delete_steps(app, indices);
+        return true;
+    }
+    if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+        app.ui.workbench.steps_selected.clear();
+        app.ui.workbench.steps_anchor = None;
+        return true;
+    }
+    false
+}
+
+/// Delete `indices` (one undo step); the selection goes with them.
+fn delete_steps(app: &mut VectorcraftApp, indices: Vec<usize>) {
+    match app.run("timeline.deleteSteps", json!({"indices": indices})) {
+        Ok(_) => {
+            app.ui.workbench.steps_selected.clear();
+            app.ui.workbench.steps_anchor = None;
+        }
+        Err(e) => app.status(e),
+    }
+}
+
+/// The right-click menu of a selection of several steps: Delete (n), Suppress (n) or, when every
+/// one is suppressed, Unsuppress (n).
+fn many_menu(ui: &mut Ui, many: &[usize], all_suppressed: bool, hits: &mut Vec<(String, Rect)>, action: &mut Option<Action>) {
+    ui.set_min_width(150.0);
+    ui.label(egui::RichText::new(format!("{} {}", many.len(), tl!("steps selected"))).small().weak());
+    ui.separator();
+    let mut item = |ui: &mut Ui, name: &str, text: String| {
+        let r = ui.button(text);
+        hits.push((format!("menu:{name}"), r.rect));
+        if r.clicked() {
+            ui.close();
+            true
+        } else {
+            false
+        }
+    };
+    let n = many.len();
+    if item(ui, "delete-many", format!("{} ({n})", tl!("Delete"))) {
+        *action = Some(Action::DeleteMany(many.to_vec()));
+    }
+    let text = if all_suppressed { tl!("Unsuppress") } else { tl!("Suppress") };
+    if item(ui, "suppress-many", format!("{text} ({n})")) {
+        *action = Some(Action::SuppressMany(many.to_vec(), !all_suppressed));
     }
 }
 

@@ -3941,3 +3941,6 @@ lighting	Light	光源
 	Plan Nest	規劃巢狀排列
 	Sheet & Nest	板材與巢狀排列
 	{parts} parts on one sheet	1 張板材上共 {parts} 個零件
+	Delete Timeline Steps	刪除時間軸步驟
+	Suppress Timeline Steps	抑制時間軸步驟
+	steps selected	個步驟已選取

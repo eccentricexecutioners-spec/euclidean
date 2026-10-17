@@ -62,6 +62,24 @@ pub fn specs() -> Vec<CommandSpec> {
             delete_step
         ),
         cmd!(
+            "timeline.deleteSteps",
+            "Delete Timeline Steps",
+            [],
+            None,
+            "{indices: [index…]} removes those steps and replays the later ones without them (they are renumbered); the steps that worked on what a deleted step made are marked orphaned and fail. One undo step → {failed: index|null, error, steps, marker}",
+            has_timeline,
+            delete_steps
+        ),
+        cmd!(
+            "timeline.suppressSteps",
+            "Suppress Timeline Steps",
+            [],
+            None,
+            "{indices: [index…], suppressed: bool} skips those steps (true) or runs them again (false) on replay. One undo step → {failed: index|null, error, steps, marker}",
+            has_timeline,
+            suppress_steps
+        ),
+        cmd!(
             "timeline.renameStep",
             "Rename Timeline Step",
             [],
@@ -203,6 +221,68 @@ fn delete_step(s: &mut Session, p: &Value) -> Result<Value> {
         if let Some(m) = t.marker {
             let m = if i < m { m - 1 } else { m };
             t.marker = (m < t.steps.len()).then_some(m);
+        }
+        Ok(())
+    })
+}
+
+/// The `indices` of a many-step command: step numbers, each in the timeline, sorted, once each.
+fn indices(p: &Value, n: usize, cmd: &str) -> Result<Vec<usize>> {
+    let a = p.get("indices").and_then(Value::as_array).ok_or_else(|| bad(cmd, "`indices` must be a list of step numbers (0 = the first step)"))?;
+    let mut out = a
+        .iter()
+        .map(|v| {
+            v.as_u64().and_then(|i| usize::try_from(i).ok()).filter(|i| *i < n).ok_or_else(|| bad(cmd, format!("no step {v} (the timeline has {n})")))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if out.is_empty() {
+        return Err(bad(cmd, "`indices` is empty"));
+    }
+    out.sort_unstable();
+    out.dedup();
+    Ok(out)
+}
+
+fn delete_steps(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.deleteSteps";
+    let n = s.doc().ok().and_then(|st| timeline::read(&st.doc)).map_or(0, |t| t.steps.len());
+    let gone_steps = indices(p, n, cmd)?;
+    let label = if gone_steps.len() == 1 { "Delete Timeline Step" } else { "Delete Timeline Steps" };
+    s.timeline_rewrite(label, |t| {
+        // As one deleteStep each, but every step after the first deleted one is checked against
+        // all of them: a later step that worked on what any of them made is orphaned.
+        let gone: std::collections::BTreeSet<_> = gone_steps.iter().flat_map(|i| t.steps[*i].created.iter().copied()).collect();
+        for (k, later) in t.steps.iter_mut().enumerate().skip(gone_steps[0] + 1) {
+            if gone_steps.binary_search(&k).is_err() && timeline::references(later, &gone) {
+                later.orphaned = true;
+            }
+        }
+        let marker = t.marker;
+        for i in gone_steps.iter().rev() {
+            t.steps.remove(*i);
+        }
+        if let Some(m) = marker {
+            let m = m - gone_steps.iter().filter(|i| **i < m).count();
+            t.marker = (m < t.steps.len()).then_some(m);
+        }
+        Ok(())
+    })
+}
+
+fn suppress_steps(s: &mut Session, p: &Value) -> Result<Value> {
+    let cmd = "timeline.suppressSteps";
+    let n = s.doc().ok().and_then(|st| timeline::read(&st.doc)).map_or(0, |t| t.steps.len());
+    let which = indices(p, n, cmd)?;
+    let on = p.get("suppressed").and_then(Value::as_bool).ok_or_else(|| bad(cmd, "`suppressed` must be true or false"))?;
+    let label = match (on, which.len()) {
+        (true, 1) => "Suppress Timeline Step",
+        (true, _) => "Suppress Timeline Steps",
+        (false, 1) => "Unsuppress Timeline Step",
+        (false, _) => "Unsuppress Timeline Steps",
+    };
+    s.timeline_rewrite(label, |t| {
+        for i in &which {
+            t.steps[*i].suppressed = on;
         }
         Ok(())
     })

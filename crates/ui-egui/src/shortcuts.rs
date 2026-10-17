@@ -226,6 +226,11 @@ pub fn handle(app: &mut VectorcraftApp, ctx: &egui::Context) {
         }
         return;
     }
+    // The timeline strip has the keyboard (a step was clicked last): Delete deletes the selected
+    // steps, Esc lets them go; the canvas's Delete is not reached.
+    if crate::workbench::strip_keys(app, ctx) {
+        return;
+    }
     // Sketch mode (Euclidean) takes the keyboard: tool letters, the heads-up boxes, Tab, Enter,
     // Escape, Delete. Command chords stay with the normal path below.
     if crate::sketch::active(app) {

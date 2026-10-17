@@ -5020,3 +5020,6 @@ imageTrace	Outline	Körvonal
 	Plan Nest	Elhelyezés tervezése
 	Sheet & Nest	Lemez és elhelyezés
 	{parts} parts on one sheet	{parts} alkatrész egy lemezen
+	Delete Timeline Steps	Idővonal lépéseinek törlése
+	Suppress Timeline Steps	Idővonal lépéseinek elnyomása
+	steps selected	kijelölt lépés

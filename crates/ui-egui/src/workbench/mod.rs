@@ -93,6 +93,16 @@ pub struct WorkbenchState {
     /// The Rename Step window: the step and the name being typed.
     #[serde(skip)]
     pub rename_step: Option<(usize, String)>,
+    /// The timeline steps selected in the strip (click, Shift-click a range, Cmd/Ctrl-click one).
+    #[serde(skip)]
+    pub steps_selected: BTreeSet<usize>,
+    /// Where a Shift-click range starts: the step clicked last without Shift.
+    #[serde(skip)]
+    pub steps_anchor: Option<usize>,
+    /// The strip has the keyboard: a chip was clicked last, not the canvas or a panel. Delete and
+    /// Backspace then delete the selected steps; Esc clears them.
+    #[serde(skip)]
+    pub strip_focus: bool,
 }
 
 impl Default for WorkbenchState {
@@ -121,8 +131,17 @@ impl Default for WorkbenchState {
             chip_hues: vec![],
             chip_suppressed: vec![],
             strip_steps: 0,
+            steps_selected: BTreeSet::new(),
+            steps_anchor: None,
+            strip_focus: false,
         }
     }
+}
+
+/// The timeline strip's Delete, Backspace and Esc, ahead of the canvas's shortcuts (see
+/// `timeline_strip::keys`). True when the strip took a key.
+pub fn strip_keys(app: &mut crate::VectorcraftApp, ctx: &egui::Context) -> bool {
+    timeline_strip::keys(app, ctx)
 }
 
 impl WorkbenchState {

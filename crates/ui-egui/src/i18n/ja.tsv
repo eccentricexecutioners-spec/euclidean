@@ -4617,3 +4617,6 @@ lighting	Light	ライト
 	Plan Nest	ネスティングを計画
 	Sheet & Nest	シートとネスティング
 	{parts} parts on one sheet	1枚のシートに{parts}個のパーツ
+	Delete Timeline Steps	タイムラインのステップを複数削除
+	Suppress Timeline Steps	タイムラインのステップを複数抑制
+	steps selected	ステップを選択中

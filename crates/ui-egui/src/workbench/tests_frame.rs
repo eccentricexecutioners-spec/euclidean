@@ -823,3 +823,122 @@ fn a_sketch_is_one_step_and_editing_it_reopens_the_sketch() {
     rig.double_click("chip:1");
     assert!(rig.app.sketch.as_ref().is_some_and(|m| m.id.0 == id), "Edit reopens the sketch");
 }
+
+// ---------------------------------------------------------------- E4 Part A: select steps, Delete
+
+impl Rig {
+    fn click_with(&mut self, name: &str, modifiers: Modifiers) {
+        let p = self.hit(name);
+        self.frame(vec![Event::ModifiersChanged(modifiers), Event::PointerMoved(p)]);
+        let button = |pressed| Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers };
+        self.frame(vec![button(true)]);
+        self.frame(vec![button(false)]);
+        self.frame(vec![Event::ModifiersChanged(Modifiers::NONE)]);
+        self.settle();
+    }
+
+    fn key(&mut self, key: egui::Key) {
+        let ev = |pressed| Event::Key { key, physical_key: None, pressed, repeat: false, modifiers: Modifiers::NONE };
+        self.frame(vec![ev(true), ev(false)]);
+        self.settle();
+    }
+
+    fn chosen(&self) -> Vec<usize> {
+        self.app.ui.workbench.steps_selected.iter().copied().collect()
+    }
+}
+
+fn step_cmds(rig: &mut Rig) -> Vec<String> {
+    timeline_list(rig)["steps"].as_array().unwrap().iter().map(|s| s["cmd"].as_str().unwrap().to_string()).collect()
+}
+
+#[test]
+fn shift_click_selects_a_range_and_cmd_click_toggles_one() {
+    let (mut rig, _) = timeline_rig();
+    rig.click_with("chip:0", Modifiers::NONE);
+    assert_eq!(rig.chosen(), [0]);
+    assert!(rig.app.ui.workbench.strip_focus, "a click on a step gives the strip the keyboard");
+    rig.click_with("chip:2", Modifiers::SHIFT);
+    assert_eq!(rig.chosen(), [0, 1, 2], "Shift: the range from the step clicked last");
+    rig.click_with("chip:1", Modifiers::COMMAND);
+    assert_eq!(rig.chosen(), [0, 2], "Cmd/Ctrl: one taken away");
+    rig.click_with("chip:3", Modifiers::COMMAND);
+    assert_eq!(rig.chosen(), [0, 2, 3], "Cmd/Ctrl: one added");
+    // The selected chips are drawn in the tab's colour, unlike the others.
+    let c = &rig.app.ui.workbench.chip_colors;
+    assert_eq!(c[0], c[2]);
+    assert_ne!(c[0], c[1]);
+    // A plain click starts again; Esc lets the selection go.
+    rig.click_with("chip:1", Modifiers::NONE);
+    assert_eq!(rig.chosen(), [1]);
+    rig.key(egui::Key::Escape);
+    assert!(rig.chosen().is_empty());
+}
+
+#[test]
+fn delete_removes_exactly_the_selected_steps_in_one_undo_and_undo_brings_them_back() {
+    let (mut rig, _) = timeline_rig();
+    let before = step_cmds(&mut rig);
+    assert_eq!(before.len(), 4, "{before:?}");
+    rig.click_with("chip:1", Modifiers::NONE);
+    rig.click_with("chip:3", Modifiers::COMMAND);
+    rig.key(egui::Key::Delete);
+    let after = step_cmds(&mut rig);
+    assert_eq!(after, [before[0].clone(), before[2].clone()], "steps 2 and 4 are gone, no other");
+    assert!(rig.chosen().is_empty(), "the deleted steps are no longer selected");
+    // The canvas's Delete did not also run: the rectangle and its offset are still there.
+    assert_eq!(rig.app.session.execute("select.all", &json!({})).unwrap()["count"], json!(2));
+    rig.app.session.execute("edit.undo", &json!({})).unwrap();
+    assert_eq!(step_cmds(&mut rig), before, "one undo brings both back");
+    // Backspace works as Delete; the right-click menu of a selection offers Delete (n).
+    rig.click_with("chip:0", Modifiers::NONE);
+    rig.click_with("chip:1", Modifiers::SHIFT);
+    let text = rig.right_click("chip:1");
+    assert!(text.contains("Delete (2)") && text.contains("Suppress (2)"), "{text}");
+    rig.click("menu:suppress-many");
+    let st = timeline_list(&mut rig);
+    assert_eq!((st["steps"][0]["suppressed"].clone(), st["steps"][1]["suppressed"].clone()), (json!(true), json!(true)), "{st}");
+    let text = rig.right_click("chip:0");
+    assert!(text.contains("Unsuppress (2)"), "{text}");
+    rig.frame(vec![Event::Key { key: egui::Key::Escape, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE }]);
+    rig.settle();
+    rig.click_with("chip:0", Modifiers::NONE);
+    rig.click_with("chip:1", Modifiers::SHIFT);
+    rig.key(egui::Key::Backspace);
+    assert_eq!(step_cmds(&mut rig), before[2..].to_vec());
+}
+
+#[test]
+fn delete_with_a_text_field_focused_leaves_the_timeline_alone() {
+    let (mut rig, _) = timeline_rig();
+    rig.click_with("chip:2", Modifiers::NONE);
+    // A field takes the keyboard (the Rename Step window's name).
+    rig.app.ui.workbench.rename_step = Some((2, "abc".into()));
+    rig.settle();
+    assert!(rig.ctx.memory(|m| m.focused().is_some()), "the name field has the keyboard");
+    rig.key(egui::Key::Delete);
+    rig.key(egui::Key::Backspace);
+    assert_eq!(step_cmds(&mut rig).len(), 4, "no step deleted while typing");
+    assert_eq!(rig.chosen(), [2]);
+}
+
+#[test]
+fn a_click_on_the_canvas_clears_the_steps_and_the_canvas_delete_still_deletes_objects() {
+    let (mut rig, _) = timeline_rig();
+    rig.click_with("chip:0", Modifiers::NONE);
+    let canvas = rig.app.canvas_rect.expect("the canvas is drawn");
+    // A click on empty canvas, away from the drawing.
+    let p = canvas.right_bottom() - egui::vec2(30.0, 30.0);
+    rig.frame(vec![Event::PointerMoved(p)]);
+    for pressed in [true, false] {
+        rig.frame(vec![Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE }]);
+    }
+    rig.settle();
+    assert!(rig.chosen().is_empty() && !rig.app.ui.workbench.strip_focus, "the canvas has the keyboard again");
+    let n = step_cmds(&mut rig).len();
+    rig.app.session.execute("select.all", &json!({})).unwrap();
+    rig.settle();
+    rig.key(egui::Key::Delete);
+    assert_eq!(rig.app.session.execute("select.all", &json!({})).unwrap()["count"], json!(0), "Delete cleared the objects");
+    assert_eq!(step_cmds(&mut rig).len(), n + 1, "as a step of its own; no step was deleted");
+}

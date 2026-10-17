@@ -528,3 +528,59 @@ fn suppressing_an_earlier_creation_keeps_later_steps_on_their_own_objects() {
     assert_eq!(run(&mut s, "sketch.inspect", json!({"id": sketch}))["entities"].as_array().unwrap().len(), 5);
     assert!((width_of(&s, path) - 50.0).abs() < 1e-6, "the path is back");
 }
+
+// ---------------------------------------------------------------- E4 Part A: many steps at once
+
+#[test]
+fn delete_steps_removes_exactly_those_steps_in_one_undo_and_orphans_what_worked_on_them() {
+    let mut s = session();
+    drawing(&mut s);
+    // rectangle · ellipse · select · offset · fill (the select is its own step or merged: count them)
+    let before = cmds(&mut s);
+    let ellipse = before.iter().position(|c| c == "shape.ellipse").unwrap();
+    let fill = before.iter().position(|c| c == "paint.setFill").unwrap();
+    let doc_before = doc_json(&s);
+    let r = run(&mut s, "timeline.deleteSteps", json!({"indices": [fill, ellipse, ellipse]}));
+    assert_eq!(r["steps"].as_u64().unwrap() as usize, before.len() - 2, "{r}");
+    let after = cmds(&mut s);
+    let mut want = before.clone();
+    want.remove(fill);
+    want.remove(ellipse);
+    assert_eq!(after, want, "exactly the two chosen steps are gone, the rest in order");
+    // rectangle and offset are left: the ellipse went with its step.
+    assert_eq!(run(&mut s, "select.all", json!({}))["count"], json!(2));
+    // One undo brings both back, the document as it was.
+    run(&mut s, "edit.undo", json!({}));
+    assert_eq!(cmds(&mut s), before);
+    assert_eq!(doc_json(&s), doc_before);
+    // Deleting the rectangle and the ellipse together orphans the offset that worked on the rectangle.
+    let rect = before.iter().position(|c| c == "shape.rectangle").unwrap();
+    run(&mut s, "timeline.deleteSteps", json!({"indices": [rect, ellipse]}));
+    let st = steps(&mut s);
+    let offset = st.iter().find(|v| v["cmd"] == "object.path.offsetPath").unwrap();
+    assert_eq!(offset["orphaned"], json!(true), "{offset}");
+    assert_eq!(offset["status"], "failed", "{offset}");
+    // A bad index changes nothing.
+    let n = steps(&mut s).len();
+    assert!(s.execute("timeline.deleteSteps", &json!({"indices": [0, 99]})).is_err());
+    assert!(s.execute("timeline.deleteSteps", &json!({"indices": []})).is_err());
+    assert_eq!(steps(&mut s).len(), n);
+}
+
+#[test]
+fn suppress_steps_skips_several_steps_in_one_undo() {
+    let mut s = session();
+    drawing(&mut s);
+    let before = cmds(&mut s);
+    let ellipse = before.iter().position(|c| c == "shape.ellipse").unwrap();
+    let fill = before.iter().position(|c| c == "paint.setFill").unwrap();
+    run(&mut s, "timeline.suppressSteps", json!({"indices": [ellipse, fill], "suppressed": true}));
+    let st = steps(&mut s);
+    let flags: Vec<bool> = st.iter().map(|v| v["suppressed"] == json!(true)).collect();
+    assert!(flags[ellipse] && flags[fill] && flags.iter().filter(|f| **f).count() == 2, "{flags:?}");
+    run(&mut s, "edit.undo", json!({}));
+    assert!(steps(&mut s).iter().all(|v| v["suppressed"] != json!(true)), "one undo un-suppresses both");
+    run(&mut s, "edit.redo", json!({}));
+    run(&mut s, "timeline.suppressSteps", json!({"indices": [ellipse, fill], "suppressed": false}));
+    assert!(steps(&mut s).iter().all(|v| v["suppressed"] != json!(true)));
+}

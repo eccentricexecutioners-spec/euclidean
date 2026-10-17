@@ -4159,3 +4159,6 @@ lighting	Light	光源
 	Plan Nest	规划嵌套
 	Sheet & Nest	板材与嵌套
 	{parts} parts on one sheet	1 张板材上共 {parts} 个零件
+	Delete Timeline Steps	删除时间轴步骤
+	Suppress Timeline Steps	抑制时间轴步骤
+	steps selected	个步骤已选择
