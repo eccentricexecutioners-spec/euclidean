@@ -4627,3 +4627,15 @@ theme	Appearance	Giao diện
 	Plywood	Ván ép
 	MDF	MDF
 	Acrylic	Mica
+	Export for LightBurn	Xuất cho LightBurn
+	Export for LightBurn (.lbrn2)…	Xuất cho LightBurn (.lbrn2)…
+	Export Job	Xuất công việc
+	Export Job…	Xuất công việc…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Một dự án LightBurn (.lbrn2) mỗi tấm: milimét, mỗi màu một lớp
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Mỗi tấm dưới dạng SVG, DXF và LightBurn, một hình của mỗi tấm và job.json, trong một thư mục.
+	Exported {n} LightBurn file(s): {layers}	Đã xuất {n} tệp LightBurn: {layers}
+	For LightBurn…	Cho LightBurn…
+	Job	Công việc
+	Job exported: {n} sheet(s) in {folder}	Đã xuất công việc: {n} tấm trong {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	hơn 30 màu: LightBurn có 30 lớp cắt
+@msg	no artboard {_1}	không có bảng vẽ {_1}

@@ -4609,3 +4609,15 @@ lighting	Light	광원
 	Plywood	합판
 	MDF	MDF
 	Acrylic	아크릴
+	Export for LightBurn	LightBurn용으로 내보내기
+	Export for LightBurn (.lbrn2)…	LightBurn용으로 내보내기(.lbrn2)…
+	Export Job	작업 내보내기
+	Export Job…	작업 내보내기…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	시트마다 LightBurn 프로젝트(.lbrn2): 밀리미터, 색마다 레이어 하나
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	각 시트를 SVG, DXF, LightBurn으로, 각 시트의 그림과 job.json을 한 폴더에.
+	Exported {n} LightBurn file(s): {layers}	LightBurn 파일 {n}개 내보냄: {layers}
+	For LightBurn…	LightBurn용…
+	Job	작업
+	Job exported: {n} sheet(s) in {folder}	작업 내보냄: {folder}에 시트 {n}개
+@msg	more than 30 colours: LightBurn has 30 cut layers	색이 30개를 넘습니다: LightBurn의 재단 레이어는 30개입니다
+@msg	no artboard {_1}	대지 {_1} 없음

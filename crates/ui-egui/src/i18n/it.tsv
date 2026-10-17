@@ -4645,3 +4645,15 @@ lighting	Light	Luce
 	Plywood	Compensato
 	MDF	MDF
 	Acrylic	Acrilico
+	Export for LightBurn	Esporta per LightBurn
+	Export for LightBurn (.lbrn2)…	Esporta per LightBurn (.lbrn2)…
+	Export Job	Esporta lavoro
+	Export Job…	Esporta lavoro…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Un progetto LightBurn (.lbrn2) per foglio: millimetri, un livello per colore
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Ogni foglio come SVG, DXF e LightBurn, un'immagine di ciascuno e job.json, in una cartella.
+	Exported {n} LightBurn file(s): {layers}	{n} file LightBurn esportati: {layers}
+	For LightBurn…	Per LightBurn…
+	Job	Lavoro
+	Job exported: {n} sheet(s) in {folder}	Lavoro esportato: {n} fogli in {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	più di 30 colori: LightBurn ha 30 livelli di taglio
+@msg	no artboard {_1}	nessuna tavola da disegno {_1}

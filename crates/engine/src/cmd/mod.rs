@@ -69,6 +69,7 @@ pub mod recovery;
 pub mod scripts;
 mod select;
 pub(crate) mod shaper;
+pub(crate) mod sheetout;
 pub(crate) mod sketch;
 pub(crate) mod slices;
 mod stroke;
@@ -247,6 +248,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
         v.extend(parameters::specs());
         v.extend(timeline::specs());
         v.extend(nest::specs());
+        v.extend(sheetout::specs());
         v.extend(sketch::specs());
         v.extend(docinfo::specs());
         v.extend(panelcmds::specs());

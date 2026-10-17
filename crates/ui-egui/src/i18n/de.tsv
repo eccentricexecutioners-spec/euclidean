@@ -4581,22 +4581,34 @@ theme	Appearance	Erscheinungsbild
 	Delete Timeline Steps	Zeitleistenschritte löschen
 	Suppress Timeline Steps	Zeitleistenschritte unterdrücken
 	steps selected	Schritte ausgewählt
-	Add Sheet	Bogen hinzufügen
-	List Sheets	Bogen auflisten
-	Sheet Settings	Bogeneinstellungen
-	Update Sheet	Bogen aktualisieren
-	An empty sheet with these settings, right of the art	Ein leerer Bogen mit diesen Einstellungen rechts neben der Grafik
-	Click a sheet's artboard to change that sheet.	Klicken Sie auf die Zeichenfläche eines Bogens, um diesen Bogen zu ändern.
+	Add Sheet	Tafel hinzufügen
+	List Sheets	Tafeln auflisten
+	Sheet Settings	Tafeleinstellungen
+	Update Sheet	Tafel aktualisieren
+	An empty sheet with these settings, right of the art	Eine leere Tafel mit diesen Einstellungen rechts neben der Grafik
+	Click a sheet's artboard to change that sheet.	Klicken Sie auf die Zeichenfläche einer Tafel, um diese Tafel zu ändern.
 	Made by an earlier version: margin and spacing are the defaults.	Mit einer früheren Version erstellt: Rand und Abstand sind die Standardwerte.
 	Material:	Material:
 	Thickness:	Stärke:
-	Nest Selection onto this sheet	Auswahl auf diesem Bogen verschachteln
-	New sheet	Neuer Bogen
-	Sheet changed: {parts} parts re-nested	Bogen geändert: {parts} Teile neu verschachtelt
-	Sheet: {name}	Bogen: {name}
-	This sheet, at true size, cut paths only.	Dieser Bogen in Originalgröße, nur Schnittpfade.
+	Nest Selection onto this sheet	Auswahl auf dieser Tafel verschachteln
+	New sheet	Neue Tafel
+	Sheet changed: {parts} parts re-nested	Tafel geändert: {parts} Teile neu verschachtelt
+	Sheet: {name}	Tafel: {name}
+	This sheet, at true size, cut paths only.	Diese Tafel in Originalgröße, nur Schnittpfade.
 	{name} added: empty	{name} hinzugefügt: leer
-	{n} moved to a new sheet	{n} auf einen neuen Bogen verschoben
+	{n} moved to a new sheet	{n} auf eine neue Tafel verschoben
 	Plywood	Sperrholz
 	MDF	MDF
 	Acrylic	Acryl
+	Export for LightBurn	Für LightBurn exportieren
+	Export for LightBurn (.lbrn2)…	Für LightBurn exportieren (.lbrn2)…
+	Export Job	Auftrag exportieren
+	Export Job…	Auftrag exportieren…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Ein LightBurn-Projekt (.lbrn2) pro Tafel: Millimeter, eine Ebene pro Farbe
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Jede Tafel als SVG, DXF und LightBurn, ein Bild davon und job.json, in einem Ordner.
+	Exported {n} LightBurn file(s): {layers}	{n} LightBurn-Datei(en) exportiert: {layers}
+	For LightBurn…	Für LightBurn…
+	Job	Auftrag
+	Job exported: {n} sheet(s) in {folder}	Auftrag exportiert: {n} Tafel(n) in {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	mehr als 30 Farben: LightBurn hat 30 Schnittebenen
+@msg	no artboard {_1}	keine Zeichenfläche {_1}

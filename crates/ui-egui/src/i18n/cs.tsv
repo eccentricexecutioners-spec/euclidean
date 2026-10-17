@@ -5075,3 +5075,15 @@ mark-style	Japanese	Japonské
 	Plywood	Překližka
 	MDF	MDF
 	Acrylic	Akrylát
+	Export for LightBurn	Exportovat pro LightBurn
+	Export for LightBurn (.lbrn2)…	Exportovat pro LightBurn (.lbrn2)…
+	Export Job	Exportovat zakázku
+	Export Job…	Exportovat zakázku…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Projekt LightBurn (.lbrn2) pro každý list: milimetry, jedna vrstva na barvu
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Každý list jako SVG, DXF a LightBurn, obrázek každého a job.json v jedné složce.
+	Exported {n} LightBurn file(s): {layers}	Exportováno souborů LightBurn: {n}: {layers}
+	For LightBurn…	Pro LightBurn…
+	Job	Zakázka
+	Job exported: {n} sheet(s) in {folder}	Zakázka exportována: listů {n} ve složce {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	více než 30 barev: LightBurn má 30 řezných vrstev
+@msg	no artboard {_1}	žádná kreslicí plocha {_1}

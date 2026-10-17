@@ -27,6 +27,7 @@ mod encode;
 pub mod eps;
 mod export;
 pub(crate) mod imagemap;
+pub mod lbrn;
 mod load;
 pub(crate) use load::{MAX_RASTER_ALLOC, too_large_note};
 mod metafile;

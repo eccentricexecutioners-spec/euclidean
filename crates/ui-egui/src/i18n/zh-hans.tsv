@@ -4181,3 +4181,15 @@ lighting	Light	光源
 	Plywood	胶合板
 	MDF	中密度纤维板
 	Acrylic	亚克力
+	Export for LightBurn	导出为 LightBurn
+	Export for LightBurn (.lbrn2)…	导出为 LightBurn (.lbrn2)…
+	Export Job	导出作业
+	Export Job…	导出作业…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	每块板材一个 LightBurn 项目 (.lbrn2)：毫米，每种颜色一个图层
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	每块板材的 SVG、DXF 和 LightBurn 文件、每块的图片以及 job.json，放在一个文件夹中。
+	Exported {n} LightBurn file(s): {layers}	已导出 {n} 个 LightBurn 文件：{layers}
+	For LightBurn…	用于 LightBurn…
+	Job	作业
+	Job exported: {n} sheet(s) in {folder}	作业已导出：{n} 块板材，位于 {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	超过 30 种颜色：LightBurn 有 30 个切割图层
+@msg	no artboard {_1}	没有画板 {_1}

@@ -136,7 +136,7 @@ fn all_sheets(app: &VectorcraftApp) -> Vec<usize> {
 }
 
 /// The sheets an export writes: the active sheet, else every sheet (else every artboard).
-fn export_boards(app: &VectorcraftApp) -> Vec<usize> {
+pub(crate) fn export_boards(app: &VectorcraftApp) -> Vec<usize> {
     active_sheet(app).map_or_else(|| all_sheets(app), |(i, ..)| vec![i])
 }
 
@@ -188,6 +188,39 @@ fn add_sheet(app: &mut VectorcraftApp, s: &Settings) -> Last {
         }
         Err(e) => Last { error: Some(e.to_string()), ..Default::default() },
     }
+}
+
+/// Write `boards` for LightBurn (`.lbrn2`, one file per sheet) at `path`, else where a save panel
+/// says. The status names the files and the layers the colours went to.
+pub(crate) fn export_lightburn(app: &mut VectorcraftApp, boards: &[usize], path: Option<String>) -> Result<Value, String> {
+    let path = crate::io::target_path(app, path, "lbrn2")?;
+    let r = app.session.execute("nest.exportLightBurn", &json!({"artboards": boards, "path": path})).map_err(|e| e.to_string())?;
+    let files = r["files"].as_array().map_or(0, Vec::len);
+    let mut layers: Vec<String> = vec![];
+    for l in r["layers"].as_array().into_iter().flatten() {
+        let row = format!("{} → C{:02}", l["colour"].as_str().unwrap_or_default(), l["index"].as_u64().unwrap_or(0));
+        if !layers.contains(&row) {
+            layers.push(row);
+        }
+    }
+    app.status(crate::i18n::fmt(tl!("Exported {n} LightBurn file(s): {layers}"), &[("n", &files.to_string()), ("layers", &layers.join(", "))]));
+    Ok(r)
+}
+
+/// Write the job package (every sheet as SVG, DXF and LightBurn, a thumbnail each, job.json) to the
+/// folder `path`, else to one named in a save panel (its extension dropped).
+pub(crate) fn export_job(app: &mut VectorcraftApp, path: Option<String>) -> Result<Value, String> {
+    let folder = match path {
+        Some(p) => p,
+        None => {
+            let picked = crate::io::target_path(app, None, "job")?;
+            picked.strip_suffix(".job").map_or(picked.clone(), str::to_string)
+        }
+    };
+    let r = app.session.execute("nest.exportJob", &json!({"path": folder})).map_err(|e| e.to_string())?;
+    let sheets = r["job"]["sheets"].as_array().map_or(0, Vec::len);
+    app.status(crate::i18n::fmt(tl!("Job exported: {n} sheet(s) in {folder}"), &[("n", &sheets.to_string()), ("folder", &folder)]));
+    Ok(r)
 }
 
 /// A length row: the label, then a field (mm) that takes the rest of the width.
@@ -315,7 +348,24 @@ pub fn show(app: &mut VectorcraftApp, ui: &mut Ui) {
                 }
             }
         }
+        let lb = widgets::secondary_button(ui, tl!("For LightBurn…"));
+        app.ui.workbench.hits.push(("nest:lightburn".into(), lb.rect));
+        if lb.on_hover_text(tl!("A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour")).clicked()
+            && let Err(e) = export_lightburn(app, &boards, None)
+        {
+            set_pstate(&ctx, "nest-last", Last { error: Some(e), ..last.clone() });
+        }
     });
+    ui.add_space(8.0);
+    widgets::subheader(ui, tl!("Job"));
+    widgets::dim_label(ui, tl!("Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder."));
+    let job = widgets::secondary_button(ui, tl!("Export Job…"));
+    app.ui.workbench.hits.push(("nest:job".into(), job.rect));
+    if job.clicked()
+        && let Err(e) = export_job(app, None)
+    {
+        set_pstate(&ctx, "nest-last", Last { error: Some(e), ..last.clone() });
+    }
 }
 
 pub fn menu(app: &mut VectorcraftApp, ui: &mut Ui) {
@@ -427,5 +477,28 @@ mod tests {
         assert_eq!(app.view().unwrap().artboard, added, "the new sheet is the active artboard");
         assert_eq!(active_sheet(&app).map(|a| (a.0, a.1.material)), Some((added, "Plywood".to_string())));
         assert_eq!(range(&[1, 4]).as_deref(), Some("2,5"));
+    }
+
+    #[test]
+    fn file_export_offers_lightburn_and_the_job_and_they_write_the_active_sheet() {
+        let mut app = app();
+        let board = two_plates(&mut app);
+        app.view_mut().unwrap().artboard = board;
+        let dir = std::env::temp_dir().join(format!("euclidean-nest-ui-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let lb = dir.join("plates.lbrn2");
+        crate::menus::invoke(&mut app, "file.exportLightBurn", json!({"path": lb.to_string_lossy()}));
+        let xml = std::fs::read_to_string(&lb).unwrap();
+        assert!(xml.contains("<LightBurnProject") && xml.matches("<Shape ").count() == 2, "{xml}");
+        let job = dir.join("job");
+        crate::menus::invoke(&mut app, "file.exportJob", json!({"path": job.to_string_lossy()}));
+        assert!(job.join("job.json").exists() && job.join("Sheet 1.lbrn2").exists());
+        let text = crate::tests_labels::painted_text(&mut app, show);
+        for want in ["For LightBurn…", "Export Job…"] {
+            assert!(text.contains(want), "{want:?} missing from:\n{text}");
+        }
+        assert!(crate::menus::enabled(&app, "file.exportLightBurn") && crate::menus::enabled(&app, "file.exportJob"));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

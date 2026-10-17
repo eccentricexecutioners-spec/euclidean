@@ -159,6 +159,18 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
     ),
     ("file.export.png", "Export As PNG…", "", "{path?, …document.export options}; no path: pick the file, then PNG Options"),
     (
+        "file.exportLightBurn",
+        "Export for LightBurn (.lbrn2)…",
+        "",
+        "{path?} the active sheet (else every sheet, else every artboard) as LightBurn projects (nest.exportLightBurn): one file, or <stem>-<sheet>.lbrn2 each; no path: pick the file → {files, layers, warnings}",
+    ),
+    (
+        "file.exportJob",
+        "Export Job…",
+        "",
+        "{path?} every sheet as SVG (mm), DXF, LightBurn and a thumbnail, with job.json, in the folder `path` (nest.exportJob); no path: name it in a save panel → {path, job, files}",
+    ),
+    (
         "file.exportForScreens",
         "Export for Screens…",
         "Cmd+Alt+E",
@@ -1042,6 +1054,11 @@ pub fn run_ui_command(app: &mut VectorcraftApp, id: &str, p: &Value) -> Option<R
             Ok(Value::Null)
         }),
         "file.export.png" => io::export(app, Some("png"), s("path"), p),
+        "file.exportLightBurn" => {
+            let boards = crate::panels::nest::export_boards(app);
+            crate::panels::nest::export_lightburn(app, &boards, s("path"))
+        }
+        "file.exportJob" => crate::panels::nest::export_job(app, s("path")),
         "file.documentSetup" => crate::dialogs::open_document_setup(app),
         "edit.preferences" => {
             crate::prefs_dialog::open(app, s("category").as_deref());
@@ -2063,6 +2080,8 @@ pub fn enabled(app: &VectorcraftApp, id: &str) -> bool {
         "file.place"
         | "file.export.svg"
         | "file.export.png"
+        | "file.exportLightBurn"
+        | "file.exportJob"
         | "file.exportAs"
         | "file.exportForScreens"
         | "file.documentSetup"
@@ -2224,6 +2243,8 @@ pub(crate) fn menu_tree_raw(english_names: bool) -> Vec<(&'static str, Vec<Item>
                         c("Export As…", "file.exportAs"),
                         c("Export As SVG…", "file.export.svg"),
                         c("Export As PNG…", "file.export.png"),
+                        c("Export for LightBurn (.lbrn2)…", "file.exportLightBurn"),
+                        c("Export Job…", "file.exportJob"),
                         c("Save for Web (Legacy)…", "file.saveForWeb"),
                     ],
                 ),

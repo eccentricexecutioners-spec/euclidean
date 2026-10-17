@@ -5042,3 +5042,15 @@ imageTrace	Outline	Körvonal
 	Plywood	Rétegelt lemez
 	MDF	MDF
 	Acrylic	Akril
+	Export for LightBurn	Exportálás LightBurnhöz
+	Export for LightBurn (.lbrn2)…	Exportálás LightBurnhöz (.lbrn2)…
+	Export Job	Megrendelés exportálása
+	Export Job…	Megrendelés exportálása…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Laponként egy LightBurn-projekt (.lbrn2): milliméter, színenként egy réteg
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Minden lap SVG, DXF és LightBurn formátumban, mindegyikről egy kép és a job.json, egy mappában.
+	Exported {n} LightBurn file(s): {layers}	{n} LightBurn-fájl exportálva: {layers}
+	For LightBurn…	LightBurnhöz…
+	Job	Megrendelés
+	Job exported: {n} sheet(s) in {folder}	Megrendelés exportálva: {n} lap ide: {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	több mint 30 szín: a LightBurnnek 30 vágási rétege van
+@msg	no artboard {_1}	nincs {_1}. rajztábla

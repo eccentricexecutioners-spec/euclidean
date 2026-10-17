@@ -4918,3 +4918,15 @@ mark-style	Japanese	Japońskie
 	Plywood	Sklejka
 	MDF	MDF
 	Acrylic	Akryl
+	Export for LightBurn	Eksportuj do LightBurn
+	Export for LightBurn (.lbrn2)…	Eksportuj do LightBurn (.lbrn2)…
+	Export Job	Eksportuj zlecenie
+	Export Job…	Eksportuj zlecenie…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Projekt LightBurn (.lbrn2) na arkusz: milimetry, jedna warstwa na kolor
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Każdy arkusz jako SVG, DXF i LightBurn, obraz każdego i job.json w jednym folderze.
+	Exported {n} LightBurn file(s): {layers}	Wyeksportowano pliki LightBurn: {n}: {layers}
+	For LightBurn…	Do LightBurn…
+	Job	Zlecenie
+	Job exported: {n} sheet(s) in {folder}	Wyeksportowano zlecenie: arkusze {n} w {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	więcej niż 30 kolorów: LightBurn ma 30 warstw cięcia
+@msg	no artboard {_1}	brak obszaru roboczego {_1}

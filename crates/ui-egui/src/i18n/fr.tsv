@@ -5075,3 +5075,15 @@ theme	Appearance	Apparence
 	Plywood	Contreplaqué
 	MDF	MDF
 	Acrylic	Acrylique
+	Export for LightBurn	Exporter pour LightBurn
+	Export for LightBurn (.lbrn2)…	Exporter pour LightBurn (.lbrn2)…
+	Export Job	Exporter la commande
+	Export Job…	Exporter la commande…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Un projet LightBurn (.lbrn2) par feuille : millimètres, un calque par couleur
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Chaque feuille en SVG, DXF et LightBurn, une image de chacune et job.json, dans un dossier.
+	Exported {n} LightBurn file(s): {layers}	{n} fichier(s) LightBurn exporté(s) : {layers}
+	For LightBurn…	Pour LightBurn…
+	Job	Commande
+	Job exported: {n} sheet(s) in {folder}	Commande exportée : {n} feuille(s) dans {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	plus de 30 couleurs : LightBurn a 30 calques de découpe
+@msg	no artboard {_1}	aucun plan de travail {_1}

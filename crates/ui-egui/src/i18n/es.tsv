@@ -5016,3 +5016,15 @@ mark-style	Japanese	Japonesas
 	Plywood	Contrachapado
 	MDF	MDF
 	Acrylic	Acrílico
+	Export for LightBurn	Exportar para LightBurn
+	Export for LightBurn (.lbrn2)…	Exportar para LightBurn (.lbrn2)…
+	Export Job	Exportar trabajo
+	Export Job…	Exportar trabajo…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Un proyecto de LightBurn (.lbrn2) por hoja: milímetros, una capa por color
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Cada hoja como SVG, DXF y LightBurn, una imagen de cada una y job.json, en una carpeta.
+	Exported {n} LightBurn file(s): {layers}	{n} archivo(s) de LightBurn exportado(s): {layers}
+	For LightBurn…	Para LightBurn…
+	Job	Trabajo
+	Job exported: {n} sheet(s) in {folder}	Trabajo exportado: {n} hoja(s) en {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	más de 30 colores: LightBurn tiene 30 capas de corte
+@msg	no artboard {_1}	no hay mesa de trabajo {_1}

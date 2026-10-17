@@ -3963,3 +3963,15 @@ lighting	Light	光源
 	Plywood	夾板
 	MDF	中密度纖維板
 	Acrylic	壓克力
+	Export for LightBurn	轉存為 LightBurn
+	Export for LightBurn (.lbrn2)…	轉存為 LightBurn (.lbrn2)…
+	Export Job	轉存工作
+	Export Job…	轉存工作…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	每塊板材一個 LightBurn 專案 (.lbrn2)：公釐，每種顏色一個圖層
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	每塊板材的 SVG、DXF 和 LightBurn 檔案、每塊的圖片以及 job.json，放在一個資料夾中。
+	Exported {n} LightBurn file(s): {layers}	已轉存 {n} 個 LightBurn 檔案：{layers}
+	For LightBurn…	用於 LightBurn…
+	Job	工作
+	Job exported: {n} sheet(s) in {folder}	工作已轉存：{n} 塊板材，位於 {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	超過 30 種顏色：LightBurn 有 30 個切割圖層
+@msg	no artboard {_1}	沒有工作區域 {_1}

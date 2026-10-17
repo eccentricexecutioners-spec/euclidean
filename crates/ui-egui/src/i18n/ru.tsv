@@ -4641,3 +4641,15 @@ lighting	Light	Свет
 	Plywood	Фанера
 	MDF	МДФ
 	Acrylic	Акрил
+	Export for LightBurn	Экспорт для LightBurn
+	Export for LightBurn (.lbrn2)…	Экспорт для LightBurn (.lbrn2)…
+	Export Job	Экспорт задания
+	Export Job…	Экспорт задания…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	Проект LightBurn (.lbrn2) на каждый лист: миллиметры, слой на каждый цвет
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	Каждый лист в SVG, DXF и LightBurn, изображение каждого и job.json в одной папке.
+	Exported {n} LightBurn file(s): {layers}	Экспортировано файлов LightBurn: {n}: {layers}
+	For LightBurn…	Для LightBurn…
+	Job	Задание
+	Job exported: {n} sheet(s) in {folder}	Задание экспортировано: листов {n} в {folder}
+@msg	more than 30 colours: LightBurn has 30 cut layers	больше 30 цветов: в LightBurn 30 слоёв резки
+@msg	no artboard {_1}	нет монтажной области {_1}

@@ -4639,3 +4639,15 @@ lighting	Light	ライト
 	Plywood	合板
 	MDF	MDF
 	Acrylic	アクリル
+	Export for LightBurn	LightBurn 用に書き出し
+	Export for LightBurn (.lbrn2)…	LightBurn 用に書き出し (.lbrn2)…
+	Export Job	ジョブを書き出し
+	Export Job…	ジョブを書き出し…
+	A LightBurn project (.lbrn2) per sheet: millimetres, one layer per colour	シートごとに LightBurn プロジェクト (.lbrn2)：ミリ単位、色ごとに 1 レイヤー
+	Every sheet as SVG, DXF and LightBurn, a picture of each, and job.json, in one folder.	各シートを SVG・DXF・LightBurn で、各シートの画像と job.json を 1 つのフォルダーに。
+	Exported {n} LightBurn file(s): {layers}	LightBurn ファイルを {n} 個書き出しました：{layers}
+	For LightBurn…	LightBurn 用…
+	Job	ジョブ
+	Job exported: {n} sheet(s) in {folder}	ジョブを書き出しました：{folder} に {n} シート
+@msg	more than 30 colours: LightBurn has 30 cut layers	30 色を超えています：LightBurn のカットレイヤーは 30 個です
+@msg	no artboard {_1}	アートボード {_1} はありません
